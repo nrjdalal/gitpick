@@ -15,7 +15,7 @@ const schema = z.object({
   target: z.string().optional(),
   branch: z.string().optional(),
   overwrite: z.boolean().optional(),
-  watch: z.union([z.string(), z.number(), z.boolean()]),
+  watch: z.union([z.string(), z.number(), z.boolean()]).optional(),
 })
 
 export const clone = new Command()
