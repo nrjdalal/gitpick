@@ -1,4 +1,6 @@
-export function githubConfigFromUrl(
+import { getDefaultBranch } from "./get-default-branch"
+
+export async function githubConfigFromUrl(
   url: string,
   {
     branch,
@@ -27,32 +29,26 @@ export function githubConfigFromUrl(
   const repository = split[1].endsWith(".git")
     ? split[1].slice(0, -4)
     : split[1]
-  let type =
+  const type =
     split[2] === "blob"
       ? "blob"
       : split[2] === "tree"
         ? "tree"
         : split[2] + split[3] === "refsheads"
           ? "raw"
-          : null
+          : "repository"
   const resolvedBranch = branch
     ? branch
-    : type
-      ? type === "raw"
+    : type === "repository"
+      ? await getDefaultBranch(`https://github.com/${owner}/${repository}`)
+      : type === "raw"
         ? split[4]
         : split[3]
-      : null
-  type =
-    type === "tree"
-      ? "directory"
-      : type === "blob" || type === "raw"
-        ? "file"
-        : null
   const path = type
     ? type === "raw"
       ? split.slice(5).join("/")
       : split.slice(4).join("/")
-    : split.slice(2).join("/") || null
+    : split.slice(2).join("/") || "/"
   const resolvedTarget = target || path?.split("/").pop() || repository
 
   return {
