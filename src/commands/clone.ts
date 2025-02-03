@@ -7,7 +7,7 @@ import { Command } from "commander"
 import inquirer from "inquirer"
 import ora, { Ora } from "ora"
 import simpleGit from "simple-git"
-import { boolean, z } from "zod"
+import { z } from "zod"
 import { fromError } from "zod-validation-error"
 
 const schema = z.object({
