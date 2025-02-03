@@ -1,51 +1,66 @@
-const regex =
-  /^(?:(https:\/\/|git@)?github\.com[:\/])?([^\/]+)\/([^\/]+?)(?:\.git)?(?:\/(blob|tree|refs\/heads))?(?:\/([^\/]+))?(?:\/(.+))?$/
+export function githubConfigFromUrl(
+  url: string,
+  {
+    branch,
+    target,
+  }: {
+    branch?: string | null
+    target?: string | null
+  },
+) {
+  const prefixes = [
+    "git@github.com:",
+    "https://github.com/",
+    "https://raw.githubusercontent.com/",
+  ]
 
-const shouldMatch = [
-  "user/repo",
-  "user/repo/path/to/file",
-  "user/repo/blob/branch/path/to/file",
-  "user/repo/tree/branch/path/to/directory",
-  "user/repo.git",
-  "user/repo.git/path/to/file",
-  "user/repo.git/blob/branch/path/to/file",
-  "user/repo.git/tree/branch/path/to/directory",
-  "https://github.com/user/repo",
-  "https://github.com/user/repo/path/to/file",
-  "https://github.com/user/repo/blob/branch/path/to/file",
-  "https://github.com/user/repo/tree/branch/path/to/directory",
-  "https://github.com/user/repo.git",
-  "https://github.com/user/repo.git/path/to/file",
-  "https://github.com/user/repo.git/blob/branch/path/to/file",
-  "https://github.com/user/repo.git/tree/branch/path/to/directory",
-  "git@github.com:user/repo",
-  "git@github.com:user/repo/path/to/file",
-  "git@github.com:user/repo/blob/branch/path/to/file",
-  "git@github.com:user/repo/tree/branch/path/to/directory",
-  "git@github.com:user/repo.git",
-  "git@github.com:user/repo.git/path/to/file",
-  "git@github.com:user/repo.git/blob/branch/path/to/file",
-  "git@github.com:user/repo.git/tree/branch/path/to/directory",
-  "https://raw.githubusercontent.com/user/repo/refs/heads/branch/file",
-]
-
-const parseGitHubUrl = (url) => {
-  const match = url.match(regex)
-  if (!match) {
-    return null
+  for (const prefix of prefixes) {
+    if (url.startsWith(prefix)) {
+      url = url.replace(prefix, "")
+      break
+    }
   }
 
-  const [_, prefix, user, repo, type, branch, path] = match
+  const split = url.split("/")
+
+  const owner = split[0]
+  const repository = split[1].endsWith(".git")
+    ? split[1].slice(0, -4)
+    : split[1]
+  let type =
+    split[2] === "blob"
+      ? "blob"
+      : split[2] === "tree"
+        ? "tree"
+        : split[2] + split[3] === "refsheads"
+          ? "raw"
+          : null
+  const resolvedBranch = branch
+    ? branch
+    : type
+      ? type === "raw"
+        ? split[4]
+        : split[3]
+      : null
+  type =
+    type === "tree"
+      ? "directory"
+      : type === "blob" || type === "raw"
+        ? "file"
+        : null
+  const path = type
+    ? type === "raw"
+      ? split.slice(5).join("/")
+      : split.slice(4).join("/")
+    : split.slice(2).join("/") || null
+  const resolvedTarget = target || path?.split("/").pop() || repository
 
   return {
-    user,
-    repository: repo,
-    type: type === "refs/heads" ? "raw" : type || (path ? false : null),
-    branch: type && type !== "refs/heads" ? branch : path ? false : null,
-    path: path ? path.slice(1) : type === "refs/heads" ? branch : null,
+    owner,
+    repository,
+    type,
+    branch: resolvedBranch,
+    path,
+    target: resolvedTarget,
   }
 }
-
-shouldMatch.forEach((url) => {
-  console.log(url, parseGitHubUrl(url))
-})

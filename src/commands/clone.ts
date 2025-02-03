@@ -1,10 +1,8 @@
 import fs from "fs"
 import os from "os"
 import path from "path"
-import { gitClone } from "@/utils/git-clone"
 import { parseTimeString } from "@/utils/parse-time-string"
-import { regex } from "@/utils/regex"
-import { toGithubUrl } from "@/utils/transform-url"
+import { githubConfigFromUrl } from "@/utils/transform-url"
 import { Command } from "commander"
 import inquirer from "inquirer"
 import ora, { Ora } from "ora"
@@ -55,41 +53,19 @@ export const clone = new Command()
         )
       }
 
+      const config = githubConfigFromUrl(url, {
+        branch: options.branch,
+        target,
+      })
+
+      console.log(config, "\n")
+
       const spinner = ora().start()
 
       try {
-        url = toGithubUrl(url)
-
-        // if the url is not a github path, clone the repository with default branch
-        if (url.match(regex.github)) {
-          await gitClone(url, target)
-        }
-
-        const match = url.match(regex.githubPath)
-
-        const config = {
-          owner: match![1],
-          repository: match![2].endsWith(".git")
-            ? match![2].slice(0, -4)
-            : match![2],
-          branch: options.branch || match![4],
-          path: match![5],
-          target: target
-            ? target
-            : match![3] === "blob"
-              ? "."
-              : match![5].split("/").pop()!,
-          type: match![3] === "blob" ? "file" : "directory",
-        }
-
         spinner.stop()
-        console.log(config, "\n")
 
-        const targetPath = path.resolve(
-          config.type === "directory"
-            ? config.target
-            : config.target + "/" + config.path.split("/").pop()!,
-        )
+        const targetPath = path.resolve(config.target)
 
         if (options.watch) options.overwrite = true
 
@@ -189,10 +165,13 @@ const cloneAction = async (
       await fs.promises.mkdir(targetPath, { recursive: true })
       await copyDir(sourcePath, targetPath)
     } else {
-      await fs.promises.mkdir(targetPath.split("/").slice(0, -1).join("/"), {
+      await fs.promises.mkdir(targetPath, {
         recursive: true,
       })
-      await fs.promises.copyFile(sourcePath, targetPath)
+      await fs.promises.copyFile(
+        sourcePath,
+        targetPath + "/" + config.path.split("/").pop(),
+      )
     }
     if (!options.watch) {
       spinner.succeed(
