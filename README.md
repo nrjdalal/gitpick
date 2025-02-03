@@ -35,7 +35,7 @@ Options:
   -b, --branch       Branch to clone
   -o, --overwrite    Skip overwrite prompt
   -w, --watch [time] Watch the repository and sync every [time]
-                                      (e.g. 1h, 30m, 15s) default: 1m
+                     (e.g. 1h, 30m, 15s) default: 1m
   -h, --help         display help for command
   -v, --version      display the version number
 
