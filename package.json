@@ -1,6 +1,6 @@
 {
   "name": "gitpick",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "description": "With gitpick, you can clone precisely what you need.",
   "license": "MIT",
   "author": {
@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
-    "test": "bun run build && rm -rf test && node dist/index.js",
+    "test": "bun run build && rm -rf ./*test* && node dist/index.js",
     "tests": "bash tests.sh",
     "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then npx simple-git-hooks; fi",
     "publish:local": "bun run build && npm version minor && changeset publish",
