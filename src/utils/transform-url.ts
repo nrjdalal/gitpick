@@ -1,5 +1,5 @@
 const regex =
-  /^(?:(https:\/\/|git@)?github\.com[:\/])?([^\/]+)\/([^\/]+?)(?:\.git)?(?:\/(blob|tree|refs\/heads)(?:\/([^\/]+))?)?(\/.*)?$/
+  /^(?:(https:\/\/|git@)?github\.com[:\/])?([^\/]+)\/([^\/]+?)(?:\.git)?(?:\/(blob|tree|refs\/heads))?(?:\/([^\/]+))?(?:\/(.+))?$/
 
 const shouldMatch = [
   "user/repo",
@@ -26,7 +26,7 @@ const shouldMatch = [
   "git@github.com:user/repo.git/path/to/file",
   "git@github.com:user/repo.git/blob/branch/path/to/file",
   "git@github.com:user/repo.git/tree/branch/path/to/directory",
-  "https://raw.githubusercontent.com/user/repo/refs/heads/main/file",
+  "https://raw.githubusercontent.com/user/repo/refs/heads/branch/file",
 ]
 
 const parseGitHubUrl = (url) => {
@@ -41,8 +41,8 @@ const parseGitHubUrl = (url) => {
     user,
     repository: repo,
     type: type === "refs/heads" ? "raw" : type || (path ? false : null),
-    branch: type ? branch : path ? false : null,
-    path: path ? path.slice(1) : null,
+    branch: type && type !== "refs/heads" ? branch : path ? false : null,
+    path: path ? path.slice(1) : type === "refs/heads" ? branch : null,
   }
 }
 
