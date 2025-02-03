@@ -69,9 +69,10 @@ export const clone = new Command()
 
         if (
           fs.existsSync(
-            targetPath + config.type === "blob"
-              ? "/" + config.path.split("/").pop()
-              : "",
+            targetPath +
+              (config.type === "blob"
+                ? "/" + config.path.split("/").pop()
+                : ""),
           ) &&
           (await fs.promises.readdir(targetPath)).length &&
           !options.overwrite
