@@ -27,8 +27,7 @@ async function main() {
 
   program.configureHelp({
     formatHelp: () => {
-      return `
-${chalk.bold("With gitpick, you can clone precisely what you need.")}
+      return `${chalk.bold("With gitpick, you can clone precisely what you need.")}
 
 🚀 More awesome tools at ${chalk.cyan("https://github.com/nrjdalal")}
 
@@ -59,6 +58,8 @@ ${chalk.bold("Examples:")}
 `
     },
   })
+
+  console.log(`\ngitpick v${packageJson.version}\n`)
 
   program.parse()
 }

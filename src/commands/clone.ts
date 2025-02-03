@@ -1,26 +1,23 @@
 import fs from "fs"
 import os from "os"
 import path from "path"
-import { getDefaultBranch } from "@/utils/get-default-branch"
+import { gitClone } from "@/utils/git-clone"
 import { parseTimeString } from "@/utils/parse-time-string"
+import { regex } from "@/utils/regex"
+import { toGithubUrl } from "@/utils/transform-url"
 import { Command } from "commander"
 import inquirer from "inquirer"
 import ora, { Ora } from "ora"
 import simpleGit from "simple-git"
 import { z } from "zod"
 import { fromError } from "zod-validation-error"
-import packageJson from "../../package.json"
-
-const githubRegex = {
-  url: /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/(tree|blob)\/([^/]+)\/(.+?)(?<!\/)$/,
-  branch: /^[a-zA-Z0-9.\-_]+$/,
-}
 
 const schema = z.object({
-  url: z.string().regex(githubRegex.url),
+  url: z.string(),
   target: z.string().optional(),
-  branch: z.string().regex(githubRegex.branch).optional(),
+  branch: z.string().optional(),
   overwrite: z.boolean().optional(),
+  watch: z.union([z.string(), z.number()]).optional(),
 })
 
 export const clone = new Command()
@@ -38,13 +35,15 @@ export const clone = new Command()
     async (
       url: string,
       target: string | undefined,
-      options: {
-        branch?: string
-        overwrite?: boolean
-        watch?: string | number
-      },
+      options: z.infer<typeof schema>,
     ) => {
-      console.log(`\ngitpick v${packageJson.version}\n`)
+      schema.parse({
+        url,
+        target,
+        branch: options.branch,
+        overwrite: options.overwrite,
+        watch: options.watch,
+      })
 
       if (options.watch) {
         console.log(
@@ -59,46 +58,14 @@ export const clone = new Command()
       const spinner = ora().start()
 
       try {
-        url = url
-          .replace("git://", "https://")
-          .replace("http://", "https://")
-          .replace("git@github.com:", "https://github.com/")
+        url = toGithubUrl(url)
 
-        if (!url.startsWith("https://github.com")) {
-          url = `https://github.com/${url}`
+        // if the url is not a github path, clone the repository with default branch
+        if (url.match(regex.github)) {
+          await gitClone(url, target)
         }
 
-        if (url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)(\.git)?$/)) {
-          spinner.start("Fetching default branch")
-          const defaultBranch = await getDefaultBranch(url)
-          spinner.succeed("Default branch fetched")
-
-          spinner.start("Cloning the default branch")
-          const git = simpleGit()
-          await git.clone(url, target || ".", [
-            "--depth",
-            "1",
-            "--single-branch",
-            "--branch",
-            defaultBranch,
-          ])
-          await fs.promises.rm(path.join(target || ".", ".git"), {
-            recursive: true,
-            force: true,
-          })
-          spinner.succeed("Repository branch cloned")
-
-          process.exit(0)
-        }
-
-        schema.parse({
-          url,
-          target,
-          branch: options.branch,
-          overwrite: options.overwrite,
-        })
-
-        const match = url.match(githubRegex.url)
+        const match = url.match(regex.githubPath)
 
         const config = {
           owner: match![1],
