@@ -49,7 +49,11 @@ export async function githubConfigFromUrl(
       ? split.slice(5).join("/")
       : split.slice(4).join("/")
     : split.slice(2).join("/") || "/"
-  const resolvedTarget = target || path?.split("/").pop() || repository
+  const resolvedTarget = target
+    ? target
+    : type === "blob"
+      ? "."
+      : path.split("/").pop() || repository
 
   return {
     owner,

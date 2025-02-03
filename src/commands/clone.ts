@@ -7,7 +7,7 @@ import { Command } from "commander"
 import inquirer from "inquirer"
 import ora, { Ora } from "ora"
 import simpleGit from "simple-git"
-import { z } from "zod"
+import { boolean, z } from "zod"
 import { fromError } from "zod-validation-error"
 
 const schema = z.object({
@@ -15,7 +15,7 @@ const schema = z.object({
   target: z.string().optional(),
   branch: z.string().optional(),
   overwrite: z.boolean().optional(),
-  watch: z.union([z.string(), z.number()]).optional(),
+  watch: z.union([z.string(), z.number(), z.boolean()]),
 })
 
 export const clone = new Command()
@@ -44,12 +44,10 @@ export const clone = new Command()
       })
 
       if (options.watch) {
+        if (typeof options.watch === "boolean") options.watch = "1m"
+
         console.log(
-          `👀 Watching every ${
-            typeof options.watch === "boolean"
-              ? "1m"
-              : parseTimeString(options.watch) / 1000 + "s"
-          }\n`,
+          `👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`,
         )
       }
 
@@ -98,7 +96,7 @@ export const clone = new Command()
         await cloneAction(spinner, config, options, targetPath)
 
         if (options.watch) {
-          const watchInterval = parseTimeString(options.watch) || 60000
+          const watchInterval = parseTimeString(options.watch)
           setInterval(
             async () => await cloneAction(spinner, config, options, targetPath),
             watchInterval,
@@ -141,7 +139,7 @@ const cloneAction = async (
     path: string
   },
   options: {
-    watch?: string | number
+    watch?: string | number | boolean
   },
   targetPath: string,
 ) => {
@@ -151,6 +149,7 @@ const cloneAction = async (
     const tempDir = path.join(os.tmpdir(), `${config.repository}-${Date.now()}`)
 
     if (!options.watch) spinner.start(`Cloning ${config.type} from repository`)
+
     await git.clone(repoUrl, tempDir, [
       "--depth",
       "1",
