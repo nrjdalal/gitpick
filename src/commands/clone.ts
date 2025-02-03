@@ -68,12 +68,16 @@ export const clone = new Command()
         if (options.watch) options.overwrite = true
 
         if (
-          fs.existsSync(targetPath) &&
+          fs.existsSync(
+            targetPath + config.type === "blob"
+              ? "/" + config.path.split("/").pop()
+              : "",
+          ) &&
           (await fs.promises.readdir(targetPath)).length &&
           !options.overwrite
         ) {
           const message =
-            config.type === "directory"
+            config.type === "tree"
               ? "The target directory is not empty. Do you want to overwrite the files?"
               : "The target file already exists. Do you want to overwrite the file?"
 
