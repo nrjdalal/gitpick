@@ -1,0 +1,76 @@
+{
+  "name": "gitpick",
+  "version": "3.6.5",
+  "description": "With gitpick, you can clone precisely what you need.",
+  "license": "MIT",
+  "author": {
+    "name": "Neeraj Dalal",
+    "url": "https://nrjdalal.com",
+    "email": "admin@nrjdalal.com"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "bun run build && rm -rf test && node dist/index.js",
+    "tests": "bash tests.sh",
+    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then npx simple-git-hooks; fi",
+    "publish:local": "bun run build && npm version minor && changeset publish",
+    "publish:latest": "NODE_ENV=production changeset publish"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged",
+    "commit-msg": "npx commitlint --edit $1"
+  },
+  "repository": "nrjdalal/gitpick",
+  "homepage": "https://github.com/nrjdalal/gitpick#readme",
+  "bugs": "https://github.com/nrjdalal/gitpick/issues",
+  "keywords": [
+    "branch",
+    "checkout",
+    "cli",
+    "clone",
+    "directories",
+    "directory",
+    "file",
+    "files",
+    "folder",
+    "folders",
+    "gh",
+    "git",
+    "github",
+    "gitpick",
+    "path",
+    "sparse",
+    "specific",
+    "url"
+  ],
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "gitpick": "./dist/index.js"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.10",
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
+    "@types/node": "^22.10.1",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.4.2",
+    "simple-git-hooks": "^2.11.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^13.0.0",
+    "inquirer": "^12.3.3",
+    "ora": "^8.2.0",
+    "simple-git": "^3.27.0",
+    "zod": "^3.24.1",
+    "zod-validation-error": "^3.4.0"
+  }
+}

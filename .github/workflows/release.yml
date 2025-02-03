@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: bun install --no-save
+
+      - name: Build
+        run: bun run build
+
+      - id: CHECK_TOKENS
+        name: Check if TOKENS are configured
+        run: |
+          if [ -z "${{ secrets.GITHUB_TOKEN }}" ] || [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "TOKENS are not configured. Skipping changeset actions."
+            echo "NOT_FOUND=true" >> $GITHUB_OUTPUT
+          fi
+
+      - id: changesets
+        name: Create a release pull request or publish to npm
+        if: steps.CHECK_TOKENS.outputs.NOT_FOUND != 'true'
+        uses: changesets/action@v1
+        with:
+          title: "chore(release): version packages"
+          commit: "chore(release): version packages"
+          version: node .github/changeset-version.js
+          publish: bun run publish:latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

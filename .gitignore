@@ -1,0 +1,22 @@
+# os
+.DS_Store
+*.pem
+
+# logs
+/*-debug.log*
+/*-error.log*
+
+# lockfiles
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+bun.lockb
+
+# npm
+node_modules/
+
+# build
+dist/
+
+# custom
+test/
