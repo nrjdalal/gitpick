@@ -1,6 +1,6 @@
 {
   "name": "gitpick",
-  "version": "3.11.1",
+  "version": "3.12.0",
   "description": "With gitpick, you can clone precisely what you need.",
   "license": "MIT",
   "author": {
@@ -53,21 +53,21 @@
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.0",
-    "@changesets/cli": "^2.27.10",
-    "@commitlint/cli": "^19.6.0",
-    "@commitlint/config-conventional": "^19.6.0",
-    "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
-    "@types/node": "^22.10.1",
-    "lint-staged": "^15.2.10",
+    "@changesets/cli": "^2.27.12",
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
+    "@types/node": "^22.13.1",
+    "lint-staged": "^15.4.3",
     "prettier": "^3.4.2",
     "simple-git-hooks": "^2.11.1",
-    "tsup": "^8.3.5",
-    "typescript": "^5.7.2"
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3"
   },
   "dependencies": {
     "chalk": "^5.4.1",
-    "commander": "^13.0.0",
-    "inquirer": "^12.3.3",
+    "commander": "^13.1.0",
+    "inquirer": "^12.4.1",
     "ora": "^8.2.0",
     "simple-git": "^3.27.0",
     "zod": "^3.24.1",
