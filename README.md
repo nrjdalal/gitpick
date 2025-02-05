@@ -8,9 +8,9 @@ With [gitpick](https://www.npmjs.com/package/gitpick), you can clone precisely w
 
 Tired of cloning an entire repository when you only need a specific file or folder?
 
-Simply copy the Github URL and run with `npx gitpick <url> [target] [options]`
+Simply copy the Github URL and run with `npx gitpick <url> [target] [options]`, be that a public or a private repository.
 
-Hint: Target is optional, and follows default git clone behavior. Read [usage](#usage) for more details.
+- Target is optional, and follows default git clone behavior. Read [usage](#usage) for more details.
 
 <img width="540" alt="Image" src="https://github.com/user-attachments/assets/7d7f281d-2268-4951-a785-7979c639140f" />
 
@@ -46,6 +46,12 @@ Examples:
   $ gitpick <url> [target] -w [time]
   $ gitpick <url> [target] -b [branch] -w [time]
 ```
+
+If you wish to clone a private repository, generate a [personal access token](https://github.com/settings/personal-access-tokens/new).
+
+- For fine-grained access, select Repository permissions to be `Contents: Read-Only`.
+
+- Use `https://<token>@github.com` as URL prefix when cloning.
 
 Checkout https://github.com/nrjdalal for more awesome repositories.
 

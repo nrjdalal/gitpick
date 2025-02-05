@@ -56,7 +56,8 @@ export const clone = new Command()
         target,
       })
 
-      console.log(config, "\n")
+      const { token, ...configWithoutToken } = config
+      console.log(configWithoutToken, "\n")
 
       const spinner = ora().start()
 
@@ -137,6 +138,7 @@ async function copyDir(src: string, dest: string) {
 const cloneAction = async (
   spinner: Ora,
   config: {
+    token: string
     owner: string
     repository: string
     branch: string
@@ -150,7 +152,7 @@ const cloneAction = async (
 ) => {
   try {
     const git = simpleGit()
-    const repoUrl = `https://github.com/${config.owner}/${config.repository}.git`
+    const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
     const tempDir = path.join(os.tmpdir(), `${config.repository}-${Date.now()}`)
 
     if (!options.watch) spinner.start(`Cloning ${config.type} from repository`)

@@ -10,6 +10,15 @@ export async function githubConfigFromUrl(
     target?: string | null
   },
 ) {
+  const regex = /^https:\/\/([^@]+)@github\.com/
+  const match = url.match(regex)
+
+  let token = ""
+  if (match) {
+    token = match[1]
+    url = url.replace(regex, "https://github.com")
+  }
+
   const prefixes = [
     "git@github.com:",
     "https://github.com/",
@@ -40,7 +49,9 @@ export async function githubConfigFromUrl(
   const resolvedBranch = branch
     ? branch
     : type === "repository"
-      ? await getDefaultBranch(`https://github.com/${owner}/${repository}`)
+      ? await getDefaultBranch(
+          `https://${token ? token + "@" : token}github.com/${owner}/${repository}`,
+        )
       : type === "raw"
         ? split[4]
         : split[3]
@@ -56,6 +67,7 @@ export async function githubConfigFromUrl(
       : path.split("/").pop() || repository
 
   return {
+    token,
     owner,
     repository,
     type,
