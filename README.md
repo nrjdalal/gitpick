@@ -12,7 +12,7 @@ Simply copy the Github URL and run with `npx gitpick <url> [target] [options]`, 
 
 - Target is optional, and follows default git clone behavior. Read [usage](#usage) for more details.
 
-<img width="540" alt="Image" src="https://github.com/user-attachments/assets/7d7f281d-2268-4951-a785-7979c639140f" />
+<img width="640" alt="Image" src="https://github.com/user-attachments/assets/7d7f281d-2268-4951-a785-7979c639140f" />
 
 ## Usage
 
