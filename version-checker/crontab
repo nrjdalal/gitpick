@@ -1,1 +1,0 @@
-0 */8 * * * /bin/zsh /Users/nrjdalal/.scripts/version-checker.sh > /Users/nrjdalal/.scripts/version-checker.log 2>&1
