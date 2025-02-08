@@ -6,13 +6,13 @@ With [gitpick](https://www.npmjs.com/package/gitpick), you can clone precisely w
 [![npm](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![GitHub](https://img.shields.io/github/stars/nrjdalal/gitpick?color=blue)](https://github.com/nrjdalal/gitpick)
 
-Tired of cloning an entire repository when you only need a specific file or folder?
+Tired of cloning an entire repository when you only need a specific file or folder? Need to watch remote changes and sync them locally? GitPick is here to help!
 
-Simply copy the Github URL and run with `npx gitpick <url> [target] [options]`, be that a public or a private repository.
+Simply copy the Github URL and run with `npx gitpick <url>`, be that a public or a private repository.
 
-- Target is optional, and follows default git clone behavior. Read [usage](#usage) for more details.
+- Target is optional, and `gitpick` follows default git clone behavior. Read [usage](#usage) for more details.
 
-<img width="786" alt="Image" src="https://github.com/user-attachments/assets/7d7f281d-2268-4951-a785-7979c639140f" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/78b92ed3-7d5c-48f4-8975-23bd744d3a3c" />
 
 ## Usage
 
@@ -83,22 +83,22 @@ Run `npx gitpick <url> [target] [options]` to clone a file or directory from a G
 
 Say your files are located at following GitHub URL with a directory:
 
-> https://github.com/zce/velite/tree/main/docs
+> https://github.com/nrjdalal/nrjdalal/tree/main/.config
 
 You can sync them to a target directory in your project using:
 
 ```bash
-npx gitpick https://github.com/zce/velite/tree/main/docs awesome-docs
+npx gitpick https://github.com/nrjdalal/nrjdalal/tree/main/.config config
 ```
 
-> This will clone the `docs` directory from the `zce/velite` repository to the `awesome-docs` directory in your project. If no target directory is given, it will use the last segment of the URL, e.g., in this case, `docs`.
+> This will clone the `.config` directory from the `nrjdalal/nrjdalal` repository to the `config` directory in your project. If no target directory is given, it will use the last segment of the URL, e.g., in this case, `.config`.
 
 ---
 
 If you need to watch for changes, just add `-w` or `-w [time]` (e.g., `1s`, `1m`, `1h` which is time in a human-readable format, default is `1m`):
 
 ```bash
-gitpick https://github.com/zce/velite/tree/main/docs -w
+gitpick https://github.com/nrjdalal/nrjdalal/tree/main/.config -w
 ```
 
 ---
