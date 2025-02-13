@@ -1,25 +1,20 @@
 {
   "name": "gitpick",
-  "version": "3.12.4",
+  "version": "3.13.0",
   "description": "With gitpick, you can clone precisely what you need.",
   "keywords": [
-    "branch",
-    "checkout",
-    "cli",
     "clone",
-    "directories",
+    "degit",
     "directory",
     "file",
-    "files",
     "folder",
-    "folders",
     "gh",
     "git",
     "github",
-    "gitpick",
     "path",
-    "sparse",
+    "scaffolding",
     "specific",
+    "template",
     "url"
   ],
   "homepage": "https://github.com/nrjdalal/gitpick#readme",
@@ -33,6 +28,7 @@
     "url": "https://nrjdalal.com"
   },
   "bin": {
+    "degit": "./dist/index.js",
     "gitpick": "./dist/index.js"
   },
   "files": [
