@@ -12,6 +12,14 @@ Simply copy the Github URL and run with `npx gitpick <url>`, be that a public or
 
 - Target is optional, and `gitpick` follows default git clone behavior. Read [usage](#usage) for more details.
 
+## Features
+
+- Autodetect branch and target directory if not provided.
+- Clone a file or directory from a GitHub repository.
+- Clone from public or private repositories.
+- Sync changes with remote repository at a specified interval.
+- Use shorthands like `owner/repo` or `owner/repo/path`.
+
 <img width="840" alt="Image" src="https://github.com/user-attachments/assets/78b92ed3-7d5c-48f4-8975-23bd744d3a3c" />
 
 ## Usage
