@@ -1,6 +1,6 @@
 {
   "name": "gitpick",
-  "version": "3.13.0",
+  "version": "3.13.2",
   "description": "With gitpick, you can clone precisely what you need.",
   "keywords": [
     "clone",
@@ -8,12 +8,9 @@
     "directory",
     "file",
     "folder",
-    "gh",
     "git",
     "github",
-    "path",
     "scaffolding",
-    "specific",
     "template",
     "url"
   ],
@@ -27,6 +24,7 @@
     "email": "admin@nrjdalal.com",
     "url": "https://nrjdalal.com"
   },
+  "type": "module",
   "bin": {
     "degit": "./dist/index.js",
     "gitpick": "./dist/index.js"
