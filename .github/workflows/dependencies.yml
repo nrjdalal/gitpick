@@ -1,0 +1,41 @@
+name: Update Dependencies
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Update Dependencies
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git pull origin main
+          git checkout -B update-dependencies
+          bunx taze -w
+          git add package.json bun.lock
+          git commit -m "chore(deps): update dependencies" || true
+          git push -f origin update-dependencies
+          curl -sL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"  "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls" \
+            -d "{\"title\": \"chore(deps): update dependencies\", \"head\": \"update-dependencies\", \"base\": \"main\", \"body\": \"Automatically generated PR to update dependencies.\"}"
