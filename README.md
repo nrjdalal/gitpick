@@ -12,6 +12,8 @@ Simply copy the Github URL and run with `npx gitpick <url>`, be that a public or
 
 - Target is optional, and `gitpick` follows default git clone behavior. Read [usage](#usage) for more details.
 
+<img width="400" alt="GitPick Meme" src="https://github.com/user-attachments/assets/dde09ae9-1ee4-4cd8-a181-91f8e6ed6ba6" />
+
 ## Features
 
 - Autodetect branch and target directory if not provided explicitly.
