@@ -1,6 +1,6 @@
 {
   "name": "gitpick",
-  "version": "3.17.0",
+  "version": "3.18.0",
   "description": "With gitpick, you can clone precisely what you need.",
   "keywords": [
     "clone",
@@ -35,9 +35,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then npx simple-git-hooks; fi",
-    "publish:latest": "NODE_ENV=production changeset publish",
-    "publish:local": "bun run build && npm version minor && changeset publish",
+    "prepare": "npx simple-git-hooks",
     "test": "bun run build && node dist/index.js",
     "tests": "bash tests.sh"
   },
