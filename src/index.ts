@@ -61,9 +61,7 @@ ${chalk.bold("Examples:")}
   })
 
   console.log(
-    chalk.dim(
-      `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
-    ),
+    `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
   )
 
   program.parse()

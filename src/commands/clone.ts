@@ -3,10 +3,9 @@ import os from "os"
 import path from "path"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
+import { cancel, confirm, intro, isCancel, log, spinner } from "@clack/prompts"
 import chalk from "chalk"
 import { Command } from "commander"
-import inquirer from "inquirer"
-import ora, { Ora } from "ora"
 import simpleGit from "simple-git"
 import { z } from "zod"
 import { fromError } from "zod-validation-error"
@@ -42,9 +41,12 @@ export const clone = new Command()
         url,
         target,
         branch: options.branch,
-        overwrite: options.overwrite || options.force,
+        overwrite: options.overwrite,
+        force: options.force,
         watch: options.watch,
       })
+
+      options.overwrite = options.overwrite || options.force
 
       if (options.watch) {
         if (typeof options.watch === "boolean") options.watch = "1m"
@@ -59,7 +61,7 @@ export const clone = new Command()
         target,
       })
 
-      console.log(
+      intro(
         `${chalk.bold(config.owner)}/${chalk.bold(config.repository)} ${chalk.green(
           `<${config.type}:${config.branch}>`,
         )} ${
@@ -73,14 +75,9 @@ export const clone = new Command()
                 }`,
               )}`
         }`,
-        "\n",
       )
 
-      const spinner = ora().start()
-
       try {
-        spinner.stop()
-
         const targetPath = path.resolve(config.target)
 
         if (options.watch) options.overwrite = true
@@ -100,44 +97,44 @@ export const clone = new Command()
               ? "The target directory is not empty. Do you want to overwrite the files?"
               : "The target file already exists. Do you want to overwrite the file?"
 
-          const { overwrite } = await inquirer.prompt([
-            {
-              type: "confirm",
-              name: "overwrite",
-              message,
-              default: false,
-            },
-          ])
+          const overwrite = await confirm({
+            message,
+          })
 
-          if (!overwrite) {
-            throw new Error("Chose not to overwrite files")
+          if (isCancel(overwrite)) {
+            cancel("Operation cancelled.")
+            process.exit(0)
           }
 
-          spinner.info(
-            "You can use -o | --overwrite or -f | --force flag to skip this prompt",
+          if (!overwrite) {
+            log.info("Chose not to overwrite files.")
+            process.exit(0)
+          }
+
+          log.info(
+            "You can use -o | --overwrite or -f | --force flag to skip this prompt next time.",
           )
         }
 
-        await cloneAction(spinner, config, options, targetPath)
+        await cloneAction(config, options, targetPath)
 
         if (options.watch) {
           const watchInterval = parseTimeString(options.watch)
           setInterval(
-            async () => await cloneAction(spinner, config, options, targetPath),
+            async () => await cloneAction(config, options, targetPath),
             watchInterval,
           )
         }
       } catch (err) {
-        console.log("\n")
-        spinner.fail("Level 1: An error occurred")
+        log.error("Level 1: An error occurred")
 
         if (err instanceof z.ZodError) {
           const validationError = fromError(err)
-          console.error("\nValidation Error: " + validationError.toString())
+          log.error("Validation Error: " + validationError.toString())
         } else if (err instanceof Error) {
-          console.error("\nError: " + err.message)
+          log.error("Error: " + err.message)
         } else {
-          console.error("\nUnexpected Error: " + JSON.stringify(err, null, 2))
+          log.error("Unexpected Error: " + JSON.stringify(err, null, 2))
         }
 
         process.exit(1)
@@ -163,7 +160,6 @@ async function copyDir(src: string, dest: string) {
 }
 
 const cloneAction = async (
-  spinner: Ora,
   config: {
     token: string
     owner: string
@@ -177,7 +173,11 @@ const cloneAction = async (
   },
   targetPath: string,
 ) => {
+  const s = spinner()
+
   try {
+    const start = performance.now()
+
     const git = simpleGit()
 
     if (process.platform === "win32") {
@@ -191,7 +191,7 @@ const cloneAction = async (
     )
 
     if (!options.watch)
-      spinner.start(
+      s.start(
         `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}`,
       )
 
@@ -206,6 +206,7 @@ const cloneAction = async (
     const sourcePath = path.join(tempDir, config.path)
 
     const sourceStat = await fs.promises.stat(sourcePath)
+
     if (sourceStat.isDirectory()) {
       await fs.promises.mkdir(targetPath, { recursive: true })
       await copyDir(sourcePath, targetPath)
@@ -218,21 +219,24 @@ const cloneAction = async (
         targetPath + "/" + config.path.split("/").pop(),
       )
     }
+
     if (!options.watch) {
-      spinner.succeed(
-        `Picked ${config.type}${config.type === "repository" ? " without .git!" : " from repository!"}`,
+      s.stop(
+        `Picked ${config.type}${config.type === "repository" ? " without .git!" : " from repository"} in ${(
+          (performance.now() - start) /
+          1000
+        ).toFixed(2)} seconds!`,
       )
-    } else spinner.succeed("Synced at " + new Date().toLocaleTimeString())
+    } else log.success("Synced at " + new Date().toLocaleTimeString())
 
     await fs.promises.rm(tempDir, { recursive: true, force: true })
   } catch (err) {
-    console.log("\n")
-    spinner.fail("Level 2: An error occurred!")
+    s.stop("Level 2: An error occurred while cloning!")
 
     if (err instanceof Error) {
-      console.error("\nError: " + err.message)
+      log.error("Error: " + err.message)
     } else {
-      console.error("\nUnexpected Error: " + JSON.stringify(err, null, 2))
+      log.error("Unexpected Error: " + JSON.stringify(err, null, 2))
     }
 
     process.exit(1)
