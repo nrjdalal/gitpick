@@ -28,6 +28,18 @@ Or full URL:
 npx gitpick https://github.com/TanStack/router
 ```
 
+Or clone a specific directory:
+
+```sh
+npx gitpick https://github.com/TanStack/router/tree/main/examples
+```
+
+Or clone a specific file:
+
+```sh
+npx gitpick https://github.com/TanStack/router/tree/main/package.json
+```
+
 - Clone a file or directory from a GitHub repository.
 - Autodetect branch and target directory if not provided explicitly.
 - Clone from public or private repositories using personal access tokens.
