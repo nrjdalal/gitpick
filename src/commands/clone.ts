@@ -176,8 +176,6 @@ const cloneAction = async (
   const s = spinner()
 
   try {
-    const start = performance.now()
-
     const git = simpleGit()
 
     if (process.platform === "win32") {
@@ -194,6 +192,8 @@ const cloneAction = async (
       s.start(
         `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}`,
       )
+
+    const start = performance.now()
 
     await git.clone(repoUrl, tempDir, [
       "--depth",
