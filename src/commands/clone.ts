@@ -200,7 +200,7 @@ const cloneAction = async (
 
     await fs.promises.rm(tempDir, { recursive: true, force: true })
   } catch (err) {
-    console.error("\x1b[31m%s\x1b[0m", "Failed to clone repository!")
+    spinner.fail("An error occurred!")
 
     if (err instanceof Error) {
       console.error("\nError:\n" + err.message + "\n")
@@ -209,5 +209,7 @@ const cloneAction = async (
         "\nUnexpected Error:\n" + JSON.stringify(err, null, 2) + "\n",
       )
     }
+
+    process.exit(1)
   }
 }
