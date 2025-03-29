@@ -183,12 +183,12 @@ const cloneAction = async (
     const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
     const tempDir = path.join(
       os.tmpdir(),
-      `${config.repository}-${Math.random().toString(16).slice(2, 8)}`,
+      `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
     )
 
     if (!options.watch)
       spinner.start(
-        `Picking ${config.type}${config.type === "repository" ? "" : " from repository"}`,
+        `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}`,
       )
 
     await git.clone(repoUrl, tempDir, [
@@ -216,7 +216,7 @@ const cloneAction = async (
     }
     if (!options.watch) {
       spinner.succeed(
-        `Picked ${config.type}${config.type === "repository" ? "!" : " from repository!"}`,
+        `Picked ${config.type}${config.type === "repository" ? " without .git!" : " from repository!"}`,
       )
     } else spinner.succeed("Synced at " + new Date().toLocaleTimeString())
 
