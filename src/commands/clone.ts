@@ -16,6 +16,7 @@ const schema = z.object({
   target: z.string().optional(),
   branch: z.string().optional(),
   overwrite: z.boolean().optional(),
+  force: z.boolean().optional(),
   watch: z.union([z.string(), z.number(), z.boolean()]).optional(),
 })
 
@@ -25,6 +26,7 @@ export const clone = new Command()
   .argument("[target]", "Directory to clone into (optional)")
   .option("-b, --branch <branch>", "Branch to clone")
   .option("-o, --overwrite", "Skip overwrite prompt")
+  .option("-f, --force", "Alias for --overwrite")
   .option(
     "-w, --watch [time]",
     `Watch the repository and sync every [time]
@@ -40,7 +42,7 @@ export const clone = new Command()
         url,
         target,
         branch: options.branch,
-        overwrite: options.overwrite,
+        overwrite: options.overwrite || options.force,
         watch: options.watch,
       })
 
@@ -111,7 +113,9 @@ export const clone = new Command()
             throw new Error("Chose not to overwrite files")
           }
 
-          spinner.info("You can use -o | --overwrite flag to skip this prompt")
+          spinner.info(
+            "You can use -o | --overwrite or -f | --force flag to skip this prompt",
+          )
         }
 
         await cloneAction(spinner, config, options, targetPath)
