@@ -16,28 +16,31 @@ Simply copy the Github URL and run with `npx gitpick <url>`, be that a public or
 
 ## Features
 
-Shorthand:
+Shorthand (or use full URL):
 
 ```sh
 npx gitpick TanStack/router
 ```
 
-Or full URL:
+Or clone a repository:
 
 ```sh
 npx gitpick https://github.com/TanStack/router
+# npx gitpick TanStack/router
 ```
 
 Or clone a specific directory:
 
 ```sh
 npx gitpick https://github.com/TanStack/router/tree/main/examples
+# npx gitpick TanStack/router/tree/main/examples
 ```
 
 Or clone a specific file:
 
 ```sh
 npx gitpick https://github.com/TanStack/router/tree/main/package.json
+# npx gitpick TanStack/router/tree/main/package.json
 ```
 
 - Clone a file or directory from a GitHub repository.
