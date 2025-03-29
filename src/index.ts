@@ -60,7 +60,7 @@ ${colors.bold("Examples:")}
     },
   })
 
-  console.log(
+  colors.dim(
     `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
   )
 
