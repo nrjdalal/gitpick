@@ -3,6 +3,7 @@ import os from "os"
 import path from "path"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
+import chalk from "chalk"
 import { Command } from "commander"
 import inquirer from "inquirer"
 import ora, { Ora } from "ora"
@@ -57,7 +58,17 @@ export const clone = new Command()
       })
 
       console.log(
-        `${config.owner}/${config.repository} \x1b[32m<${config.type}:${config.branch}>\x1b[0m ${config.type === "repository" ? "~ " + config.target : config.path + " \x1b[32m~\x1b[0m " + config.target + (config.type === "blob" ? "/" + config.path.split("/").pop() : "")}`,
+        `${chalk.bold(config.owner)}/${chalk.bold(config.repository)} ${chalk.green(
+          `<${config.type}:${config.branch}>`,
+        )} ${
+          config.type === "repository"
+            ? `> ${chalk.cyan(config.target)}`
+            : `${chalk.yellow(config.path)} > ${chalk.cyan(
+                `${config.target}${
+                  config.type === "blob" ? `/${config.path}` : ""
+                }`,
+              )}`
+        }`,
         "\n",
       )
 
