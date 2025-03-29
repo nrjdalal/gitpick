@@ -1,5 +1,21 @@
 # Changelog
 
+## v3.21.0
+
+[compare changes](https://github.com/nrjdalal/gitpick/compare/v3.20.0...v3.21.0)
+
+### 💅 Refactors
+
+- Better logging to clone.ts ~ 1 file 3+ 3- ([048324a](https://github.com/nrjdalal/gitpick/commit/048324a))
+
+### 🏡 Chore
+
+- Tweaks to clone.ts ~ 1 file 7+ 13- ([7bfd7cf](https://github.com/nrjdalal/gitpick/commit/7bfd7cf))
+
+### ❤️ Contributors
+
+- Neeraj Dalal <admin@nrjdalal.com>
+
 ## v3.20.0
 
 [compare changes](https://github.com/nrjdalal/gitpick/compare/v3.19.1...v3.20.0)
