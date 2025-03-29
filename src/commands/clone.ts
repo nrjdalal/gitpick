@@ -165,7 +165,10 @@ const cloneAction = async (
   try {
     const git = simpleGit()
     const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
-    const tempDir = path.join(os.tmpdir(), `${config.repository}-${Date.now()}`)
+    const tempDir = path.join(
+      os.tmpdir(),
+      `${config.repository}-${Math.random().toString(16).slice(2, 8)}`,
+    )
 
     if (!options.watch) spinner.start(`Cloning ${config.type} from repository`)
 
