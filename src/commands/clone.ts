@@ -222,7 +222,7 @@ const cloneAction = async (
 
     if (!options.watch) {
       s.stop(
-        `Picked ${config.type}${config.type === "repository" ? " without .git!" : " from repository"} in ${(
+        `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
           (performance.now() - start) /
           1000
         ).toFixed(2)} seconds!`,
