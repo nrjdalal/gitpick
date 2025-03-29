@@ -16,13 +16,20 @@ Simply copy the Github URL and run with `npx gitpick <url>`, be that a public or
 
 ## Features
 
-- Autodetect branch and target directory if not provided explicitly.
-- Clone a file or directory from a GitHub repository.
-- Clone from public or private repositories using personal access tokens.
-- Sync changes with remote repository at a specified interval using `-w` or `--watch` flag.
-- Use shorthands like `npx gitpick nrjdalal/gitpick` or `npx gitpick nrjdalal/gitpick/src`, no need to provide full URL.
+Demonstration of the features, with the demo repository:
 
-<img width="840" alt="Image" src="https://github.com/user-attachments/assets/78b92ed3-7d5c-48f4-8975-23bd744d3a3c" />
+```sh
+npx gitpick https://github.com/TanStack/router
+```
+
+- Clone a file or directory from a GitHub repository.
+- Autodetect branch and target directory if not provided explicitly.
+- Clone from public or private repositories using personal access tokens.
+- Overwrite existing files without prompt using `-o` or `--overwrite` flag.
+- Sync changes with remote repository at a specified interval using `-w` or `--watch` flag.
+- Use shorthands like `npx gitpick TanStack/router` or `npx gitpick TanStack/router/tree/main/examples`, no need to provide full URL.
+
+<img width="600" alt="Demo Image" src="https://github.com/user-attachments/assets/954f670a-f30d-43cf-b674-f65a170c989d" />
 
 ## Usage
 
