@@ -4,9 +4,9 @@ import path from "path"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
 import { cancel, confirm, intro, isCancel, log, spinner } from "@clack/prompts"
-import chalk from "chalk"
 import { Command } from "commander"
 import simpleGit from "simple-git"
+import colors from "yoctocolors"
 import { z } from "zod"
 import { fromError } from "zod-validation-error"
 
@@ -62,12 +62,12 @@ export const clone = new Command()
       })
 
       intro(
-        `${chalk.bold(config.owner)}/${chalk.bold(config.repository)} ${chalk.green(
+        `${colors.bold(config.owner)}/${colors.bold(config.repository)} ${colors.green(
           `<${config.type}:${config.branch}>`,
         )} ${
           config.type === "repository"
-            ? `> ${chalk.cyan(config.target)}`
-            : `${chalk.yellow(config.path)} > ${chalk.cyan(
+            ? `> ${colors.cyan(config.target)}`
+            : `${colors.yellow(config.path)} > ${colors.cyan(
                 `${config.target}${
                   config.type === "blob"
                     ? `/${config.path.split("/").pop()}`
