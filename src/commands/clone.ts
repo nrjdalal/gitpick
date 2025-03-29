@@ -188,6 +188,9 @@ const cloneAction = async (
 
     await fs.promises.rm(tempDir, { recursive: true, force: true })
   } catch (err) {
+    if (typeof err === "object") {
+      err = JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
+    }
     throw new Error(`Failed to clone repository: ${err}`)
   }
 }
