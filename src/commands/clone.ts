@@ -56,8 +56,10 @@ export const clone = new Command()
         target,
       })
 
-      const { token, ...configWithoutToken } = config
-      console.log(configWithoutToken, "\n")
+      console.log(
+        `${config.owner}/${config.repository} \x1b[32m<${config.type}:${config.branch}>\x1b[0m ${config.type === "repository" ? "" : config.path}`,
+        "\n",
+      )
 
       const spinner = ora().start()
 
