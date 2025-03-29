@@ -200,6 +200,7 @@ const cloneAction = async (
 
     await fs.promises.rm(tempDir, { recursive: true, force: true })
   } catch (err) {
+    console.log("\n")
     spinner.fail("An error occurred!")
 
     if (err instanceof Error) {
