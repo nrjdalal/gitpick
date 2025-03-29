@@ -111,8 +111,20 @@ export const clone = new Command()
       } catch (err) {
         console.log("\n")
         spinner.fail("An error occurred")
-        const validationError = fromError(err)
-        console.log("\n" + validationError.toString() + "\n")
+
+        if (err instanceof z.ZodError) {
+          const validationError = fromError(err)
+          console.error(
+            "\nValidation Error:\n" + validationError.toString() + "\n",
+          )
+        } else if (err instanceof Error) {
+          console.error("\nError:\n" + err.message + "\n")
+        } else {
+          console.error(
+            "\nUnexpected Error:\n" + JSON.stringify(err, null, 2) + "\n",
+          )
+        }
+
         process.exit(1)
       }
     },
@@ -188,9 +200,14 @@ const cloneAction = async (
 
     await fs.promises.rm(tempDir, { recursive: true, force: true })
   } catch (err) {
-    if (typeof err === "object") {
-      err = JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
+    console.error("\x1b[31m%s\x1b[0m", "Failed to clone repository!")
+
+    if (err instanceof Error) {
+      console.error("\nError:\n" + err.message + "\n")
+    } else {
+      console.error(
+        "\nUnexpected Error:\n" + JSON.stringify(err, null, 2) + "\n",
+      )
     }
-    throw new Error(`Failed to clone repository: ${err}`)
   }
 }
