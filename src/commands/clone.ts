@@ -57,7 +57,7 @@ export const clone = new Command()
       })
 
       console.log(
-        `${config.owner}/${config.repository} \x1b[32m<${config.type}:${config.branch}>\x1b[0m${config.type === "repository" ? "" : " " + config.path} \x1b[32m~\x1b[0m ${config.target}`,
+        `${config.owner}/${config.repository} \x1b[32m<${config.type}:${config.branch}>\x1b[0m ${config.type === "repository" ? "~ " + config.target : config.path + " \x1b[32m~\x1b[0m " + config.target + (config.type === "blob" ? "/" + config.path.split("/").pop() : "")}`,
         "\n",
       )
 
@@ -177,7 +177,10 @@ const cloneAction = async (
       `${config.repository}-${Math.random().toString(16).slice(2, 8)}`,
     )
 
-    if (!options.watch) spinner.start(`Cloning ${config.type} from repository`)
+    if (!options.watch)
+      spinner.start(
+        `Picking ${config.type}${config.type === "repository" ? "" : " from repository"}`,
+      )
 
     await git.clone(repoUrl, tempDir, [
       "--depth",
@@ -204,7 +207,7 @@ const cloneAction = async (
     }
     if (!options.watch) {
       spinner.succeed(
-        `${config.type.slice(0, 1).toUpperCase() + config.type.slice(1)} cloned from repository`,
+        `Picked ${config.type}${config.type === "repository" ? "!" : " from repository!"}`,
       )
     } else spinner.succeed("Synced at " + new Date().toLocaleTimeString())
 
