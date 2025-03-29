@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.19.1
+
+[compare changes](https://github.com/nrjdalal/gitpick/compare/v3.19.0...v3.19.1)
+
+### 🩹 Fixes
+
+- Blob path logging to clone.ts ~ 1 file 3+ 1- ([62d85ff](https://github.com/nrjdalal/gitpick/commit/62d85ff))
+
+### ❤️ Contributors
+
+- Neeraj Dalal <admin@nrjdalal.com>
+
 ## v3.19.0
 
 [compare changes](https://github.com/nrjdalal/gitpick/compare/v3.18.6...v3.19.0)
