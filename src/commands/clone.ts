@@ -164,6 +164,11 @@ const cloneAction = async (
 ) => {
   try {
     const git = simpleGit()
+
+    if (process.platform === "win32") {
+      await git.addConfig("core.longpaths", "true", true)
+    }
+
     const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
     const tempDir = path.join(
       os.tmpdir(),
