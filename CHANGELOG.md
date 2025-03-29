@@ -1,5 +1,19 @@
 # Changelog
 
+## v3.26.0
+
+[compare changes](https://github.com/nrjdalal/gitpick/compare/v3.25.2...v3.26.0)
+
+### 🏡 Chore
+
+- **release:** V3.25.2 ([cc74be5](https://github.com/nrjdalal/gitpick/commit/cc74be5))
+- Tweaks > index.ts ([a955c01](https://github.com/nrjdalal/gitpick/commit/a955c01))
+- Tweaks > index.ts ([a553ae9](https://github.com/nrjdalal/gitpick/commit/a553ae9))
+
+### ❤️ Contributors
+
+- Neeraj Dalal <admin@nrjdalal.com>
+
 ## v3.25.2
 
 [compare changes](https://github.com/nrjdalal/gitpick/compare/v3.22.0...v3.25.2)
