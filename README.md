@@ -16,7 +16,13 @@ Simply copy the Github URL and run with `npx gitpick <url>`, be that a public or
 
 ## Features
 
-Demonstration of the features, with the demo repository:
+Shorthand:
+
+```sh
+npx gitpick TanStack/router
+```
+
+Or full URL:
 
 ```sh
 npx gitpick https://github.com/TanStack/router
