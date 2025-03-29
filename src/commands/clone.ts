@@ -57,7 +57,7 @@ export const clone = new Command()
       })
 
       console.log(
-        `${config.owner}/${config.repository} \x1b[32m<${config.type}:${config.branch}>\x1b[0m ${config.type === "repository" ? "" : config.path}`,
+        `${config.owner}/${config.repository} \x1b[32m<${config.type}:${config.branch}>\x1b[0m${config.type === "repository" ? "" : " " + config.path} \x1b[32m~\x1b[0m ${config.target}`,
         "\n",
       )
 
