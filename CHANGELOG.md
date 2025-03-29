@@ -1,9 +1,5 @@
 # Changelog
 
-## v3.18.2
-
-[compare changes](https://github.com/nrjdalal/gitpick/compare/v3.18.1...v3.18.2)
-
 ## v3.17.0
 
 ### 🩹 Fixes
