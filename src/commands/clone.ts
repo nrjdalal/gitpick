@@ -187,7 +187,7 @@ const cloneAction = async (
     } else spinner.succeed("Synced at " + new Date().toLocaleTimeString())
 
     await fs.promises.rm(tempDir, { recursive: true, force: true })
-  } catch {
-    throw new Error("An error occurred while cloning the repository")
+  } catch (err) {
+    throw new Error(`Failed to clone repository: ${err}`)
   }
 }
