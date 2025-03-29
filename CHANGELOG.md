@@ -1,5 +1,25 @@
 # Changelog
 
+## v3.22.0
+
+[compare changes](https://github.com/nrjdalal/gitpick/compare/v3.21.0...v3.22.0)
+
+### 🚀 Enhancements
+
+- Switch from inquirer/ora/chalk to clack/yoctocolors ([a790a34](https://github.com/nrjdalal/gitpick/commit/a790a34))
+
+### 🏡 Chore
+
+- **release:** V3.21.0 ([463448d](https://github.com/nrjdalal/gitpick/commit/463448d))
+- Future linking > bun.lock package.json index.ts ([0e7f76c](https://github.com/nrjdalal/gitpick/commit/0e7f76c))
+- Tweaks > bun.lock package.json clone.ts index.ts ([40a905b](https://github.com/nrjdalal/gitpick/commit/40a905b))
+- Tweaks > bun.lock package.json clone.ts index.ts ([144ae11](https://github.com/nrjdalal/gitpick/commit/144ae11))
+- Tweaks > settings.json clone.ts ([fde573d](https://github.com/nrjdalal/gitpick/commit/fde573d))
+
+### ❤️ Contributors
+
+- Neeraj Dalal <admin@nrjdalal.com>
+
 ## v3.21.0
 
 [compare changes](https://github.com/nrjdalal/gitpick/compare/v3.20.0...v3.21.0)

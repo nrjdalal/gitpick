@@ -6,4 +6,13 @@ export default defineConfig({
   format: ["esm"],
   minify: true,
   outDir: "dist",
+  external: [
+    "@clack/prompts",
+    "commander",
+    "simple-git",
+    "terminal-link",
+    "yoctocolors",
+    "zod",
+    "zod-validation-error",
+  ],
 })
