@@ -65,7 +65,9 @@ export const clone = new Command()
             ? `> ${chalk.cyan(config.target)}`
             : `${chalk.yellow(config.path)} > ${chalk.cyan(
                 `${config.target}${
-                  config.type === "blob" ? `/${config.path}` : ""
+                  config.type === "blob"
+                    ? `/${config.path.split("/").pop()}`
+                    : ""
                 }`,
               )}`
         }`,
