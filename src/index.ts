@@ -60,8 +60,10 @@ ${colors.bold("Examples:")}
     },
   })
 
-  colors.dim(
-    `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
+  console.log(
+    colors.dim(
+      `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
+    ),
   )
 
   program.parse()
