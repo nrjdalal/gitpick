@@ -110,7 +110,7 @@ export const clone = new Command()
         }
       } catch (err) {
         console.log("\n")
-        spinner.fail("An error occurred")
+        spinner.fail(" Level 1: An error occurred")
 
         if (err instanceof z.ZodError) {
           const validationError = fromError(err)
@@ -201,7 +201,7 @@ const cloneAction = async (
     await fs.promises.rm(tempDir, { recursive: true, force: true })
   } catch (err) {
     console.log("\n")
-    spinner.fail("An error occurred!")
+    spinner.fail(" Level 2: An error occurred!")
 
     if (err instanceof Error) {
       console.error("\nError:\n" + err.message + "\n")
