@@ -125,19 +125,15 @@ export const clone = new Command()
         }
       } catch (err) {
         console.log("\n")
-        spinner.fail(" Level 1: An error occurred")
+        spinner.fail("Level 1: An error occurred")
 
         if (err instanceof z.ZodError) {
           const validationError = fromError(err)
-          console.error(
-            "\nValidation Error:\n" + validationError.toString() + "\n",
-          )
+          console.error("\nValidation Error: " + validationError.toString())
         } else if (err instanceof Error) {
-          console.error("\nError:\n" + err.message + "\n")
+          console.error("\nError: " + err.message)
         } else {
-          console.error(
-            "\nUnexpected Error:\n" + JSON.stringify(err, null, 2) + "\n",
-          )
+          console.error("\nUnexpected Error: " + JSON.stringify(err, null, 2))
         }
 
         process.exit(1)
@@ -227,14 +223,12 @@ const cloneAction = async (
     await fs.promises.rm(tempDir, { recursive: true, force: true })
   } catch (err) {
     console.log("\n")
-    spinner.fail(" Level 2: An error occurred!")
+    spinner.fail("Level 2: An error occurred!")
 
     if (err instanceof Error) {
-      console.error("\nError:\n" + err.message + "\n")
+      console.error("\nError: " + err.message)
     } else {
-      console.error(
-        "\nUnexpected Error:\n" + JSON.stringify(err, null, 2) + "\n",
-      )
+      console.error("\nUnexpected Error: " + JSON.stringify(err, null, 2))
     }
 
     process.exit(1)
