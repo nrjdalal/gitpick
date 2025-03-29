@@ -2,6 +2,7 @@
 import { clone } from "@/commands/clone"
 import chalk from "chalk"
 import { Command } from "commander"
+import terminalLink from "terminal-link"
 import packageJson from "../package.json"
 
 process.on("SIGINT", () => process.exit(0))
@@ -59,7 +60,11 @@ ${chalk.bold("Examples:")}
     },
   })
 
-  console.log(`\ngitpick v${packageJson.version}\n`)
+  console.log(
+    chalk.dim(
+      `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
+    ),
+  )
 
   program.parse()
 }

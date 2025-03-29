@@ -49,6 +49,7 @@
     "inquirer": "^12.5.0",
     "ora": "^8.2.0",
     "simple-git": "^3.27.0",
+    "terminal-link": "^4.0.0",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"
   },
