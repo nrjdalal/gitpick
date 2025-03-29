@@ -166,7 +166,7 @@ const cloneAction = async (
     const git = simpleGit()
 
     if (process.platform === "win32") {
-      await git.addConfig("core.longpaths", "true", true)
+      await git.raw(["config", "--global", "core.longpaths", "true"])
     }
 
     const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
