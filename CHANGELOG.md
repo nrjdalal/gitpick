@@ -1,5 +1,20 @@
 # Changelog
 
+## v3.25.2
+
+[compare changes](https://github.com/nrjdalal/gitpick/compare/v3.22.0...v3.25.2)
+
+### 🏡 Chore
+
+- Tweaks > package.json ([28061d3](https://github.com/nrjdalal/gitpick/commit/28061d3))
+- Tweaks > package.json ([00fcd75](https://github.com/nrjdalal/gitpick/commit/00fcd75))
+- Tweaks > clone.ts ([2761dbb](https://github.com/nrjdalal/gitpick/commit/2761dbb))
+- Tweaks > package.json ([c6b7ada](https://github.com/nrjdalal/gitpick/commit/c6b7ada))
+
+### ❤️ Contributors
+
+- Neeraj Dalal <admin@nrjdalal.com>
+
 ## v3.21.0
 
 [compare changes](https://github.com/nrjdalal/gitpick/compare/v3.20.0...v3.21.0)
