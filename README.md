@@ -25,7 +25,7 @@ No more full-repo clones when all you want is a file or folder.
 ## 🚀 Quick Usage
 
 ```sh
-npx gitpick <url> [target] [options]
+npx gitpick <url/shorthand> [target] [options]
 ```
 
 - [target] and [options] are optional
@@ -33,7 +33,7 @@ npx gitpick <url> [target] [options]
 Examples:
 
 ```sh
-npx gitpick https://github.com/TanStack/router      # full repo without .git
+npx gitpick https://github.com/TanStack/router      # repository without .git
 npx gitpick TanStack/router/tree/main/examples      # a folder
 npx gitpick TanStack/router/tree/main/package.json  # a file
 npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
@@ -69,7 +69,7 @@ npx gitpick https://<token>@github.com/owner/repo
 
 ```sh
 npm install -g gitpick
-gitpick <url> [target] [options]
+gitpick <url/shorthand> [target] [options]
 ```
 
 ---
