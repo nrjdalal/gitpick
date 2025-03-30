@@ -2,40 +2,40 @@
 import fs from "fs"
 import { parseArgs } from "node:util"
 import path from "path"
-import colors from "@/pkgs/yoctocolors"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
 import { cancel, confirm, intro, isCancel, log } from "@clack/prompts"
+import { blue, bold, cyan, green, white, yellow } from "~/deps/yoctocolors/base"
 import { name, version } from "~/package.json"
 
 const helpMessage = `
-${colors.bold("With GitPick, you can clone precisely what you need.")}
+${bold("With GitPick, you can clone precisely what you need.")}
 
-${colors.cyan("gitpick <url>")} ${colors.green("[target]")} ${colors.blue("[options]")}
+${cyan("gitpick <url>")} ${green("[target]")} ${blue("[options]")}
 
-${colors.bold("Hint:")} Target is optional, and follows default git clone behavior.
+${bold("Hint:")} Target is optional, and follows default git clone behavior.
 
-${colors.bold("Arguments:")}
-  ${colors.cyan("url")}                GitHub URL with path to file/folder/repository
-  ${colors.green("target")}             Directory to clone into (optional)
+${bold("Arguments:")}
+  ${cyan("url")}                GitHub URL with path to file/folder/repository
+  ${green("target")}             Directory to clone into (optional)
 
-${colors.bold("Options:")}
-  ${colors.blue("-b, --branch ")}      Branch to clone
-  ${colors.blue("-o, --overwrite")}    Skip overwrite prompt
-  ${colors.blue("-w, --watch [time]")} Watch the repository and sync every [time]
+${bold("Options:")}
+  ${blue("-b, --branch ")}      Branch to clone
+  ${blue("-o, --overwrite")}    Skip overwrite prompt
+  ${blue("-w, --watch [time]")} Watch the repository and sync every [time]
                      (e.g. 1h, 30m, 15s) default: 1m
-  ${colors.blue("-h, --help")}         display help for command
-  ${colors.blue("-v, --version")}      display the version number
+  ${blue("-h, --help")}         display help for command
+  ${blue("-v, --version")}      display the version number
 
-${colors.bold("Examples:")}
+${bold("Examples:")}
   $ gitpick <url>
   $ gitpick <url> [target]
   $ gitpick <url> [target] -b [branch]
   $ gitpick <url> [target] -w [time]
   $ gitpick <url> [target] -b [branch] -w [time]
   
-🚀 More awesome tools at ${colors.cyan("https://github.com/nrjdalal")}`
+🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
 
 const parse: typeof parseArgs = (config) => {
   try {
@@ -99,24 +99,24 @@ const main = async () => {
     // TODO: Hyperlink to GitHub repo
 
     // console.log(
-    //   colors.white(
+    //   white(
     //     `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
     //   ),
     // )
 
     console.log(
-      colors.white(
-        `\n${colors.bold("GitPick")} - Clone specific directories or files from GitHub!\n`,
+      white(
+        `\n${bold("GitPick")} - Clone specific directories or files from GitHub!\n`,
       ),
     )
 
     intro(
-      `${colors.bold(config.owner)}/${colors.bold(config.repository)} ${colors.green(
+      `${bold(config.owner)}/${bold(config.repository)} ${green(
         `<${config.type}:${config.branch}>`,
       )} ${
         config.type === "repository"
-          ? `> ${colors.cyan(config.target)}`
-          : `${colors.yellow(config.path)} > ${colors.cyan(
+          ? `> ${cyan(config.target)}`
+          : `${yellow(config.path)} > ${cyan(
               `${config.target}${
                 config.type === "blob" ? `/${config.path.split("/").pop()}` : ""
               }`,

@@ -1,9 +1,9 @@
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
-import spawn from "@/pkgs/nano-spawn"
 import { copyDir } from "@/utils/copy-dir"
 import { log, spinner } from "@clack/prompts"
+import spawn from "~/deps/nano-spawn"
 
 export const cloneAction = async (
   config: {
