@@ -11,7 +11,7 @@ import { name, version } from "~/package.json"
 import terminalLink from "terminal-link"
 
 const helpMessage = `
-${colors.whiteBright("With GitPick, you can clone precisely what you need.")}
+${colors.bold("With GitPick, you can clone precisely what you need.")}
 
 ${colors.cyan("gitpick <url>")} ${colors.green("[target]")} ${colors.blue("[options]")}
 
