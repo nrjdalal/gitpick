@@ -3,7 +3,7 @@ import os from "node:os"
 import path from "node:path"
 import { copyDir } from "@/utils/copy-dir"
 import { log, spinner } from "@clack/prompts"
-import simpleGit from "simple-git"
+import spawn from "nano-spawn"
 
 export const cloneAction = async (
   config: {
@@ -22,10 +22,8 @@ export const cloneAction = async (
   const s = spinner()
 
   try {
-    const git = simpleGit()
-
     if (process.platform === "win32") {
-      await git.raw(["config", "--global", "core.longpaths", "true"])
+      await spawn("git", ["config", "--global", "core.longpaths", "true"])
     }
 
     const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
@@ -41,7 +39,10 @@ export const cloneAction = async (
 
     const start = performance.now()
 
-    await git.clone(repoUrl, tempDir, [
+    await spawn("git", [
+      "clone",
+      repoUrl,
+      tempDir,
       "--depth",
       "1",
       "--single-branch",
