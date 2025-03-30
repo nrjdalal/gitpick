@@ -1,7 +1,8 @@
 # GitPick
 
-**Clone exactly what you need.**  
-No more full-repo clones when all you want is a file or folder.
+**Clone exactly what you need aka straightforward project scaffolding**
+
+📦 Zero dependencies / 125x smaller (<10kb) drop-in replacement for `degit`. No more full-repository clones when all you want is a file or folder.
 
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![downloads](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
@@ -16,9 +17,9 @@ No more full-repo clones when all you want is a file or folder.
 - 🔍 Clone individual files or folders from any GitHub repository
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
-- 🗑️ Overwrite existing files without prompt using `--overwrite`
-- 🔐 Works with public & private repositories (via PAT)
-- 🧠 Shorthand URLs supported (e.g. `TanStack/router`)
+- 🗑️ Overwrite or replace existing files without a prompt using `--overwrite`
+- 🔐 Seamlessly works with both public and private repositories using a PAT
+- 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
 
 ---
 
