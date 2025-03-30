@@ -36,8 +36,8 @@ Examples:
 npx gitpick https://github.com/TanStack/router      # full repo without .git
 npx gitpick TanStack/router/tree/main/examples      # a folder
 npx gitpick TanStack/router/tree/main/package.json  # a file
-npx gitpick <url> -w 30s                            # sync every 30 seconds
-npx gitpick <url> -o                                # overwrite without prompt
+npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
+npx gitpick <url/shorthand> -o                      # overwrite if exists
 npx gitpick https://<token>@github.com/owner/repo   # private repo
 ```
 
