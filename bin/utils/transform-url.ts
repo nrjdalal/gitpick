@@ -1,4 +1,4 @@
-import { getDefaultBranch } from "./get-default-branch"
+import { getDefaultBranch } from "@/utils/get-default-branch"
 
 export async function githubConfigFromUrl(
   url: string,

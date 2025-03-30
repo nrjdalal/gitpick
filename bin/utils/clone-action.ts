@@ -1,9 +1,9 @@
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { copyDir } from "@/utils/copy-dir"
 import { log, spinner } from "@clack/prompts"
 import simpleGit from "simple-git"
-import { copyDir } from "./copy-dir"
 
 export const cloneAction = async (
   config: {
