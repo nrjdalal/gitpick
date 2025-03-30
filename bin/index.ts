@@ -5,7 +5,7 @@ import path from "path"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
-import { bold, cyan, green, white, yellow } from "~/external/yoctocolors/base"
+import { bold, cyan, green, red, yellow } from "~/external/yoctocolors/base"
 import { name, version } from "~/package.json"
 
 const helpMessage = `
@@ -152,8 +152,15 @@ const main = async () => {
     }
 
     process.exit(0)
-  } catch (err: any) {
-    console.error(`\nError: ${err.message}`)
+  } catch (err) {
+    if (err instanceof Error) {
+      console.log(bold(`${red("Error: ")}`) + err.message)
+    } else {
+      console.log(
+        bold(`${red("Unexpected Error: ")}`) + JSON.stringify(err, null, 2),
+      )
+    }
+
     process.exit(1)
   }
 }

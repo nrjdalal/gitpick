@@ -21,71 +21,59 @@ export const cloneAction = async (
 ) => {
   const s = spinner()
 
-  try {
-    if (process.platform === "win32") {
-      await spawn("git", ["config", "--global", "core.longpaths", "true"])
-    }
+  if (process.platform === "win32") {
+    await spawn("git", ["config", "--global", "core.longpaths", "true"])
+  }
 
-    const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
-    const tempDir = path.join(
-      os.tmpdir(),
-      `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
+  const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
+  const tempDir = path.join(
+    os.tmpdir(),
+    `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
+  )
+
+  if (!options.watch)
+    s.start(
+      `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}`,
     )
 
-    if (!options.watch)
-      s.start(
-        `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}`,
-      )
+  const start = performance.now()
 
-    const start = performance.now()
+  await spawn("git", [
+    "clone",
+    repoUrl,
+    tempDir,
+    "--depth",
+    "1",
+    "--single-branch",
+    "--branch",
+    config.branch,
+  ])
 
-    await spawn("git", [
-      "clone",
-      repoUrl,
-      tempDir,
-      "--depth",
-      "1",
-      "--single-branch",
-      "--branch",
-      config.branch,
-    ])
+  const sourcePath = path.join(tempDir, config.path)
 
-    const sourcePath = path.join(tempDir, config.path)
+  const sourceStat = await fs.promises.stat(sourcePath)
 
-    const sourceStat = await fs.promises.stat(sourcePath)
-
-    if (sourceStat.isDirectory()) {
-      await fs.promises.mkdir(targetPath, { recursive: true })
-      await copyDir(sourcePath, targetPath)
-    } else {
-      await fs.promises.mkdir(targetPath, {
-        recursive: true,
-      })
-      await fs.promises.copyFile(
-        sourcePath,
-        targetPath + "/" + config.path.split("/").pop(),
-      )
-    }
-
-    if (!options.watch) {
-      s.success(
-        `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
-          (performance.now() - start) /
-          1000
-        ).toFixed(2)} seconds!`,
-      )
-    } else console.info("Synced at " + new Date().toLocaleTimeString())
-
-    await fs.promises.rm(tempDir, { recursive: true, force: true })
-  } catch (err) {
-    s.stop("Level 2: An error occurred while cloning!")
-
-    if (err instanceof Error) {
-      console.error("Error: " + err.message)
-    } else {
-      console.error("Unexpected Error: " + JSON.stringify(err, null, 2))
-    }
-
-    process.exit(1)
+  if (sourceStat.isDirectory()) {
+    await fs.promises.mkdir(targetPath, { recursive: true })
+    await copyDir(sourcePath, targetPath)
+  } else {
+    await fs.promises.mkdir(targetPath, {
+      recursive: true,
+    })
+    await fs.promises.copyFile(
+      sourcePath,
+      targetPath + "/" + config.path.split("/").pop(),
+    )
   }
+
+  if (!options.watch) {
+    s.success(
+      `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
+        (performance.now() - start) /
+        1000
+      ).toFixed(2)} seconds!`,
+    )
+  } else console.info("Synced at " + new Date().toLocaleTimeString())
+
+  await fs.promises.rm(tempDir, { recursive: true, force: true })
 }
