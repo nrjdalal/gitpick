@@ -34,9 +34,9 @@ bunx gitpick@latest https://github.com/sindresorhus/nano-spawn/tree/main/source 
 # bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/main/index.js external/yocto-spinner
 # bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/main/index.d.ts external/yocto-spinner
 
-# bunx prettier@latest --write --ignore-unknown "external/**/*"
-
 # sed -i '' 's|import yoctocolors from "yoctocolors"|import yoctocolors from "../yoctocolors"|g' external/yocto-spinner/index.js
+
+bunx prettier@latest --write --ignore-unknown "external/**/*"
 
 # Cleanup backup if everything succeeds
 rm -rf "$TEMP_BACKUP_DIR"
