@@ -60,8 +60,7 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.10.0",
-    "simple-git": "^3.27.0",
-    "terminal-link": "^4.0.0"
+    "simple-git": "^3.27.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",

@@ -8,7 +8,6 @@ import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
 import { cancel, confirm, intro, isCancel, log } from "@clack/prompts"
 import { name, version } from "~/package.json"
-import terminalLink from "terminal-link"
 
 const helpMessage = `
 ${colors.bold("With GitPick, you can clone precisely what you need.")}
@@ -97,9 +96,17 @@ const main = async () => {
       target,
     })
 
+    // TODO: Hyperlink to GitHub repo
+
+    // console.log(
+    //   colors.white(
+    //     `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
+    //   ),
+    // )
+
     console.log(
       colors.white(
-        `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
+        `\n${colors.bold("GitPick")} - Clone specific directories or files from GitHub!\n`,
       ),
     )
 
