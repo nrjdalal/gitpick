@@ -3,7 +3,7 @@ import os from "node:os"
 import path from "node:path"
 import { copyDir } from "@/utils/copy-dir"
 import { log, spinner } from "@clack/prompts"
-import spawn from "~/deps/nano-spawn"
+import spawn from "~/external/nano-spawn"
 
 export const cloneAction = async (
   config: {

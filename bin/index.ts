@@ -6,7 +6,14 @@ import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
 import { cancel, confirm, intro, isCancel, log } from "@clack/prompts"
-import { blue, bold, cyan, green, white, yellow } from "~/deps/yoctocolors/base"
+import {
+  blue,
+  bold,
+  cyan,
+  green,
+  white,
+  yellow,
+} from "~/external/yoctocolors/base"
 import { name, version } from "~/package.json"
 
 const helpMessage = `

@@ -36,9 +36,9 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "prepare": "npx simple-git-hooks",
+    "sync:external": "bash scripts/external.sh",
     "test": "npm run build && node dist/index.js",
-    "tests": "bash tests.sh",
-    "update": "bash update.sh"
+    "tests": "bash scripts/tests.sh"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",
