@@ -5,7 +5,7 @@ import path from "path"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
-import { cancel, confirm, intro, isCancel, log } from "@clack/prompts"
+import { cancel, confirm, isCancel } from "@clack/prompts"
 import {
   blue,
   bold,
@@ -117,7 +117,7 @@ const main = async () => {
       ),
     )
 
-    intro(
+    console.info(
       `${bold(config.owner)}/${bold(config.repository)} ${green(
         `<${config.type}:${config.branch}>`,
       )} ${
@@ -128,7 +128,7 @@ const main = async () => {
                 config.type === "blob" ? `/${config.path.split("/").pop()}` : ""
               }`,
             )}`
-      }`,
+      }\n`,
     )
 
     const targetPath = path.resolve(config.target)
@@ -158,11 +158,11 @@ const main = async () => {
       }
 
       if (!overwrite) {
-        log.info("Chose not to overwrite files.")
+        console.info("Chose not to overwrite files.")
         process.exit(0)
       }
 
-      log.info(
+      console.info(
         "You can use -o | --overwrite or -f | --force flag to skip this prompt next time.",
       )
     }

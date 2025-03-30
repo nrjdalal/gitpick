@@ -2,8 +2,8 @@ import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
 import { copyDir } from "@/utils/copy-dir"
-import { log, spinner } from "@clack/prompts"
 import spawn from "~/external/nano-spawn"
+import spinner from "~/external/yocto-spinner"
 
 export const cloneAction = async (
   config: {
@@ -68,22 +68,22 @@ export const cloneAction = async (
     }
 
     if (!options.watch) {
-      s.stop(
+      s.success(
         `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
           (performance.now() - start) /
           1000
         ).toFixed(2)} seconds!`,
       )
-    } else log.success("Synced at " + new Date().toLocaleTimeString())
+    } else console.info("Synced at " + new Date().toLocaleTimeString())
 
     await fs.promises.rm(tempDir, { recursive: true, force: true })
   } catch (err) {
     s.stop("Level 2: An error occurred while cloning!")
 
     if (err instanceof Error) {
-      log.error("Error: " + err.message)
+      console.error("Error: " + err.message)
     } else {
-      log.error("Unexpected Error: " + JSON.stringify(err, null, 2))
+      console.error("Unexpected Error: " + JSON.stringify(err, null, 2))
     }
 
     process.exit(1)
