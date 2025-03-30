@@ -104,9 +104,7 @@ const main = async () => {
     // )
 
     console.log(
-      white(
-        `\n${bold("GitPick")} - Clone specific directories or files from GitHub!\n`,
-      ),
+      `\n${bold("GitPick")} - Clone specific directories or files from GitHub!\n`,
     )
 
     console.info(
