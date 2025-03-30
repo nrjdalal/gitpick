@@ -26,17 +26,17 @@ trap 'restore_backup' ERR
 rm -rf external
 bunx gitpick@latest https://github.com/sindresorhus/nano-spawn/tree/main/source external/nano-spawn
 
-bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/main/base.js external/yoctocolors
-bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/main/base.d.ts external/yoctocolors
-bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/main/index.js external/yoctocolors
-bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/main/index.d.ts external/yoctocolors
+# bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/main/base.js external/yoctocolors
+# bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/main/base.d.ts external/yoctocolors
+# bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/main/index.js external/yoctocolors
+# bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/main/index.d.ts external/yoctocolors
 
-bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/main/index.js external/yocto-spinner
-bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/main/index.d.ts external/yocto-spinner
+# bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/main/index.js external/yocto-spinner
+# bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/main/index.d.ts external/yocto-spinner
 
-bunx prettier@latest --write --ignore-unknown "external/**/*"
+# bunx prettier@latest --write --ignore-unknown "external/**/*"
 
-sed -i '' 's|import yoctocolors from "yoctocolors"|import yoctocolors from "../yoctocolors"|g' external/yocto-spinner/index.js
+# sed -i '' 's|import yoctocolors from "yoctocolors"|import yoctocolors from "../yoctocolors"|g' external/yocto-spinner/index.js
 
 # Cleanup backup if everything succeeds
 rm -rf "$TEMP_BACKUP_DIR"
