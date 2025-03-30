@@ -30,7 +30,7 @@ export const cloneAction = async (
 
   if (!options.watch)
     console.log(
-      `🔍 Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"} ...`,
+      `\n🔍 Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"} ...`,
     )
 
   const start = performance.now()
@@ -70,7 +70,7 @@ export const cloneAction = async (
         1000
       ).toFixed(2)} seconds!`,
     )
-  } else console.info("- Synced at " + new Date().toLocaleTimeString())
+  } else console.log("- Synced at " + new Date().toLocaleTimeString())
 
   await fs.promises.rm(tempDir, { recursive: true, force: true })
 }

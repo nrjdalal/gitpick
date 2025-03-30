@@ -60,7 +60,7 @@ const main = async () => {
 
     if (!positionals.length) {
       if (values.version) {
-        console.log(`${name}@${version}`)
+        console.log(`\n${name}@${version}`)
         process.exit(0)
       }
       console.log(helpMessage)
@@ -89,7 +89,7 @@ const main = async () => {
     // )
 
     console.log(
-      `\n${bold("GitPick")} - Clone specific directories or files from GitHub!\n`,
+      `\n${bold("GitPick")} - Clone specific directories or files from GitHub!`,
     )
 
     options.overwrite = options.overwrite || options.force
@@ -98,7 +98,7 @@ const main = async () => {
       if (typeof options.watch === "boolean") options.watch = "1m"
 
       console.log(
-        `👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`,
+        `\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}`,
       )
     }
 
@@ -108,7 +108,7 @@ const main = async () => {
     })
 
     console.info(
-      `${bold(config.owner)}/${bold(config.repository)} ${green(
+      `\n${bold(config.owner)}/${bold(config.repository)} ${green(
         `<${config.type}:${config.branch}>`,
       )} ${
         config.type === "repository"
@@ -118,7 +118,7 @@ const main = async () => {
                 config.type === "blob" ? `/${config.path.split("/").pop()}` : ""
               }`,
             )}`
-      }\n`,
+      }`,
     )
 
     const targetPath = path.resolve(config.target)
@@ -135,7 +135,7 @@ const main = async () => {
     ) {
       console.log(
         bold(
-          `${yellow(`Warning: The target directory is not empty. Use ${cyan("-f")} | ${cyan("-o")} to overwrite.`)}`,
+          `${yellow(`\nWarning: The target directory is not empty. Use ${cyan("-f")} | ${cyan("-o")} to overwrite.`)}`,
         ),
       )
       process.exit(0)
@@ -149,15 +149,13 @@ const main = async () => {
         async () => await cloneAction(config, options, targetPath),
         watchInterval,
       )
-    }
-
-    if (!options.watch) process.exit(0)
+    } else process.exit(0)
   } catch (err) {
     if (err instanceof Error) {
-      console.log(bold(`${red("Error: ")}`) + err.message)
+      console.log(bold(`\n${red("Error: ")}`) + err.message)
     } else {
       console.log(
-        bold(`${red("Unexpected Error: ")}`) + JSON.stringify(err, null, 2),
+        bold(`${red("\nUnexpected Error: ")}`) + JSON.stringify(err, null, 2),
       )
     }
     process.exit(1)
