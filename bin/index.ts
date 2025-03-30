@@ -5,21 +5,13 @@ import path from "path"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
-import { cancel, confirm, isCancel } from "@clack/prompts"
-import {
-  blue,
-  bold,
-  cyan,
-  green,
-  white,
-  yellow,
-} from "~/external/yoctocolors/base"
+import { bold, cyan, green, white, yellow } from "~/external/yoctocolors/base"
 import { name, version } from "~/package.json"
 
 const helpMessage = `
 ${bold("With GitPick, you can clone precisely what you need.")}
 
-${cyan("gitpick <url>")} ${green("[target]")} ${blue("[options]")}
+${cyan("gitpick <url>")} ${green("[target]")} ${cyan("[options]")}
 
 ${bold("Hint:")} Target is optional, and follows default git clone behavior.
 
@@ -28,12 +20,12 @@ ${bold("Arguments:")}
   ${green("target")}             Directory to clone into (optional)
 
 ${bold("Options:")}
-  ${blue("-b, --branch ")}      Branch to clone
-  ${blue("-o, --overwrite")}    Skip overwrite prompt
-  ${blue("-w, --watch [time]")} Watch the repository and sync every [time]
+  ${cyan("-b, --branch ")}      Branch to clone
+  ${cyan("-o, --overwrite")}    Skip overwrite prompt
+  ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
                      (e.g. 1h, 30m, 15s) default: 1m
-  ${blue("-h, --help")}         display help for command
-  ${blue("-v, --version")}      display the version number
+  ${cyan("-h, --help")}         display help for command
+  ${cyan("-v, --version")}      display the version number
 
 ${bold("Examples:")}
   $ gitpick <url>
@@ -143,28 +135,12 @@ const main = async () => {
       (await fs.promises.readdir(targetPath)).length &&
       !options.overwrite
     ) {
-      const message =
-        config.type === "tree"
-          ? "The target directory is not empty. Do you want to overwrite the files?"
-          : "The target file already exists. Do you want to overwrite the file?"
-
-      const overwrite = await confirm({
-        message,
-      })
-
-      if (isCancel(overwrite)) {
-        cancel("Operation cancelled.")
-        process.exit(0)
-      }
-
-      if (!overwrite) {
-        console.info("Chose not to overwrite files.")
-        process.exit(0)
-      }
-
-      console.info(
-        "You can use -o | --overwrite or -f | --force flag to skip this prompt next time.",
+      console.log(
+        bold(
+          `${yellow(`Warning: The target directory is not empty. Use ${cyan("-f")} | ${cyan("-o")} to overwrite.`)}`,
+        ),
       )
+      process.exit(0)
     }
 
     await cloneAction(config, options, targetPath)
