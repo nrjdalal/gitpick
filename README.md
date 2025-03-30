@@ -33,7 +33,7 @@ npx gitpick <url> [target] [options]
 Examples:
 
 ```sh
-npx gitpick TanStack/router                         # full repo
+npx gitpick https://github.com/TanStack/router      # full repo without .git
 npx gitpick TanStack/router/tree/main/examples      # a folder
 npx gitpick TanStack/router/tree/main/package.json  # a file
 npx gitpick <url> -w 30s                            # sync every 30 seconds
