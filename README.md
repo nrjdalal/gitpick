@@ -28,6 +28,8 @@ No more full-repo clones when all you want is a file or folder.
 npx gitpick <url> [target] [options]
 ```
 
+- [target] and [options] are optional
+
 Examples:
 
 ```sh
@@ -36,6 +38,7 @@ npx gitpick TanStack/router/tree/main/examples      # a folder
 npx gitpick TanStack/router/tree/main/package.json  # a file
 npx gitpick <url> -w 30s                            # sync every 30 seconds
 npx gitpick <url> -o                                # overwrite without prompt
+npx gitpick https://<token>@github.com/owner/repo   # private repo
 ```
 
 ---
