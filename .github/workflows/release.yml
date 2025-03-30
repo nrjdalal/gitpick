@@ -68,7 +68,7 @@ jobs:
           bunx json -I -f package.json -e 'delete this.scripts'
           bunx json -I -f package.json -e 'delete this["simple-git-hooks"]'
           bunx json -I -f package.json -e 'delete this.commitlint'
-          bunx json -I -f package.json -e 'delete this.lint-staged'
+          bunx json -I -f package.json -e 'delete this["lint-staged"]'
           bunx json -I -f package.json -e 'delete this.prettier'
           bunx json -I -f package.json -e 'delete this.devDependencies'
           npm publish --provenance --access public --no-git-checks --tag $TAG
