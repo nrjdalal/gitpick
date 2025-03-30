@@ -2,13 +2,13 @@
 import fs from "fs"
 import { parseArgs } from "node:util"
 import path from "path"
+import colors from "@/pkgs/yoctocolors"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
 import { cancel, confirm, intro, isCancel, log } from "@clack/prompts"
 import { name, version } from "~/package.json"
 import terminalLink from "terminal-link"
-import colors from "yoctocolors"
 
 const helpMessage = `
 ${colors.whiteBright("With GitPick, you can clone precisely what you need.")}
