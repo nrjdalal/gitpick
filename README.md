@@ -57,13 +57,11 @@ npx gitpick https://<token>@github.com/owner/repo   # private repo
 
 ## 🔐 Private Repos
 
-Use a [GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with `repo -> contents: read-only` permission:
+Use a [GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#about-personal-access-tokens) with `repo -> contents: read-only` permission (create new token [here](https://github.com/settings/personal-access-tokens/new)):
 
 ```
 npx gitpick https://<token>@github.com/owner/repo
 ```
-
-Create PAT: https://github.com/settings/personal-access-tokens/new
 
 ---
 
