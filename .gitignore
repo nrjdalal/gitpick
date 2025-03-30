@@ -19,6 +19,4 @@ node_modules/
 dist/
 
 # custom
-test.md
-gitpick-test/
 test/
