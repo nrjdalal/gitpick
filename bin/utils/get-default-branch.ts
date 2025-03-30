@@ -1,7 +1,7 @@
-import simpleGit from "simple-git"
+import spawn from "~/external/nano-spawn"
 
 export const getDefaultBranch = async (url: string) => {
-  const remotes = await simpleGit().listRemote([url])
+  const remotes = (await spawn("git", ["ls-remote", url])).stdout
   const headHash = remotes.match(/(.+)\s+HEAD/)?.[1]
   const branch = remotes.match(
     new RegExp(`${headHash}\\s+refs/heads/(.+)`),
