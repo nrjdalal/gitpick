@@ -73,7 +73,7 @@ export const cloneAction = async (
         1000
       ).toFixed(2)} seconds!`,
     )
-  } else console.info("Synced at " + new Date().toLocaleTimeString())
+  } else console.info("- Synced at " + new Date().toLocaleTimeString())
 
   await fs.promises.rm(tempDir, { recursive: true, force: true })
 }

@@ -11,12 +11,12 @@ import { name, version } from "~/package.json"
 const helpMessage = `
 ${bold("With GitPick, you can clone precisely what you need.")}
 
-${cyan("gitpick <url>")} ${green("[target]")} ${cyan("[options]")}
+${bold("gitpick")} ${yellow("<url>")} ${green("[target]")} ${cyan("[options]")}
 
 ${bold("Hint:")} Target is optional, and follows default git clone behavior.
 
 ${bold("Arguments:")}
-  ${cyan("url")}                GitHub URL with path to file/folder/repository
+  ${yellow("url")}                GitHub URL with path to file/folder/repository
   ${green("target")}             Directory to clone into (optional)
 
 ${bold("Options:")}
@@ -80,6 +80,18 @@ const main = async () => {
       watch: values.watch,
     }
 
+    // TODO: Hyperlink to GitHub repo
+
+    // console.log(
+    //   white(
+    //     `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
+    //   ),
+    // )
+
+    console.log(
+      `\n${bold("GitPick")} - Clone specific directories or files from GitHub!\n`,
+    )
+
     options.overwrite = options.overwrite || options.force
 
     if (options.watch) {
@@ -94,18 +106,6 @@ const main = async () => {
       branch: options.branch,
       target,
     })
-
-    // TODO: Hyperlink to GitHub repo
-
-    // console.log(
-    //   white(
-    //     `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
-    //   ),
-    // )
-
-    console.log(
-      `\n${bold("GitPick")} - Clone specific directories or files from GitHub!\n`,
-    )
 
     console.info(
       `${bold(config.owner)}/${bold(config.repository)} ${green(
@@ -151,7 +151,7 @@ const main = async () => {
       )
     }
 
-    process.exit(0)
+    if (!options.watch) process.exit(0)
   } catch (err) {
     if (err instanceof Error) {
       console.log(bold(`${red("Error: ")}`) + err.message)
@@ -160,7 +160,6 @@ const main = async () => {
         bold(`${red("Unexpected Error: ")}`) + JSON.stringify(err, null, 2),
       )
     }
-
     process.exit(1)
   }
 }
