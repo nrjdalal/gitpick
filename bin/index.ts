@@ -94,14 +94,6 @@ const main = async () => {
 
     options.overwrite = options.overwrite || options.force
 
-    if (options.watch) {
-      if (typeof options.watch === "boolean") options.watch = "1m"
-
-      console.log(
-        `\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}`,
-      )
-    }
-
     const config = await githubConfigFromUrl(url, {
       branch: options.branch,
       target,
@@ -141,15 +133,21 @@ const main = async () => {
       process.exit(0)
     }
 
-    await cloneAction(config, options, targetPath)
-
     if (options.watch) {
+      console.log(
+        `\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`,
+      )
+
+      await cloneAction(config, options, targetPath)
       const watchInterval = parseTimeString(options.watch)
       setInterval(
         async () => await cloneAction(config, options, targetPath),
         watchInterval,
       )
-    } else process.exit(0)
+    } else {
+      await cloneAction(config, options, targetPath)
+      process.exit(0)
+    }
   } catch (err) {
     if (err instanceof Error) {
       console.log(bold(`\n${red("Error: ")}`) + err.message)
