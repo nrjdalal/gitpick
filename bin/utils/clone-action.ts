@@ -3,7 +3,6 @@ import os from "node:os"
 import path from "node:path"
 import { copyDir } from "@/utils/copy-dir"
 import spawn from "~/external/nano-spawn"
-import spinner from "~/external/yocto-spinner"
 
 export const cloneAction = async (
   config: {
@@ -19,8 +18,6 @@ export const cloneAction = async (
   },
   targetPath: string,
 ) => {
-  const s = spinner()
-
   if (process.platform === "win32") {
     await spawn("git", ["config", "--global", "core.longpaths", "true"])
   }
@@ -32,8 +29,8 @@ export const cloneAction = async (
   )
 
   if (!options.watch)
-    s.start(
-      `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}`,
+    console.log(
+      `🔍 Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"} ...`,
     )
 
   const start = performance.now()
@@ -42,11 +39,11 @@ export const cloneAction = async (
     "clone",
     repoUrl,
     tempDir,
+    "--branch",
+    config.branch,
     "--depth",
     "1",
     "--single-branch",
-    "--branch",
-    config.branch,
   ])
 
   const sourcePath = path.join(tempDir, config.path)
@@ -67,8 +64,8 @@ export const cloneAction = async (
   }
 
   if (!options.watch) {
-    s.success(
-      `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
+    console.log(
+      `\n🎉 Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
         (performance.now() - start) /
         1000
       ).toFixed(2)} seconds!`,
