@@ -59,8 +59,7 @@
     "semi": false
   },
   "dependencies": {
-    "@clack/prompts": "^0.10.0",
-    "nano-spawn": "^0.2.0"
+    "@clack/prompts": "^0.10.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
