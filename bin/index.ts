@@ -22,6 +22,7 @@ ${bold("Arguments:")}
 ${bold("Options:")}
   ${cyan("-b, --branch ")}      Branch to clone
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
+  ${cyan("-r, --recursive")}    Clone submodules
   ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
                      (e.g. 1h, 30m, 15s)
   ${cyan("-h, --help")}         display help for command
