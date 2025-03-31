@@ -14,7 +14,8 @@ export const cloneAction = async (
     path: string
   },
   options: {
-    watch?: string | number | boolean
+    recursive?: boolean
+    watch?: string
   },
   targetPath: string,
 ) => {
@@ -44,6 +45,7 @@ export const cloneAction = async (
     "--depth",
     "1",
     "--single-branch",
+    ...(options.recursive ? ["--recursive"] : []),
   ])
 
   const sourcePath = path.join(tempDir, config.path)

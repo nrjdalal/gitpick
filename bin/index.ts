@@ -23,7 +23,7 @@ ${bold("Options:")}
   ${cyan("-b, --branch ")}      Branch to clone
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
   ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
-                     (e.g. 1h, 30m, 15s) default: 1m
+                     (e.g. 1h, 30m, 15s)
   ${cyan("-h, --help")}         display help for command
   ${cyan("-v, --version")}      display the version number
 
@@ -50,11 +50,12 @@ const main = async () => {
       allowPositionals: true,
       options: {
         branch: { type: "string", short: "b" },
-        overwrite: { type: "boolean", short: "o" },
         force: { type: "boolean", short: "f" },
-        watch: { type: "string", short: "w" },
         help: { type: "boolean", short: "h" },
+        overwrite: { type: "boolean", short: "o" },
+        recusrsive: { type: "boolean", short: "r" },
         version: { type: "boolean", short: "v" },
+        watch: { type: "string", short: "w" },
       },
     })
 
