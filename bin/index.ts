@@ -53,7 +53,7 @@ const main = async () => {
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
         overwrite: { type: "boolean", short: "o" },
-        recusrsive: { type: "boolean", short: "r" },
+        recursive: { type: "boolean", short: "r" },
         version: { type: "boolean", short: "v" },
         watch: { type: "string", short: "w" },
       },
