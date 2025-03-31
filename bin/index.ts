@@ -76,8 +76,9 @@ const main = async () => {
 
     const options = {
       branch: values.branch,
-      overwrite: values.overwrite,
       force: values.force,
+      overwrite: values.overwrite,
+      recursive: values.recursive,
       watch: values.watch,
     }
 
