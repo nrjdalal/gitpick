@@ -9,7 +9,7 @@
 [![downloads](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![stars](https://img.shields.io/github/stars/nrjdalal/gitpick?color=blue)](https://github.com/nrjdalal/gitpick)
 
-<img width="400" alt="GitPick Meme" src="https://github.com/user-attachments/assets/dde09ae9-1ee4-4cd8-a181-91f8e6ed6ba6" />
+<img width="400" alt="GitPick Meme" src="https://github.com/user-attachments/assets/180c3e5b-320c-48d7-aaf9-a7402e74c882" />
 
 ---
 
