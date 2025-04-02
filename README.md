@@ -17,10 +17,11 @@
 
 - 🔍 Clone individual files or folders from any GitHub repository
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
-- 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
-- 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
-- 🔐 Seamlessly works with both public and private repositories using a PAT
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
+- 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
+- 📦 Can easily clone all submodules with `-r` | `--recursive`
+- 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
+- 🔐 Seamlessly works with both public and private repositories using a PAT
 
 ---
 
