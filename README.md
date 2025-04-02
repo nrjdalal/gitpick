@@ -35,7 +35,7 @@ npx gitpick <url/shorthand> [target] [options]
 Examples:
 
 ```sh
-npx gitpick https://github.com/TanStack/router      # repository without .git
+npx gitpick https://github.com/TanStack/router      # repo without .git
 npx gitpick TanStack/router/tree/main/examples      # a folder
 npx gitpick TanStack/router/tree/main/package.json  # a file
 
