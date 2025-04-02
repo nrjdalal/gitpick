@@ -2,7 +2,7 @@
 
 **Clone exactly what you need aka straightforward project scaffolding**
 
-📦 `Zero dependencies` / `125x smaller (<10kb)` / `More features` yet drop-in replacement for `degit`
+📦 `Zero dependencies` / `125x smaller (<10kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 [![Twitter](https://img.shields.io/twitter/follow/nrjdalal_com?label=%40nrjdalal_com)](https://twitter.com/nrjdalal_com)
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
