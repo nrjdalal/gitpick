@@ -64,7 +64,7 @@ export const cloneAction = async (
 
   if (!options.watch) {
     console.log(
-      `\n🎉 Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
+      `\n✅ Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
         (performance.now() - start) /
         1000
       ).toFixed(2)} seconds!`,

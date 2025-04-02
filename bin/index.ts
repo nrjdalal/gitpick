@@ -138,7 +138,7 @@ const main = async () => {
           `${yellow(`\nWarning: The target directory is not empty. Use ${cyan("-f")} | ${cyan("-o")} to overwrite.`)}`,
         ),
       )
-      process.exit(0)
+      process.exit(1)
     }
 
     if (options.watch) {
