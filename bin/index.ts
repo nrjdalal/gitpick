@@ -95,12 +95,21 @@ const main = async () => {
       `\n${bold("GitPick")} - Clone specific directories or files from GitHub!`,
     )
 
-    options.overwrite = options.overwrite || options.force
-
     const config = await githubConfigFromUrl(url, {
       branch: options.branch,
       target,
     })
+
+    if (config.type === "blob") {
+      const parts = config.target.split("/").filter((part) => part !== "")
+      let lastPart = parts[parts.length - 1]
+      if (lastPart !== "." && lastPart !== ".." && lastPart.includes(".")) {
+        parts.pop()
+      } else {
+        lastPart = config.path.split("/").pop() || lastPart
+      }
+      config.target = [...parts, lastPart].join("/")
+    }
 
     console.info(
       `\n${bold(config.owner)}/${bold(config.repository)} ${green(
@@ -108,16 +117,12 @@ const main = async () => {
       )} ${
         config.type === "repository"
           ? `> ${cyan(config.target)}`
-          : `${yellow(config.path)} > ${cyan(
-              `${config.target}${
-                config.type === "blob" ? `/${config.path.split("/").pop()}` : ""
-              }`,
-            )}`
+          : `${yellow(config.path)} > ${cyan(config.target)}`
       }`,
     )
 
     const targetPath = path.resolve(config.target)
-
+    options.overwrite = options.overwrite || options.force
     if (options.watch) options.overwrite = true
 
     if (

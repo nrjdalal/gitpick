@@ -3,21 +3,22 @@
 set -e
 
 bun run build
+rm -rf test/*
 
 TEST_CASES=(
+  'nrjdalal/gitpick/blob/main/bin/index.ts'
   'nrjdalal/gitpick'
   'https://github.com/nrjdalal/gitpick'
   'git@github.com:nrjdalal/gitpick.git'
   'https://github.com/nrjdalal/gitpick.git'
-  'nrjdalal/gitpick/tree/main/src'
-  'https://github.com/nrjdalal/gitpick/tree/main/src'
-  'git@github.com:nrjdalal/gitpick.git/tree/main/src'
-  'https://github.com/nrjdalal/gitpick.git/tree/main/src'
-  'nrjdalal/gitpick/tree/master/src -b main'
-  'https://github.com/nrjdalal/gitpick/tree/master/src -b main'
-  'git@github.com:nrjdalal/gitpick.git/tree/master/src -b main'
-  'https://github.com/nrjdalal/gitpick.git/tree/master/src -b main'
-  'nrjdalal/gitpick/blob/main/src/index.ts'
+  'nrjdalal/gitpick/tree/main/bin'
+  'https://github.com/nrjdalal/gitpick/tree/main/bin'
+  'git@github.com:nrjdalal/gitpick.git/tree/main/bin'
+  'https://github.com/nrjdalal/gitpick.git/tree/main/bin'
+  'nrjdalal/gitpick/tree/master/bin -b main'
+  'https://github.com/nrjdalal/gitpick/tree/master/bin -b main'
+  'git@github.com:nrjdalal/gitpick.git/tree/master/bin -b main'
+  'https://github.com/nrjdalal/gitpick.git/tree/master/bin -b main'
 )
 
 # Initialize report variables
