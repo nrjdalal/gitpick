@@ -40,7 +40,7 @@ npx gitpick TanStack/router/tree/main/examples      # a folder
 npx gitpick TanStack/router/tree/main/package.json  # a file
 
 npx gitpick <url/shorthand>                         # default git behavior
-npx gitpick <url/shorthand> [target]                # target is optional
+npx gitpick <url/shorthand> [target]                # with optional target
 npx gitpick <url/shorthand> -b [branch]             # a branch
 npx gitpick <url/shorthand> -o                      # overwrite if exists
 npx gitpick <url/shorthand> -r                      # clone submodules
