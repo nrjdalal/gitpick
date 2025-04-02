@@ -102,11 +102,13 @@ const main = async () => {
 
     if (config.type === "blob") {
       const parts = config.target.split("/").filter((part) => part !== "")
-      const lastPart = parts[parts.length - 1]
+      let lastPart = parts[parts.length - 1]
       if (lastPart !== "." && lastPart !== ".." && lastPart.includes(".")) {
         parts.pop()
+      } else {
+        lastPart = config.path.split("/").pop() || lastPart
       }
-      config.target = parts.join("/")
+      config.target = [...parts, lastPart].join("/")
     }
 
     console.info(
@@ -115,11 +117,7 @@ const main = async () => {
       )} ${
         config.type === "repository"
           ? `> ${cyan(config.target)}`
-          : `${yellow(config.path)} > ${cyan(
-              `${config.target}${
-                config.type === "blob" ? `/${config.path.split("/").pop()}` : ""
-              }`,
-            )}`
+          : `${yellow(config.path)} > ${cyan(config.target)}`
       }`,
     )
 

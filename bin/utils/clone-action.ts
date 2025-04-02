@@ -24,7 +24,7 @@ export const cloneAction = async (
   }
 
   const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
-  const tempDir = path.join(
+  const tempDir = path.resolve(
     os.tmpdir(),
     `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
   )
@@ -48,7 +48,7 @@ export const cloneAction = async (
     ...(options.recursive ? ["--recursive"] : []),
   ])
 
-  const sourcePath = path.join(tempDir, config.path)
+  const sourcePath = path.resolve(tempDir, config.path)
 
   const sourceStat = await fs.promises.stat(sourcePath)
 
@@ -56,13 +56,10 @@ export const cloneAction = async (
     await fs.promises.mkdir(targetPath, { recursive: true })
     await copyDir(sourcePath, targetPath)
   } else {
-    await fs.promises.mkdir(targetPath, {
+    await fs.promises.mkdir(targetPath.split("/").slice(0, -1).join("/"), {
       recursive: true,
     })
-    await fs.promises.copyFile(
-      sourcePath,
-      targetPath + "/" + config.path.split("/").pop(),
-    )
+    await fs.promises.copyFile(sourcePath, targetPath)
   }
 
   if (!options.watch) {
