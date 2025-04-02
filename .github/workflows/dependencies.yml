@@ -30,7 +30,7 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git pull origin main
           git checkout -B update-dependencies
-          bunx taze -w
+          bun update
           git add package.json bun.lock
           git commit -m "chore(deps): update dependencies" || true
           git push -f origin update-dependencies

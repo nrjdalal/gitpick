@@ -18,7 +18,7 @@
 - 🔍 Clone individual files or folders from any GitHub repository
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
-- 🗑️ Overwrite or replace existing files without a prompt using `--overwrite`
+- 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
 - 🔐 Seamlessly works with both public and private repositories using a PAT
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
 
@@ -30,7 +30,7 @@
 npx gitpick <url/shorthand> [target] [options]
 ```
 
-- [target] and [options] are optional
+- [target] and [options] are optional, if not specified, it will use the default behavior of `git clone`
 
 Examples:
 
@@ -38,8 +38,13 @@ Examples:
 npx gitpick https://github.com/TanStack/router      # repository without .git
 npx gitpick TanStack/router/tree/main/examples      # a folder
 npx gitpick TanStack/router/tree/main/package.json  # a file
-npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
+
+npx gitpick <url/shorthand>                         # default git behavior
+npx gitpick <url/shorthand> [target]                # target is optional
+npx gitpick <url/shorthand> -b [branch]             # a branch
 npx gitpick <url/shorthand> -o                      # overwrite if exists
+npx gitpick <url/shorthand> -r                      # clone submodules
+npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
 npx gitpick https://<token>@github.com/owner/repo   # private repo
 ```
 
@@ -50,7 +55,8 @@ npx gitpick https://<token>@github.com/owner/repo   # private repo
 ```txt
 -b, --branch       Branch to clone from
 -o, --overwrite    Skip overwrite prompt
--w, --watch [time] Auto-sync at intervals (default: 1m)
+-r, --recursive    Clone submodules
+-w, --watch [time] Sync at intervals
 -h, --help         Show help
 -v, --version      Show version
 ```
