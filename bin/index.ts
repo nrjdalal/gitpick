@@ -92,7 +92,7 @@ const main = async () => {
     // )
 
     console.log(
-      `\n${bold("GitPick")} - Clone specific directories or files from GitHub!`,
+      `${bold("GitPick")} - Clone specific directories or files from GitHub!`,
     )
 
     const config = await githubConfigFromUrl(url, {
@@ -112,12 +112,10 @@ const main = async () => {
     }
 
     console.info(
-      `\n${bold(config.owner)}/${bold(config.repository)} ${green(
-        `<${config.type}:${config.branch}>`,
-      )} ${
+      `\n${config.owner}/${config.repository} ${green(config.type + ":" + config.branch)} ${
         config.type === "repository"
           ? `> ${cyan(config.target)}`
-          : `${yellow(config.path)} > ${cyan(config.target)}`
+          : `${!config.path.length ? ">" : yellow(config.path) + " >"} ${cyan(config.target)}`
       }`,
     )
 
