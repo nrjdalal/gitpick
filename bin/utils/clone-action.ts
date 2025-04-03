@@ -31,7 +31,7 @@ export const cloneAction = async (
 
   if (!options.watch)
     console.log(
-      `\n🔍 Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"} ...`,
+      `\n🔍 Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}...`,
     )
 
   const start = performance.now()
@@ -49,7 +49,7 @@ export const cloneAction = async (
       ...(options.recursive ? ["--recursive"] : []),
     ])
   } catch {
-    console.log("🔄 Using robust checkout process ...")
+    console.log("🔄 Using robust checkout process...")
     await spawn("git", [
       "clone",
       repoUrl,
