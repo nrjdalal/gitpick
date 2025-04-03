@@ -31,7 +31,7 @@
 npx gitpick <url/shorthand> [target] [options]
 ```
 
-- [target] and [options] are optional, if not specified, it will use the default behavior of `git clone`
+- [target] and [options] are optional, if not specified, GitPick fallbacks to the default behavior of `git clone`
 
 Examples:
 

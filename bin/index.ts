@@ -12,9 +12,11 @@ import { name, version } from "~/package.json"
 const helpMessage = `
 With ${bold(`${terminalLink("GitPick ↗️", "https://github.com/nrjdalal/gitpick")}`)}  clone specific directories or files from GitHub!
 
-${bold("gitpick")} ${yellow("<url>")} ${green("[target]")} ${cyan("[options]")}
+  $ gitpick ${yellow("<url>")} ${green("[target]")} ${cyan("[options]")}
 
-${bold("Hint:")} [target] and [options] are optional, if not specified, it will use the default behavior of \`git clone\`
+${bold("Hint:")}
+  [target] and [options] are optional. If not specified,
+  GitPick fallbacks to the default behavior of \`git clone\`.
 
 ${bold("Arguments:")}
   ${yellow("url")}                GitHub URL with path to file/folder/repository
