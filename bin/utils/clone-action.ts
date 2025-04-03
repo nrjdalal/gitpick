@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { green } from "@/utils/colors"
 import { copyDir } from "@/utils/copy-dir"
 import spawn from "~/external/nano-spawn"
 
@@ -31,7 +32,7 @@ export const cloneAction = async (
 
   if (!options.watch)
     console.log(
-      `\n🔍 Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}...`,
+      `${green("✔")} Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}...`,
     )
 
   const start = performance.now()
@@ -49,7 +50,7 @@ export const cloneAction = async (
       ...(options.recursive ? ["--recursive"] : []),
     ])
   } catch {
-    console.log("🔄 Using robust checkout process...")
+    console.log(`${green("✔")} Using robust checkout process...`)
     await spawn("git", [
       "clone",
       repoUrl,
@@ -75,7 +76,7 @@ export const cloneAction = async (
 
   if (!options.watch) {
     console.log(
-      `🔥 Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
+      `${green("✔")} Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
         (performance.now() - start) /
         1000
       ).toFixed(2)} seconds!`,

@@ -112,10 +112,10 @@ const main = async () => {
     }
 
     console.info(
-      `\n${config.owner}/${config.repository} ${green(config.type + ":" + config.branch)} ${
+      `\n${green("✔")} ${config.owner}/${config.repository} ${cyan(config.type + ":" + config.branch)} ${
         config.type === "repository"
-          ? `> ${cyan(config.target)}`
-          : `${!config.path.length ? ">" : yellow(config.path) + " >"} ${cyan(config.target)}`
+          ? `> ${green(config.target)}`
+          : `${!config.path.length ? ">" : yellow(config.path) + " >"} ${green(config.target)}`
       }`,
     )
 
