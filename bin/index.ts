@@ -10,11 +10,11 @@ import { bold, cyan, green, red, yellow } from "~/external/yoctocolors"
 import { name, version } from "~/package.json"
 
 const helpMessage = `
-${bold("With GitPick, you can clone precisely what you need.")}
+With ${bold(`${terminalLink("GitPick ↗️", "https://github.com/nrjdalal/gitpick")}`)}  clone specific directories or files from GitHub!
 
 ${bold("gitpick")} ${yellow("<url>")} ${green("[target]")} ${cyan("[options]")}
 
-${bold("Hint:")} Target is optional, and follows default git clone behavior.
+${bold("Hint:")} [target] and [options] are optional, if not specified, it will use the default behavior of \`git clone\`
 
 ${bold("Arguments:")}
   ${yellow("url")}                GitHub URL with path to file/folder/repository
@@ -87,12 +87,8 @@ const main = async () => {
     // TODO: Hyperlink to GitHub repo
 
     console.log(
-      `${bold(`${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")}`)} - Clone specific directories or files from GitHub!`,
+      `\nWith ${bold(`${terminalLink("GitPick ↗️", "https://github.com/nrjdalal/gitpick")}`)}  clone specific directories or files from GitHub!`,
     )
-
-    // console.log(
-    //   `${bold("GitPick")} - Clone specific directories or files from GitHub!`,
-    // )
 
     const config = await githubConfigFromUrl(url, {
       branch: options.branch,
