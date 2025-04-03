@@ -14,7 +14,7 @@ bunx gitpick@latest https://github.com/chalk/supports-color/blob/ae809ecabd5965d
 bunx gitpick@latest https://github.com/sindresorhus/environment/blob/0e664a280bbbb4569458b25d175eb745a5cb4d29/index.js external/environment -f
 bunx gitpick@latest https://github.com/sindresorhus/has-flag/blob/0c7d032214c51d14b458364c9f6575ea9afa08b1/index.js external/has-flag -f
 
-bunx prettier@latest --write --ignore-unknown "external"
+bunx prettier@latest --write --ignore-unknown "external/**/*"
 
 sed -i "" "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js
 sed -i "" "s|from 'environment'|from '../environment'|g" external/ansi-escapes/base.js
