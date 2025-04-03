@@ -1,9 +1,9 @@
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
-import { green } from "@/utils/colors"
 import { copyDir } from "@/utils/copy-dir"
 import spawn from "~/external/nano-spawn"
+import { green } from "~/external/yoctocolors"
 
 export const cloneAction = async (
   config: {

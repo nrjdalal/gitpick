@@ -3,10 +3,10 @@ import fs from "fs"
 import { parseArgs } from "node:util"
 import path from "path"
 import { cloneAction } from "@/utils/clone-action"
-import { bold, cyan, green, red, yellow } from "@/utils/colors"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
 import terminalLink from "~/external/terminal-link"
+import { bold, cyan, green, red, yellow } from "~/external/yoctocolors"
 import { name, version } from "~/package.json"
 
 const helpMessage = `

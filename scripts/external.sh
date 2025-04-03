@@ -3,6 +3,8 @@
 # main dependencies
 bunx gitpick@latest https://github.com/sindresorhus/terminal-link/blob/1fa2892d27f388ea1cf9a2c934470fc94dda2115/index.js external/terminal-link -f
 bunx gitpick@latest https://github.com/sindresorhus/nano-spawn/tree/d3d724082c6bc679079e150b25b5b8242a2af2c4/source external/nano-spawn -f
+bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/366d515357373a0d6c1494ca08d541f0f80ceb61/base.js external/yoctocolors -f
+bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/366d515357373a0d6c1494ca08d541f0f80ceb61/index.js external/yoctocolors -f
 
 # dependencies of main dependencies
 bunx gitpick@latest https://github.com/sindresorhus/ansi-escapes/blob/300a0dfab1715ddc540dec2dec76082be69a99c8/base.js external/ansi-escapes -f
@@ -16,20 +18,16 @@ bunx gitpick@latest https://github.com/sindresorhus/has-flag/blob/0c7d032214c51d
 
 bunx prettier@latest --write --ignore-unknown "external/**/*"
 
-replacements=(
-  "s|from 'ansi-escapes'|from '../ansi-escapes'|g external/terminal-link/index.js"
-  "s|from 'environment'|from '../environment'|g external/ansi-escapes/base.js"
-  "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g external/terminal-link/index.js"
-  "s|from 'supports-color'|from '../supports-color'|g external/supports-hyperlinks/index.js"
-  "s|from 'has-flag'|from '../has-flag'|g external/supports-hyperlinks/index.js"
-)
-
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  for replacement in "${replacements[@]}"; do
-    sed -i "" "$replacement"
-  done
+  sed -i "" "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js
+  sed -i "" "s|from 'environment'|from '../environment'|g" external/ansi-escapes/base.js
+  sed -i "" "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
+  sed -i "" "s|from 'supports-color'|from '../supports-color'|g" external/supports-hyperlinks/index.js
+  sed -i "" "s|from 'has-flag'|from '../has-flag'|g" external/supports-hyperlinks/index.js
 else
-  for replacement in "${replacements[@]}"; do
-    sed -i "$replacement"
-  done
+  sed -i "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js
+  sed -i "s|from 'environment'|from '../environment'|g" external/ansi-escapes/base.js
+  sed -i "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
+  sed -i "s|from 'supports-color'|from '../supports-color'|g" external/supports-hyperlinks/index.js
+  sed -i "s|from 'has-flag'|from '../has-flag'|g" external/supports-hyperlinks/index.js
 fi
