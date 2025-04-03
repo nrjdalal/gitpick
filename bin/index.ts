@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import fs from "fs"
+import fs from "node:fs"
+import path from "node:path"
 import { parseArgs } from "node:util"
-import path from "path"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
@@ -85,8 +85,6 @@ const main = async () => {
       recursive: values.recursive,
       watch: values.watch,
     }
-
-    // TODO: Hyperlink to GitHub repo
 
     console.log(
       `\nWith ${bold(`${terminalLink("GitPick ↗️", "https://github.com/nrjdalal/gitpick")}`)}  clone specific directories or files from GitHub!`,
