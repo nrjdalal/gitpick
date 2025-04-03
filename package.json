@@ -1,7 +1,7 @@
 {
   "name": "gitpick",
-  "version": "4.5.3",
-  "description": "Clone exactly what you need aka straightforward project scaffolding",
+  "version": "4.6.0",
+  "description": "Clone exactly what you need aka straightforward project scaffolding!",
   "keywords": [
     "clone",
     "degit",
