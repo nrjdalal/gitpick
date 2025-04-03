@@ -16,6 +16,7 @@ bunx gitpick@latest https://github.com/sindresorhus/has-flag/blob/0c7d032214c51d
 
 bunx prettier@latest --write --ignore-unknown "external/**/*"
 
+ls
 sed -i "" "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js
 sed -i "" "s|from 'environment'|from '../environment'|g" external/ansi-escapes/base.js
 sed -i "" "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
