@@ -79,7 +79,7 @@ export const cloneAction = async (
       `${green("✔")} Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
         (performance.now() - start) /
         1000
-      ).toFixed(2)} seconds!`,
+      ).toFixed(2)} seconds.`,
     )
   } else console.log("- Synced at " + new Date().toLocaleTimeString())
 
