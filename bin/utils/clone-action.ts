@@ -36,17 +36,28 @@ export const cloneAction = async (
 
   const start = performance.now()
 
-  await spawn("git", [
-    "clone",
-    repoUrl,
-    tempDir,
-    "--branch",
-    config.branch,
-    "--depth",
-    "1",
-    "--single-branch",
-    ...(options.recursive ? ["--recursive"] : []),
-  ])
+  try {
+    await spawn("git", [
+      "clone",
+      repoUrl,
+      tempDir,
+      "--branch",
+      config.branch,
+      "--depth",
+      "1",
+      "--single-branch",
+      ...(options.recursive ? ["--recursive"] : []),
+    ])
+  } catch {
+    console.log("\n🔄 Using robust checkout process ...")
+    await spawn("git", [
+      "clone",
+      repoUrl,
+      tempDir,
+      ...(options.recursive ? ["--recursive"] : []),
+    ])
+    await spawn("git", ["checkout", config.branch], { cwd: tempDir })
+  }
 
   const sourcePath = path.resolve(tempDir, config.path)
 

@@ -64,6 +64,7 @@ jobs:
 
           bunx json -I -f package.json -e "this.version=\"$RELEASE_VERSION\""
           bun install --frozen-lockfile
+          bun run sync:external
           bun run build
           bunx json -I -f package.json -e 'delete this.scripts'
           bunx json -I -f package.json -e 'delete this["simple-git-hooks"]'

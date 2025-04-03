@@ -2,7 +2,18 @@
 
 set -e
 
+if [ ! -d "external" ]; then
+  echo -e "\n❌ The 'external' folder does not exist. Please run \033[1;32mnpm run sync:external\033[0m first.\n"
+  exit 1
+fi
+
 bun run build
+
+if [ "$#" -gt 0 ]; then
+  node dist/index.js "$@"
+  exit 0
+fi
+
 rm -rf test/*
 
 TEST_CASES=(
