@@ -49,7 +49,7 @@ npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
 npx gitpick https://<token>@github.com/owner/repo   # private repo
 ```
 
-<img width="620" alt="Image" src="https://github.com/user-attachments/assets/98b4b226-8560-4d83-9da5-ea500ff8179e" />
+<img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
 
 ---
 
