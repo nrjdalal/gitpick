@@ -6,6 +6,7 @@ import { cloneAction } from "@/utils/clone-action"
 import { bold, cyan, green, red, yellow } from "@/utils/colors"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
+import terminalLink from "~/external/terminal-link"
 import { name, version } from "~/package.json"
 
 const helpMessage = `
@@ -85,15 +86,13 @@ const main = async () => {
 
     // TODO: Hyperlink to GitHub repo
 
-    // console.log(
-    //   white(
-    //     `\n${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")} - Clone specific directories or files from GitHub!\n`,
-    //   ),
-    // )
-
     console.log(
-      `${bold("GitPick")} - Clone specific directories or files from GitHub!`,
+      `${bold(`${terminalLink("GitPick ↗️ ", "https://github.com/nrjdalal/gitpick")}`)} - Clone specific directories or files from GitHub!`,
     )
+
+    // console.log(
+    //   `${bold("GitPick")} - Clone specific directories or files from GitHub!`,
+    // )
 
     const config = await githubConfigFromUrl(url, {
       branch: options.branch,
