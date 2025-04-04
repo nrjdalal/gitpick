@@ -7,13 +7,11 @@ bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/72727da6d
 bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/366d515357373a0d6c1494ca08d541f0f80ceb61/base.js external/yoctocolors -f
 bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/366d515357373a0d6c1494ca08d541f0f80ceb61/index.js external/yoctocolors -f
 
-# dependencies of main dependencies
+# sub dependencies
+bunx gitpick@latest https://github.com/chalk/supports-color/blob/ae809ecabd5965d0685e7fc121efe98c47ad8724/index.js external/supports-color -f
 bunx gitpick@latest https://github.com/chalk/supports-hyperlinks/blob/c5d1720b5ccc8b8f3d6e97c6ea9bf42a3d69820f/index.js external/supports-hyperlinks -f
 bunx gitpick@latest https://github.com/sindresorhus/ansi-escapes/blob/300a0dfab1715ddc540dec2dec76082be69a99c8/base.js external/ansi-escapes -f
 bunx gitpick@latest https://github.com/sindresorhus/ansi-escapes/blob/300a0dfab1715ddc540dec2dec76082be69a99c8/index.js external/ansi-escapes -f
-
-# sub dependencies
-bunx gitpick@latest https://github.com/chalk/supports-color/blob/ae809ecabd5965d0685e7fc121efe98c47ad8724/index.js external/supports-color -f
 bunx gitpick@latest https://github.com/sindresorhus/environment/blob/0e664a280bbbb4569458b25d175eb745a5cb4d29/index.js external/environment -f
 bunx gitpick@latest https://github.com/sindresorhus/has-flag/blob/0c7d032214c51d14b458364c9f6575ea9afa08b1/index.js external/has-flag -f
 
