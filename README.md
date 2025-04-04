@@ -55,7 +55,7 @@ npx gitpick https://<token>@github.com/owner/repo  # private repository
 
 ## 🔧 Options
 
-```sh
+```
 -b, --branch       Branch/SHA to clone
 -o, --overwrite    Skip overwrite prompt
 -r, --recursive    Clone submodules
