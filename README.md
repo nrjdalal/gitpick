@@ -55,12 +55,12 @@ npx gitpick https://<token>@github.com/owner/repo  # private repository
 
 ## 🔧 Options
 
-```txt
+```sh
 -b, --branch       Branch/SHA to clone
 -o, --overwrite    Skip overwrite prompt
 -r, --recursive    Clone submodules
 -w, --watch [time] Watch the repository and sync every [time]
-                  (e.g. 1h, 30m, 15s)
+                   (e.g. 1h, 30m, 15s)
 -h, --help         display help for command
 -v, --version      display the version number
 ```
