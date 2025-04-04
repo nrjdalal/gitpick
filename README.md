@@ -36,17 +36,17 @@ npx gitpick <url/shorthand> [target] [options]
 Examples:
 
 ```sh
-npx gitpick https://github.com/TanStack/router      # repo without .git
-npx gitpick TanStack/router/tree/main/examples      # a folder aka tree
-npx gitpick TanStack/router/blob/main/package.json  # a file aka blob
+npx gitpick https://github.com/TanStack/router     # repo without .git
+npx gitpick TanStack/router/tree/main/examples     # a folder aka tree
+npx gitpick TanStack/router/blob/main/README.md    # a file aka blob
 
-npx gitpick <url/shorthand>                         # default git behavior
-npx gitpick <url/shorthand> [target]                # with optional target
-npx gitpick <url/shorthand> -b [branch/SHA]         # branch or commit SHA
-npx gitpick <url/shorthand> -o                      # overwrite if exists
-npx gitpick <url/shorthand> -r                      # clone submodules
-npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
-npx gitpick https://<token>@github.com/owner/repo   # private repository
+npx gitpick <url/shorthand>                        # default git behavior
+npx gitpick <url/shorthand> [target]               # with optional target
+npx gitpick <url/shorthand> -b [branch/SHA]        # branch or commit SHA
+npx gitpick <url/shorthand> -o                     # overwrite if exists
+npx gitpick <url/shorthand> -r                     # clone submodules
+npx gitpick <url/shorthand> -w 30s                 # sync every 30 seconds
+npx gitpick https://<token>@github.com/owner/repo  # private repository
 ```
 
 <img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
@@ -60,7 +60,7 @@ npx gitpick https://<token>@github.com/owner/repo   # private repository
 -o, --overwrite    Skip overwrite prompt
 -r, --recursive    Clone submodules
 -w, --watch [time] Watch the repository and sync every [time]
-                    (e.g. 1h, 30m, 15s)
+                  (e.g. 1h, 30m, 15s)
 -h, --help         display help for command
 -v, --version      display the version number
 ```

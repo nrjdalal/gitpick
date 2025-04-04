@@ -15,8 +15,8 @@ With ${bold(`${terminalLink("GitPick ↗️", "https://github.com/nrjdalal/gitpi
   $ gitpick ${yellow("<url>")} ${green("[target]")} ${cyan("[options]")}
 
 ${bold("Hint:")}
-  [target] and [options] are optional. If not specified,
-  GitPick fallbacks to the default behavior of \`git clone\`.
+  [target] and [options] are optional and if not specified,
+  GitPick fallbacks to the default behavior of \`git clone\`
 
 ${bold("Arguments:")}
   ${yellow("url")}                GitHub URL with path to file/folder/repository
