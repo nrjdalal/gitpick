@@ -23,7 +23,7 @@ ${bold("Arguments:")}
   ${green("target")}             Directory to clone into (optional)
 
 ${bold("Options:")}
-  ${cyan("-b, --branch ")}      Branch to clone
+  ${cyan("-b, --branch ")}      Branch/SHA to clone
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
   ${cyan("-r, --recursive")}    Clone submodules
   ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
@@ -34,9 +34,9 @@ ${bold("Options:")}
 ${bold("Examples:")}
   $ gitpick <url>
   $ gitpick <url> [target]
-  $ gitpick <url> [target] -b [branch]
+  $ gitpick <url> [target] -b [branch/SHA]
   $ gitpick <url> [target] -w [time]
-  $ gitpick <url> [target] -b [branch] -w [time]
+  $ gitpick <url> [target] -b [branch/SHA] -w [time]
   
 🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
 
