@@ -1,8 +1,6 @@
 export function parseTimeString(timeString: string | number): number {
   if (typeof timeString === "number" || /^\d+$/.test(timeString)) {
-    return typeof timeString === "number"
-      ? timeString
-      : parseInt(timeString, 10)
+    return typeof timeString === "number" ? timeString : parseInt(timeString, 10)
   }
 
   const regex = /(\d+)([hms])/g

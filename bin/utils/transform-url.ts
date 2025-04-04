@@ -19,11 +19,7 @@ export async function githubConfigFromUrl(
     url = url.replace(regex, "https://github.com")
   }
 
-  const prefixes = [
-    "git@github.com:",
-    "https://github.com/",
-    "https://raw.githubusercontent.com/",
-  ]
+  const prefixes = ["git@github.com:", "https://github.com/", "https://raw.githubusercontent.com/"]
 
   for (const prefix of prefixes) {
     if (url.startsWith(prefix)) {
@@ -35,9 +31,7 @@ export async function githubConfigFromUrl(
   const split = url.split("/")
 
   const owner = split[0]
-  const repository = split[1].endsWith(".git")
-    ? split[1].slice(0, -4)
-    : split[1]
+  const repository = split[1].endsWith(".git") ? split[1].slice(0, -4) : split[1]
   const type =
     split[2] === "blob"
       ? "blob"

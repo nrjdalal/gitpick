@@ -119,10 +119,7 @@ const main = async () => {
     if (options.watch) options.overwrite = true
 
     if (
-      fs.existsSync(
-        targetPath +
-          (config.type === "blob" ? "/" + config.path.split("/").pop() : ""),
-      ) &&
+      fs.existsSync(targetPath) &&
       (await fs.promises.readdir(targetPath)).length &&
       !options.overwrite
     ) {
@@ -135,16 +132,11 @@ const main = async () => {
     }
 
     if (options.watch) {
-      console.log(
-        `\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`,
-      )
+      console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
 
       await cloneAction(config, options, targetPath)
       const watchInterval = parseTimeString(options.watch)
-      setInterval(
-        async () => await cloneAction(config, options, targetPath),
-        watchInterval,
-      )
+      setInterval(async () => await cloneAction(config, options, targetPath), watchInterval)
     } else {
       await cloneAction(config, options, targetPath)
       process.exit(0)
@@ -153,9 +145,7 @@ const main = async () => {
     if (err instanceof Error) {
       console.log(bold(`\n${red("Error: ")}`) + err.message)
     } else {
-      console.log(
-        bold(`${red("\nUnexpected Error: ")}`) + JSON.stringify(err, null, 2),
-      )
+      console.log(bold(`${red("\nUnexpected Error: ")}`) + JSON.stringify(err, null, 2))
     }
     process.exit(1)
   }

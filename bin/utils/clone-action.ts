@@ -3,6 +3,7 @@ import os from "node:os"
 import path from "node:path"
 import { copyDir } from "@/utils/copy-dir"
 import spawn from "~/external/nano-spawn"
+import yoctospinner from "~/external/yocto-spinner"
 import { green } from "~/external/yoctocolors"
 
 export const cloneAction = async (
@@ -30,12 +31,14 @@ export const cloneAction = async (
     `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
   )
 
-  if (!options.watch)
-    console.log(
-      `${green("✔")} Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}...`,
-    )
-
+  const spinner = yoctospinner()
   const start = performance.now()
+
+  if (!options.watch) {
+    spinner.start(
+      `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}...`,
+    )
+  }
 
   try {
     await spawn("git", [
@@ -50,13 +53,8 @@ export const cloneAction = async (
       ...(options.recursive ? ["--recursive"] : []),
     ])
   } catch {
-    console.log(`${green("✔")} Using robust checkout process...`)
-    await spawn("git", [
-      "clone",
-      repoUrl,
-      tempDir,
-      ...(options.recursive ? ["--recursive"] : []),
-    ])
+    if (!options.watch) spinner.info("Using robust checkout process...")
+    await spawn("git", ["clone", repoUrl, tempDir, ...(options.recursive ? ["--recursive"] : [])])
     await spawn("git", ["checkout", config.branch], { cwd: tempDir })
   }
 
@@ -75,8 +73,8 @@ export const cloneAction = async (
   }
 
   if (!options.watch) {
-    console.log(
-      `${green("✔")} Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
+    spinner.success(
+      `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
         (performance.now() - start) /
         1000
       ).toFixed(2)} seconds.`,

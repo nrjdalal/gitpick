@@ -1,15 +1,16 @@
 #!/bin/bash
 
 # main dependencies
-bunx gitpick@latest https://github.com/sindresorhus/terminal-link/blob/1fa2892d27f388ea1cf9a2c934470fc94dda2115/index.js external/terminal-link -f
 bunx gitpick@latest https://github.com/sindresorhus/nano-spawn/tree/d3d724082c6bc679079e150b25b5b8242a2af2c4/source external/nano-spawn -f
+bunx gitpick@latest https://github.com/sindresorhus/terminal-link/blob/1fa2892d27f388ea1cf9a2c934470fc94dda2115/index.js external/terminal-link -f
+bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/72727da6da3c454140ae9ef809285a1260bd929a/index.js external/yocto-spinner -f
 bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/366d515357373a0d6c1494ca08d541f0f80ceb61/base.js external/yoctocolors -f
 bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/366d515357373a0d6c1494ca08d541f0f80ceb61/index.js external/yoctocolors -f
 
 # dependencies of main dependencies
+bunx gitpick@latest https://github.com/chalk/supports-hyperlinks/blob/c5d1720b5ccc8b8f3d6e97c6ea9bf42a3d69820f/index.js external/supports-hyperlinks -f
 bunx gitpick@latest https://github.com/sindresorhus/ansi-escapes/blob/300a0dfab1715ddc540dec2dec76082be69a99c8/base.js external/ansi-escapes -f
 bunx gitpick@latest https://github.com/sindresorhus/ansi-escapes/blob/300a0dfab1715ddc540dec2dec76082be69a99c8/index.js external/ansi-escapes -f
-bunx gitpick@latest https://github.com/chalk/supports-hyperlinks/blob/c5d1720b5ccc8b8f3d6e97c6ea9bf42a3d69820f/index.js external/supports-hyperlinks -f
 
 # sub dependencies
 bunx gitpick@latest https://github.com/chalk/supports-color/blob/ae809ecabd5965d0685e7fc121efe98c47ad8724/index.js external/supports-color -f
@@ -21,13 +22,15 @@ bunx prettier@latest --write --ignore-unknown "external/**/*"
 if [[ "$OSTYPE" == "darwin"* ]]; then
   sed -i "" "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js
   sed -i "" "s|from 'environment'|from '../environment'|g" external/ansi-escapes/base.js
-  sed -i "" "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
-  sed -i "" "s|from 'supports-color'|from '../supports-color'|g" external/supports-hyperlinks/index.js
   sed -i "" "s|from 'has-flag'|from '../has-flag'|g" external/supports-hyperlinks/index.js
+  sed -i "" "s|from 'supports-color'|from '../supports-color'|g" external/supports-hyperlinks/index.js
+  sed -i "" "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
+  sed -i "" "s|from 'yoctocolors'|from '../yoctocolors'|g" external/yocto-spinner/index.js
 else
   sed -i "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js
   sed -i "s|from 'environment'|from '../environment'|g" external/ansi-escapes/base.js
-  sed -i "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
-  sed -i "s|from 'supports-color'|from '../supports-color'|g" external/supports-hyperlinks/index.js
   sed -i "s|from 'has-flag'|from '../has-flag'|g" external/supports-hyperlinks/index.js
+  sed -i "s|from 'supports-color'|from '../supports-color'|g" external/supports-hyperlinks/index.js
+  sed -i "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
+  sed -i "s|from 'yoctocolors'|from '../yoctocolors'|g" external/yocto-spinner/index.js
 fi
