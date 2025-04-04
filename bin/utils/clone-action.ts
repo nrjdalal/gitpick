@@ -53,7 +53,6 @@ export const cloneAction = async (
       ...(options.recursive ? ["--recursive"] : []),
     ])
   } catch {
-    if (!options.watch) spinner.info("Using robust checkout process...")
     await spawn("git", ["clone", repoUrl, tempDir, ...(options.recursive ? ["--recursive"] : [])])
     await spawn("git", ["checkout", config.branch], { cwd: tempDir })
   }

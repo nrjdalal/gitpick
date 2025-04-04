@@ -118,22 +118,23 @@ const main = async () => {
     options.overwrite = options.overwrite || options.force
     if (options.watch) options.overwrite = true
 
-    if (
-      fs.existsSync(targetPath) &&
-      (await fs.promises.readdir(targetPath)).length &&
-      !options.overwrite
-    ) {
-      console.log(
-        bold(
-          `${yellow(`\nWarning: The target directory is not empty. Use ${cyan("-f")} | ${cyan("-o")} to overwrite.`)}`,
-        ),
-      )
-      process.exit(1)
+    if (fs.existsSync(targetPath) && !options.overwrite) {
+      if (config.type === "blob") {
+        console.log(
+          `${yellow(`\nWarning: The target file exists at ${green(config.target)}. Use ${cyan("-f")} or ${cyan("-o")} to overwrite.`)}`,
+        )
+        process.exit(1)
+      }
+      if ((await fs.promises.readdir(targetPath)).length) {
+        console.log(
+          `${yellow(`\nWarning: The target directory exists at ${green(config.target)} and is not empty. Use ${cyan("-f")} or ${cyan("-o")} to overwrite.`)}`,
+        )
+        process.exit(1)
+      }
     }
 
     if (options.watch) {
       console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
-
       await cloneAction(config, options, targetPath)
       const watchInterval = parseTimeString(options.watch)
       setInterval(async () => await cloneAction(config, options, targetPath), watchInterval)
