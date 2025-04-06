@@ -10,7 +10,7 @@ import { bold, cyan, green, red, yellow } from "~/external/yoctocolors"
 import { name, version } from "~/package.json"
 
 const helpMessage = `
-With ${bold(`${terminalLink("GitPick ↗️", "https://github.com/nrjdalal/gitpick")}`)}  clone specific directories or files from GitHub!
+With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific directories or files from GitHub!
 
   $ gitpick ${yellow("<url>")} ${green("[target]")} ${cyan("[options]")}
 
