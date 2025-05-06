@@ -64,7 +64,7 @@
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.9",
     "lint-staged": "^15.5.1",
     "prettier": "^3.5.3",
     "simple-git-hooks": "^2.13.0",
