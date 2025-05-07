@@ -13,6 +13,37 @@
 
 ---
 
+## 📖 Some examples
+
+### See [Quick Usage](#🚀-quick-usage) for to learn more.
+
+```sh
+# clone a repo without .git
+npx gitpick owner/repo
+npx gitpick https://github.com/owner/repo
+# clone a folder aka tree
+npx gitpick owner/repo/tree/main/path/to/folder
+npx gitpick https://github.com/owner/repo/tree/main/path/to/folder
+# clone a file aka blob
+npx gitpick owner/repo/blob/main/path/to/file
+npx gitpick https://github.com/owner/repo/blob/main/path/to/file
+# clone a branch
+npx gitpick owner/repo -b canary
+npx gitpick https://github.com/owner/repo -b canary
+npx gitpick owner/repo/tree/canary
+npx gitpick https://github.com/owner/repo/tree/canary
+# clone a commit SHA
+npx gitpick owner/repo -b cc8e93
+npx gitpick https://github.com/owner/repo/commit/cc8e93
+# clone submodules
+npx gitpick owner/repo -r
+npx gitpick https://github.com/owner/repo -r
+# clone a private repo
+npx gitpick https://<token>@github.com/owner/repo
+```
+
+---
+
 ## ✨ Features
 
 - 🔍 Clone individual files or folders from any GitHub repository
@@ -36,9 +67,9 @@ npx gitpick <url/shorthand> [target] [options]
 Examples:
 
 ```sh
-npx gitpick https://github.com/TanStack/router     # repo without .git
-npx gitpick TanStack/router/tree/main/examples     # a folder aka tree
-npx gitpick TanStack/router/blob/main/README.md    # a file aka blob
+npx gitpick https://github.com/owner/repo          # repo without .git
+npx gitpick owner/repo/tree/main/path/to/folder    # a folder aka tree
+npx gitpick owner/repo/blob/main/path/to/file      # a file aka blob
 
 npx gitpick <url/shorthand>                        # default git behavior
 npx gitpick <url/shorthand> [target]               # with optional target
