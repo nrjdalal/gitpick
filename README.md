@@ -13,7 +13,7 @@
 
 ---
 
-## 📖 Some examples
+## 📖 Some Examples
 
 ### See [Quick Usage](#🚀-quick-usage) for to learn more.
 
