@@ -1,6 +1,6 @@
 {
   "name": "gitpick",
-  "version": "4.11.1",
+  "version": "4.11.2",
   "description": "Clone exactly what you need aka straightforward project scaffolding!",
   "keywords": [
     "clone",
@@ -61,14 +61,14 @@
     "semi": false
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.1",
-    "@commitlint/config-conventional": "^19.8.1",
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
-    "@types/node": "^22.15.18",
+    "@types/node": "^22.15.14",
     "lint-staged": "^15.5.2",
     "prettier": "^3.5.3",
     "simple-git-hooks": "^2.13.0",
-    "sort-package-json": "^3.2.1",
+    "sort-package-json": "^3.2.0",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3"
   }
