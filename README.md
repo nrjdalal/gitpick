@@ -125,6 +125,11 @@ gitpick <url/shorthand> [target] [options]
 
 Check out more projects at [github.com/nrjdalal](https://github.com/nrjdalal)
 
+## 🔗 Related Projects
+
+- [giget](https://github.com/unjs/giget) - alternative approach
+- [degit](https://github.com/tiged/tiged) – community driven fork of degit
+
 ## 📄 License
 
 MIT – [LICENSE](LICENSE)
