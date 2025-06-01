@@ -19,7 +19,7 @@ Unlike other tools that force you to tweak URLs or follow strict formats to clon
 
 ## 📖 Some Examples
 
-### See [Quick Usage](#🚀-quick-usage) for to learn more.
+### See [Quick Usage](#-quick-usage) for to learn more.
 
 ```sh
 # clone a repo without .git
