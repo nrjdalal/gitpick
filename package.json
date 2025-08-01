@@ -63,13 +63,13 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@ianvs/prettier-plugin-sort-imports": "^4.4.2",
-    "@types/node": "^22.15.34",
+    "@ianvs/prettier-plugin-sort-imports": "^4.5.1",
+    "@types/node": "^22.17.0",
     "lint-staged": "^15.5.2",
     "prettier": "^3.6.2",
-    "simple-git-hooks": "^2.13.0",
-    "sort-package-json": "^3.3.1",
+    "simple-git-hooks": "^2.13.1",
+    "sort-package-json": "^3.4.0",
     "tsup": "^8.5.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }
