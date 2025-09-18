@@ -6,7 +6,7 @@
 
 📦 `Zero dependencies` / `Un/packed (<35/15kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
-[![Twitter](https://img.shields.io/twitter/follow/nrjdalal_com?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
+[![Twitter](https://img.shields.io/twitter/follow/nrjdalal_dev?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![downloads](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![stars](https://img.shields.io/github/stars/nrjdalal/gitpick?color=blue)](https://github.com/nrjdalal/gitpick)
