@@ -25,11 +25,13 @@ export const cloneAction = async (
     await spawn("git", ["config", "--global", "core.longpaths", "true"])
   }
 
-  const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
+  const repoUrl = `https://${config.token ? config.token + "@" : ""}github.com/${config.owner}/${config.repository}.git`
   const tempDir = path.resolve(
     os.tmpdir(),
     `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
   )
+
+  const toPosix = (p: string) => p.split(path.sep).join("/")
 
   const spinner = yoctospinner()
   const start = performance.now()
@@ -40,21 +42,66 @@ export const cloneAction = async (
     )
   }
 
+  const wantsSubpath = !!config.path && config.path !== "." && config.type !== "repository"
+  const isFilePath = wantsSubpath && path.extname(config.path) !== ""
+  const sparsePath = wantsSubpath
+    ? toPosix(isFilePath ? path.dirname(config.path) : config.path)
+    : ""
+
+  let usedSparse = false
+
   try {
-    await spawn("git", [
-      "clone",
-      repoUrl,
-      tempDir,
-      "--branch",
-      config.branch,
-      "--depth",
-      "1",
-      "--single-branch",
-      ...(options.recursive ? ["--recursive"] : []),
-    ])
+    if (wantsSubpath) {
+      await fs.promises.mkdir(tempDir, { recursive: true })
+      await spawn("git", [
+        "clone",
+        "--depth=1",
+        "--filter=blob:none",
+        "--sparse",
+        "--single-branch",
+        "--no-tags",
+        "--branch",
+        config.branch,
+        repoUrl,
+        tempDir,
+      ])
+
+      await spawn(
+        "git",
+        ["sparse-checkout", "init", ...(isFilePath ? ["--no-cone"] : ["--cone"])],
+        { cwd: tempDir },
+      )
+      await spawn("git", ["sparse-checkout", "set", sparsePath], { cwd: tempDir })
+      await spawn("git", ["checkout"], { cwd: tempDir })
+
+      if (options.recursive) {
+        await spawn("git", ["submodule", "update", "--init", "--recursive"], {
+          cwd: tempDir,
+        })
+      }
+
+      usedSparse = true
+    } else {
+      await spawn("git", [
+        "clone",
+        repoUrl,
+        tempDir,
+        "--branch",
+        config.branch,
+        "--depth",
+        "1",
+        "--single-branch",
+        "--no-tags",
+        ...(options.recursive ? ["--recursive"] : []),
+      ])
+    }
   } catch {
-    await spawn("git", ["clone", repoUrl, tempDir, ...(options.recursive ? ["--recursive"] : [])])
-    await spawn("git", ["checkout", config.branch], { cwd: tempDir })
+    try {
+      await spawn("git", ["clone", repoUrl, tempDir, ...(options.recursive ? ["--recursive"] : [])])
+      await spawn("git", ["checkout", config.branch], { cwd: tempDir })
+    } catch {
+      throw new Error("Failed to clone repository")
+    }
   }
 
   const sourcePath = path.resolve(tempDir, config.path)
@@ -65,9 +112,7 @@ export const cloneAction = async (
     await fs.promises.mkdir(targetPath, { recursive: true })
     await copyDir(sourcePath, targetPath)
   } else {
-    await fs.promises.mkdir(targetPath.split("/").slice(0, -1).join("/"), {
-      recursive: true,
-    })
+    await fs.promises.mkdir(path.dirname(targetPath), { recursive: true })
     await fs.promises.copyFile(sourcePath, targetPath)
   }
 
@@ -76,7 +121,7 @@ export const cloneAction = async (
       `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
         (performance.now() - start) /
         1000
-      ).toFixed(2)} seconds.`,
+      ).toFixed(2)} seconds${usedSparse ? green(" (sparse)") : ""}.`,
     )
   } else console.log("- Synced at " + new Date().toLocaleTimeString())
 
