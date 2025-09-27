@@ -55,15 +55,15 @@ export const cloneAction = async (
       await fs.promises.mkdir(tempDir, { recursive: true })
       await spawn("git", [
         "clone",
-        "--depth=1",
-        "--filter=blob:none",
-        "--sparse",
-        "--single-branch",
-        "--no-tags",
-        "--branch",
-        config.branch,
         repoUrl,
         tempDir,
+        "--branch",
+        config.branch,
+        "--depth=1",
+        "--single-branch",
+        "--no-tags",
+        "--filter=blob:none",
+        "--sparse",
       ])
 
       await spawn(
@@ -88,8 +88,7 @@ export const cloneAction = async (
         tempDir,
         "--branch",
         config.branch,
-        "--depth",
-        "1",
+        "--depth=1",
         "--single-branch",
         "--no-tags",
         ...(options.recursive ? ["--recursive"] : []),
