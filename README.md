@@ -132,6 +132,22 @@ Check out more projects at [github.com/nrjdalal](https://github.com/nrjdalal)
 - [degit](https://github.com/tiged/tiged) - community driven fork of degit
 - [giget](https://github.com/unjs/giget) - alternative approach
 
+## 🤝 Contributing
+
+Contributions welcome — any help is appreciated!
+
+- Fork the repo and create a branch (use descriptive names, e.g. feat/<name> or fix/<name>).
+- Make your changes, add tests if applicable, and run the checks:
+  - bun install
+  - bun run sync:external
+  - bun test
+- Follow the existing code style and commit message conventions (use conventional commits: feat, fix, docs, chore).
+- Open a PR describing the change, motivation, and any migration notes; link related issues.
+- For breaking changes or large features, open an issue first to discuss the approach.
+- By contributing you agree to the MIT license and the project's Code of Conduct.
+
+Thank you for helping improve GitPick!
+
 ## 📄 License
 
 MIT – [LICENSE](LICENSE)
