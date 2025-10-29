@@ -129,8 +129,10 @@ Check out more projects at [github.com/nrjdalal](https://github.com/nrjdalal)
 
 ## 🔗 Related Projects
 
-- [degit](https://github.com/tiged/tiged) - community driven fork of degit
+- [tiged](https://github.com/tiged/tiged) - community driven fork of degit
 - [giget](https://github.com/unjs/giget) - alternative approach
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nrjdalal/gitpick,tiged/tiged,unjs/giget&type=timeline&logscale&legend=top-left)](https://www.star-history.com/#nrjdalal/gitpick&tiged/tiged&unjs/giget&type=timeline&logscale&legend=top-left)
 
 ## 🤝 Contributing
 
