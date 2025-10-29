@@ -13,7 +13,7 @@
 
 > #### Just `copy-and-paste` any GitHub URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
 
-Unlike other tools that force you to tweak URLs or follow strict formats to clone files or folders, GitPick works seamlessly with any URL.
+Unlike other tools that force you to tweak URLs or follow strict formats to clone files, folders, branches or commits GitPick works seamlessly with any URL.
 
 <img width="400" alt="GitPick Meme" src="https://github.com/user-attachments/assets/180c3e5b-320c-48d7-aaf9-a7402e74c882" />
 

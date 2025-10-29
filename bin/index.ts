@@ -87,7 +87,7 @@ const main = async () => {
     }
 
     console.log(
-      `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific directories or files from GitHub!`,
+      `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches, commits and more from GitHub!`,
     )
 
     const config = await githubConfigFromUrl(url, {
