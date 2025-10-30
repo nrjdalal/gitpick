@@ -17,8 +17,8 @@ fi
 rm -rf test/*
 
 TEST_CASES=(
-  'nrjdalal/gitpick/blob/main/bin/index.ts'
   'nrjdalal/gitpick'
+  'nrjdalal/gitpick/blob/main/bin/index.ts'
   'https://github.com/nrjdalal/gitpick'
   'git@github.com:nrjdalal/gitpick.git'
   'https://github.com/nrjdalal/gitpick.git'
@@ -30,6 +30,7 @@ TEST_CASES=(
   'https://github.com/nrjdalal/gitpick/tree/master/bin -b main'
   'git@github.com:nrjdalal/gitpick.git/tree/master/bin -b main'
   'https://github.com/nrjdalal/gitpick.git/tree/master/bin -b main'
+  'https://github.com/nrjdalal/gitpick/tree/1d67ed603f5bcbab1b84d71db968b7c36e36eca0'
 )
 
 # Initialize report variables
