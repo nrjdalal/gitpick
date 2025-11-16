@@ -27,15 +27,15 @@
   },
   "type": "module",
   "bin": {
-    "degit": "./dist/index.js",
-    "gitpick": "./dist/index.js"
+    "degit": "./dist/index.mjs",
+    "gitpick": "./dist/index.mjs"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "prepare": "npx simple-git-hooks",
     "sync:external": "bash scripts/external.sh",
     "test": "bash scripts/test.sh"
@@ -69,7 +69,7 @@
     "prettier": "^3.6.2",
     "simple-git-hooks": "^2.13.1",
     "sort-package-json": "^3.4.0",
-    "tsup": "^8.5.0",
+    "tsdown": "^0.16.4",
     "typescript": "^5.9.2"
   }
 }

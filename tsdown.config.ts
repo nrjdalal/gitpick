@@ -1,9 +1,8 @@
-import { defineConfig } from "tsup"
+import { defineConfig } from "tsdown"
 
 export default defineConfig({
   clean: true,
   entry: ["bin/index.ts"],
-  format: ["esm"],
   minify: true,
   outDir: "dist",
 })
