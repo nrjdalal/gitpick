@@ -10,7 +10,7 @@ fi
 bun run build
 
 if [ "$#" -gt 0 ]; then
-  node dist/index.js "$@"
+  node dist/index.mjs "$@"
   exit 0
 fi
 
@@ -46,11 +46,11 @@ for i in "${!TEST_CASES[@]}"; do
 
   echo ------------------------- $TEST_NUMBER -------------------------
   echo
-  echo "🚀 Running test case #$TEST_NUMBER CMD: node dist/index.js clone $TEST_CASE test/$TEST_NUMBER"
+  echo "🚀 Running test case #$TEST_NUMBER CMD: node dist/index.mjs clone $TEST_CASE test/$TEST_NUMBER"
 
   rm -rf test/$TEST_NUMBER
 
-  if eval "node dist/index.js clone $TEST_CASE test/$TEST_NUMBER"; then
+  if eval "node dist/index.mjs clone $TEST_CASE test/$TEST_NUMBER"; then
     if [ "$(ls -A test/$TEST_NUMBER)" ]; then
       cd test/$TEST_NUMBER
 
