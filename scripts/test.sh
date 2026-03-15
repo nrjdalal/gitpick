@@ -2,15 +2,30 @@
 
 set -e
 
+TEST_RUNNER="node dist/index.mjs"
+TEST_SOURCE="local"
+
+if [ "$#" -gt 0 ]; then
+  case "$1" in
+    gitpick@*|@*/*)
+      TEST_RUNNER="bunx --bun $1"
+      TEST_SOURCE="$1"
+      shift
+      ;;
+  esac
+fi
+
 if [ ! -d "external" ]; then
   echo -e "\n❌ The 'external' folder does not exist. Please run \033[1;32mnpm run sync:external\033[0m first.\n"
   exit 1
 fi
 
-bun run build
+if [ "$TEST_RUNNER" = "node dist/index.mjs" ]; then
+  bun run build
+fi
 
 if [ "$#" -gt 0 ]; then
-  node dist/index.mjs "$@"
+  eval "$TEST_RUNNER $*"
   exit 0
 fi
 
@@ -36,6 +51,7 @@ TEST_CASES=(
 PASSED_TESTS=0
 FAILED_TESTS=0
 REPORT=""
+RUNNER_VERSION="$(eval "$TEST_RUNNER --version" | tr -d '\r\n' | xargs)"
 
 echo
 
@@ -46,11 +62,11 @@ for i in "${!TEST_CASES[@]}"; do
 
   echo ------------------------- $TEST_NUMBER -------------------------
   echo
-  echo "🚀 Running test case #$TEST_NUMBER CMD: node dist/index.mjs clone $TEST_CASE test/$TEST_NUMBER"
+  echo "🚀 Running test case #$TEST_NUMBER CMD: $TEST_RUNNER clone $TEST_CASE test/$TEST_NUMBER"
 
   rm -rf test/$TEST_NUMBER
 
-  if eval "node dist/index.mjs clone $TEST_CASE test/$TEST_NUMBER"; then
+  if eval "$TEST_RUNNER clone $TEST_CASE test/$TEST_NUMBER"; then
     if [ "$(ls -A test/$TEST_NUMBER)" ]; then
       cd test/$TEST_NUMBER
 
@@ -86,6 +102,11 @@ echo ---------------------- SUMMARY ----------------------
 echo -e "\n📋 $PASSED_TESTS out of ${#TEST_CASES[@]} test cases passed.\n"
 
 echo -e "$REPORT"
+if [ "$TEST_SOURCE" = "$RUNNER_VERSION" ]; then
+  echo "🏷️  Runner: $RUNNER_VERSION"
+else
+  echo "🏷️  Runner: $TEST_SOURCE ($RUNNER_VERSION)"
+fi
 
 if [ $FAILED_TESTS -eq 0 ]; then
   echo -e "🎉 All test cases passed!"
