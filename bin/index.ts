@@ -270,6 +270,18 @@ const main = async () => {
         process.exit(0)
       }
 
+      // Dry run — just show what would be picked
+      if (options.dryRun) {
+        console.log(
+          `\n${green("✔")} Would pick ${selected.length} path${selected.length !== 1 ? "s" : ""}:`,
+        )
+        for (const sel of selected) console.log(`  ${sel}`)
+        await fs.promises.rm(tempDir, { recursive: true, force: true })
+        console.log()
+        notifyUpdate(version, false)
+        process.exit(0)
+      }
+
       console.log(
         `\n${green("✔")} Picking ${selected.length} selected path${selected.length !== 1 ? "s" : ""}...`,
       )
