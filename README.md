@@ -4,7 +4,7 @@
 
 **Clone exactly what you need aka straightforward project scaffolding!**
 
-📦 `Zero dependencies` / `Un/packed (~23/9kb)` / `Faster and more features` yet drop-in replacement for `degit`
+📦 `Zero dependencies` / `Un/packed (~25/10kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 [![Twitter](https://img.shields.io/twitter/follow/nrjdalal_dev?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
