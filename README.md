@@ -80,10 +80,10 @@ npx gitpick owner/repo -i --dry-run
 
 ## ✨ Features
 
-- **🔥 Interactive mode** — browse and cherry-pick files/folders with `-i` | `--interactive`
 - 🔍 Clone individual files or folders from GitHub, GitLab and Bitbucket
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
+- **🔥 Interactive mode** — browse and cherry-pick files/folders with `-i` | `--interactive`
 - 🔐 Seamlessly works with both public and private repositories using a PAT
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
