@@ -1,5 +1,10 @@
 import { cyan, dim, green, yellow } from "@/external/yoctocolors"
-import type { TreeEntry } from "@/utils/fetch-tree"
+
+export type TreeEntry = {
+  path: string
+  type: "blob" | "tree"
+  size?: number
+}
 
 const stripAnsi = (s: string) => s.replace(/\x1B\[\d+(?:;\d+)*m/g, "")
 
@@ -226,11 +231,19 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       stream.write("\x1B[?25h\x1B[?1049l")
     }
 
-    // Safety net
+    // Safety net for clean terminal restore
     const onExit = () => {
       stream.write("\x1B[?25h\x1B[?1049l")
     }
+    const onSigint = () => {
+      cleanup()
+      process.removeListener("exit", onExit)
+      process.removeListener("SIGINT", onSigint)
+      resolve([])
+      process.exit(0)
+    }
     process.on("exit", onExit)
+    process.on("SIGINT", onSigint)
 
     function render() {
       const rows = stream.rows || 24
@@ -238,10 +251,9 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       const headerLines = 3 // blank + label + blank
       const dotRowLines = 1
       const footerLines = 5
-      const treeViewportHeight = rows - headerLines - dotRowLines - footerLines
+      const treeViewportHeight = Math.max(1, rows - headerLines - dotRowLines - footerLines)
 
       const items = flatten(tree)
-      const totalRows = items.length + 1 // +1 for dot row
 
       // Scroll only applies to tree items (cursor > 0)
       const treeCursor = cursor - 1 // -1 because 0 is dot row
@@ -333,6 +345,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       if (key === "\x03" || key === "q" || key === "Q") {
         cleanup()
         process.removeListener("exit", onExit)
+        process.removeListener("SIGINT", onSigint)
         resolve([])
         return
       }
@@ -341,6 +354,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       if (key === "c" || key === "C") {
         cleanup()
         process.removeListener("exit", onExit)
+        process.removeListener("SIGINT", onSigint)
         resolve(collectSelected(tree))
         return
       }
