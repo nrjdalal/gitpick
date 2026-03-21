@@ -34,13 +34,12 @@ for ($i = 0; $i -lt $urls.Count; $i++) {
 
   Write-Host "------------------------- $num -------------------------"
   Write-Host ""
-  Write-Host "Running test case #$num CMD: node dist\index.mjs clone $url $target -o"
+  Write-Host "$([char]0x1F680) Running test case #$num CMD: node dist\index.mjs clone $url $target -o"
 
   node dist\index.mjs clone $url.Split(" ") $target -o
 
   if ($LASTEXITCODE -ne 0) {
-    Write-Host ""
-    Write-Host "X Cloning failed for test case #$num : $url"
+    Write-Host "`n$([char]0x274C) Cloning failed for test case #$num`: $url"
     $failed++
     Write-Host ""
     continue
@@ -49,27 +48,22 @@ for ($i = 0; $i -lt $urls.Count; $i++) {
   if (Test-Path $target) {
     Write-Host ""
     node tests\tree.mjs $target
-    Write-Host ""
-    Write-Host "V Test passed #$num : $url"
+    Write-Host "`n$([char]0x2705) Test passed #$num`: $url"
     $passed++
   } else {
-    Write-Host ""
-    Write-Host "X Test failed #$num : $url"
+    Write-Host "`n$([char]0x274C) Test failed #$num`: $url"
     $failed++
   }
 
   Write-Host ""
 }
 
-$total = $urls.Count
 Write-Host "---------------------- SUMMARY ----------------------"
-Write-Host ""
-Write-Host "$passed out of $total test cases passed."
-Write-Host ""
+Write-Host "`n$([char]0x1F4CB) $passed out of $($urls.Count) test cases passed.`n"
 
 if ($failed -gt 0) {
-  Write-Host "Some test cases failed. Please review the errors."
+  Write-Host "$([char]0x1F6A8) Some test cases failed. Please review the errors."
   exit 1
 } else {
-  Write-Host "All test cases passed!"
+  Write-Host "$([char]0x1F389) All test cases passed!"
 }
