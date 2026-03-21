@@ -11,7 +11,7 @@
 [![downloads](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![stars](https://img.shields.io/github/stars/nrjdalal/gitpick?color=blue)](https://github.com/nrjdalal/gitpick)
 
-> #### Just `copy-and-paste` any GitHub URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
+> #### Just `copy-and-paste` any GitHub, GitLab or Bitbucket URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
 
 Unlike other tools that force you to tweak URLs or follow strict formats to clone files, folders, branches or commits GitPick works seamlessly with any URL.
 
@@ -46,19 +46,28 @@ npx gitpick owner/repo -r
 npx gitpick https://github.com/owner/repo -r
 # clone a private repo
 npx gitpick https://<token>@github.com/owner/repo
+# clone from GitLab
+npx gitpick https://gitlab.com/owner/repo
+npx gitpick https://gitlab.com/owner/repo/-/tree/main/path/to/folder
+# clone from Bitbucket
+npx gitpick https://bitbucket.org/owner/repo
+npx gitpick https://bitbucket.org/owner/repo/src/main/path/to/folder
+# dry run (preview without cloning)
+npx gitpick owner/repo --dry-run
 ```
 
 ---
 
 ## ✨ Features
 
-- 🔍 Clone individual files or folders from any GitHub repository
+- 🔍 Clone individual files or folders from GitHub, GitLab and Bitbucket
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
 - 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔐 Seamlessly works with both public and private repositories using a PAT
+- 🔎 Preview what would be cloned with `--dry-run` before cloning
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
 
 ---
@@ -85,6 +94,7 @@ npx gitpick <url/shorthand> -o                     # overwrite if exists
 npx gitpick <url/shorthand> -r                     # clone submodules
 npx gitpick <url/shorthand> -w 30s                 # sync every 30 seconds
 npx gitpick https://<token>@github.com/owner/repo  # private repository
+npx gitpick <url/shorthand> --dry-run              # preview without cloning
 ```
 
 <img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
@@ -95,6 +105,7 @@ npx gitpick https://<token>@github.com/owner/repo  # private repository
 
 ```
 -b, --branch       Branch/SHA to clone
+-n, --dry-run      Show what would be cloned without cloning
 -o, --overwrite    Skip overwrite prompt
 -r, --recursive    Clone submodules
 -w, --watch [time] Watch the repository and sync every [time]
@@ -107,11 +118,15 @@ npx gitpick https://<token>@github.com/owner/repo  # private repository
 
 ## 🔐 Private Repos
 
-Use a [GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#about-personal-access-tokens) (create one 👉 [here](https://github.com/settings/personal-access-tokens/new)) with `repo -> contents: read-only` permission:
+Use a personal access token with read-only contents permission. Works with GitHub, GitLab and Bitbucket:
 
 ```sh
 npx gitpick https://<token>@github.com/owner/repo
+npx gitpick https://<token>@gitlab.com/owner/repo
+npx gitpick https://<token>@bitbucket.org/owner/repo
 ```
+
+Create a GitHub token 👉 [here](https://github.com/settings/personal-access-tokens/new) with `repo -> contents: read-only` permission.
 
 ---
 
