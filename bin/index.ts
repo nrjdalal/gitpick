@@ -34,6 +34,8 @@ ${bold("Options:")}
   ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
                      (e.g. 1h, 30m, 15s)
   ${cyan("    --tree")}         List copied files as a tree
+  ${cyan("-q, --quiet")}        Suppress all output except errors
+  ${cyan("    --verbose")}      Show detailed clone information
   ${cyan("-h, --help")}         display help for command
   ${cyan("-v, --version")}      display the version number
 
@@ -107,7 +109,9 @@ const main = async () => {
         "dry-run": { type: "boolean", short: "n" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
+        quiet: { type: "boolean", short: "q" },
         tree: { type: "boolean" },
+        verbose: { type: "boolean" },
         overwrite: { type: "boolean", short: "o" },
         recursive: { type: "boolean", short: "r" },
         version: { type: "boolean", short: "v" },
@@ -137,17 +141,19 @@ const main = async () => {
       branch: values.branch,
       dryRun: values["dry-run"],
       force: values.force,
+      quiet: values.quiet,
       tree: values.tree,
+      verbose: values.verbose,
       overwrite: values.overwrite,
       recursive: values.recursive,
       watch: values.watch,
     }
 
-    const silent = options.tree
+    const silent = options.tree || options.quiet
 
     if (!silent) {
       console.log(
-        `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches, commits and more from GitHub, GitLab and Bitbucket!`,
+        `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches,\ncommits and much more from GitHub, GitLab and Bitbucket!`,
       )
     }
 

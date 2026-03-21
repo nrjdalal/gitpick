@@ -38,6 +38,7 @@ const format = (open: number, close: number) => {
 }
 
 export const bold = format(1, 22)
+export const dim = format(2, 22)
 export const red = format(31, 39)
 export const green = format(32, 39)
 export const yellow = format(33, 39)

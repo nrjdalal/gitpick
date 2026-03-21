@@ -113,6 +113,8 @@ npx gitpick https://bitbucket.org/owner/repo         # Bitbucket
 -w, --watch [time] Watch the repository and sync every [time]
                    (e.g. 1h, 30m, 15s)
     --tree         List copied files as a tree
+-q, --quiet        Suppress all output except errors
+    --verbose      Show detailed clone information
 -h, --help         display help for command
 -v, --version      display the version number
 ```

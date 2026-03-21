@@ -4,6 +4,7 @@ import path from "node:path"
 
 import spawn from "@/external/nano-spawn"
 import { spinner } from "@/external/yocto-spinner"
+import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
 
 export type CloneResult = {
@@ -24,17 +25,21 @@ export const cloneAction = async (
   options: {
     recursive?: boolean
     watch?: string
+    quiet?: boolean
     tree?: boolean
+    verbose?: boolean
   },
   targetPath: string,
 ): Promise<CloneResult> => {
-  const silent = options.tree
+  const silent = options.tree || options.quiet
+  const verbose = options.verbose && !silent
 
   if (process.platform === "win32") {
     await spawn("git", ["config", "--global", "core.longpaths", "true"])
   }
 
   const repoUrl = `https://${config.token ? config.token + "@" : config.token}${config.host}/${config.owner}/${config.repository}.git`
+  const displayUrl = `https://${config.host}/${config.owner}/${config.repository}.git`
   const tempDir = path.resolve(
     os.tmpdir(),
     `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
@@ -49,6 +54,8 @@ export const cloneAction = async (
     )
   }
 
+  let cloneStrategy = "shallow"
+
   try {
     await spawn("git", [
       "clone",
@@ -62,6 +69,7 @@ export const cloneAction = async (
       ...(options.recursive ? ["--recursive"] : []),
     ])
   } catch {
+    cloneStrategy = "full"
     await spawn("git", ["clone", repoUrl, tempDir, ...(options.recursive ? ["--recursive"] : [])])
     await spawn("git", ["checkout", config.branch], { cwd: tempDir })
   }
@@ -91,6 +99,16 @@ export const cloneAction = async (
         `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${duration} seconds.`,
       )
     } else console.log("- Synced at " + new Date().toLocaleTimeString())
+  }
+
+  if (verbose) {
+    console.log(
+      dim(`  clone:    ${cloneStrategy} (depth=${cloneStrategy === "shallow" ? "1" : "full"})`),
+    )
+    console.log(dim(`  from:     ${displayUrl} @ ${cyan(config.branch)}`))
+    console.log(dim(`  to:       ${targetPath}`))
+    console.log(dim(`  files:    ${files.length}`))
+    console.log(dim(`  duration: ${duration}s`))
   }
 
   await fs.promises.rm(tempDir, { recursive: true, force: true })
