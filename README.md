@@ -165,7 +165,6 @@ Contributions welcome — any help is appreciated!
 - Fork the repo and create a branch (use descriptive names, e.g. feat/<name> or fix/<name>).
 - Make your changes, add tests if applicable, and run the checks:
   - bun install
-  - bun run sync:external
   - bun test
 - Follow the existing code style and commit message conventions (use conventional commits: feat, fix, docs, chore).
 - Open a PR describing the change, motivation, and any migration notes; link related issues.

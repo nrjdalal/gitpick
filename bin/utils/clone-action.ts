@@ -3,9 +3,8 @@ import os from "node:os"
 import path from "node:path"
 
 import { copyDir } from "@/utils/copy-dir"
-import spawn from "~/external/nano-spawn"
-import yoctospinner from "~/external/yocto-spinner"
-import { green } from "~/external/yoctocolors"
+import spawn from "@/utils/spawn"
+import { spinner } from "@/utils/spinner"
 
 export const cloneAction = async (
   config: {
@@ -32,11 +31,11 @@ export const cloneAction = async (
     `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
   )
 
-  const spinner = yoctospinner()
+  const s = spinner()
   const start = performance.now()
 
   if (!options.watch) {
-    spinner.start(
+    s.start(
       `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}...`,
     )
   }
@@ -73,7 +72,7 @@ export const cloneAction = async (
   }
 
   if (!options.watch) {
-    spinner.success(
+    s.success(
       `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
         (performance.now() - start) /
         1000

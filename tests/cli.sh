@@ -15,14 +15,7 @@ if [ "$#" -gt 0 ]; then
   esac
 fi
 
-if [ ! -d "external" ]; then
-  echo -e "\n❌ The 'external' folder does not exist. Please run \033[1;32mnpm run sync:external\033[0m first.\n"
-  exit 1
-fi
 
-if [ "$TEST_RUNNER" = "node dist/index.mjs" ]; then
-  bun run build
-fi
 
 if [ "$#" -gt 0 ]; then
   eval "$TEST_RUNNER $*"

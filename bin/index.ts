@@ -4,12 +4,13 @@ import path from "node:path"
 import { parseArgs } from "node:util"
 
 import { cloneAction } from "@/utils/clone-action"
+import { bold, cyan, green, red, yellow } from "@/utils/colors"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
 import { useConfig } from "@/utils/use-config"
-import terminalLink from "~/external/terminal-link"
-import { bold, cyan, green, red, yellow } from "~/external/yoctocolors"
 import { name, version } from "~/package.json"
+
+const terminalLink = (text: string, url: string) => `\x1b]8;;${url}\x07${text}\x1b]8;;\x07`
 
 const helpMessage = `
 With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific directories or files from GitHub!

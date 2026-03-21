@@ -13,13 +13,10 @@ if [ "$#" -gt 0 ]; then
   esac
 fi
 
-if [ "$TEST_RUNNER" = "node $(pwd)/dist/index.mjs" ]; then
-  bun run build
-fi
 
 rm -rf .test-artifacts/config
 mkdir -p .test-artifacts/config
-cp .gitpick.jsonc .test-artifacts/config/.gitpick.jsonc
+cp tests/fixtures.jsonc .test-artifacts/config/.gitpick.jsonc
 
 echo -e "\n🚀 Running .gitpick.jsonc config test\n"
 

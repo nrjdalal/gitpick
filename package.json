@@ -39,8 +39,8 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "prepare": "bunx lefthook install",
-    "sync:external": "bash scripts/external.sh",
-    "test": "bash tests/cli.sh",
+    "test": "tsdown && bash tests/cli.sh && bash tests/config.sh",
+    "test:cli": "bash tests/cli.sh",
     "test:config": "bash tests/config.sh"
   },
   "devDependencies": {
