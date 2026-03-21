@@ -5,13 +5,16 @@ export const copyDir = async (src: string, dest: string) => {
   const entries = await fs.promises.readdir(src, { withFileTypes: true })
   await fs.promises.mkdir(dest, { recursive: true })
 
-  for (let entry of entries) {
+  for (const entry of entries) {
     if (entry.name === ".git") continue
     const srcPath = path.join(src, entry.name)
     const destPath = path.join(dest, entry.name)
 
     if (entry.isDirectory()) {
       await copyDir(srcPath, destPath)
+    } else if (entry.isSymbolicLink()) {
+      const link = await fs.promises.readlink(srcPath)
+      await fs.promises.symlink(link, destPath)
     } else {
       await fs.promises.copyFile(srcPath, destPath)
     }

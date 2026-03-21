@@ -17,15 +17,14 @@
   ],
   "homepage": "https://github.com/nrjdalal/gitpick#readme",
   "bugs": "https://github.com/nrjdalal/gitpick/issues",
-  "repository": "nrjdalal/gitpick",
-  "funding": "https://github.com/sponsors/nrjdalal",
   "license": "MIT",
   "author": {
     "name": "Neeraj Dalal",
     "email": "admin@nrjdalal.com",
     "url": "https://nrjdalal.com"
   },
-  "type": "module",
+  "repository": "nrjdalal/gitpick",
+  "funding": "https://github.com/sponsors/nrjdalal",
   "bin": {
     "degit": "./dist/index.mjs",
     "gitpick": "./dist/index.mjs"
@@ -33,43 +32,31 @@
   "files": [
     "dist"
   ],
+  "type": "module",
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "prepare": "npx simple-git-hooks",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "prepare": "bunx lefthook install",
     "sync:external": "bash scripts/external.sh",
     "test": "bash scripts/test.sh"
   },
-  "simple-git-hooks": {
-    "pre-commit": "npx lint-staged",
-    "commit-msg": "npx commitlint --edit $1"
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@types/node": "^25.5.0",
+    "lefthook": "^2.1.4",
+    "lint-staged": "^16.4.0",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "sort-package-json": "^3.6.1",
+    "tsdown": "^0.21.4",
+    "typescript": "^5.9.3"
   },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
     ]
-  },
-  "lint-staged": {
-    "*": "prettier --write --ignore-unknown",
-    "package.json": "sort-package-json"
-  },
-  "prettier": {
-    "plugins": [
-      "@ianvs/prettier-plugin-sort-imports"
-    ],
-    "printWidth": 100,
-    "semi": false
-  },
-  "devDependencies": {
-    "@commitlint/cli": "^20.4.4",
-    "@commitlint/config-conventional": "^20.4.4",
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
-    "@types/node": "^22.19.15",
-    "lint-staged": "^16.4.0",
-    "prettier": "^3.8.1",
-    "simple-git-hooks": "^2.13.1",
-    "sort-package-json": "^3.6.1",
-    "tsdown": "^0.16.8",
-    "typescript": "^5.9.3"
   }
 }
