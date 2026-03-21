@@ -1157,13 +1157,19 @@ describe("--tree output", () => {
     expect(stripAnsi(output)).not.toContain("Picked")
   }, 30000)
 
-  it("dry-run tree shows path", async () => {
+  it("dry-run tree shows tree without leaving files", async () => {
     const { output, exitCode } = await run([
       "nrjdalal/picksuite/tree/main/folder",
       "--dry-run",
       "--tree",
     ])
     expect(exitCode).toBe(0)
-    expect(output.trim()).toBe("folder")
+    expect(output.trim()).toBe(TREE_FOLDER)
+  }, 30000)
+
+  it("dry-run repo shows full tree", async () => {
+    const { output, exitCode } = await run(["nrjdalal/picksuite", "--dry-run", "--tree"])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe(TREE_REPO_MAIN)
   }, 30000)
 })

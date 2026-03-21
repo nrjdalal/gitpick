@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from "node:fs"
+import os from "node:os"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
@@ -159,8 +160,21 @@ const main = async () => {
     }
 
     if (options.dryRun) {
-      if (options.tree && config.path) {
-        console.log(config.path)
+      if (options.tree) {
+        const tempTarget = path.resolve(
+          os.tmpdir(),
+          `gitpick-dry-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
+        )
+        try {
+          await cloneAction(config, options, tempTarget)
+          if (fs.statSync(tempTarget).isDirectory()) {
+            await printTree(tempTarget)
+          } else {
+            process.stdout.write(`└── ${path.basename(tempTarget)}\n`)
+          }
+        } finally {
+          await fs.promises.rm(tempTarget, { recursive: true, force: true })
+        }
       }
       if (!silent) console.log()
       process.exit(0)
