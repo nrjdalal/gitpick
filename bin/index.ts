@@ -74,12 +74,12 @@ const printTree = async (dir: string, prefix = "") => {
 
     if (entry.isSymbolicLink()) {
       const target = await fs.promises.readlink(entryPath)
-      process.stdout.write(`${prefix}${connector}${entry.name} -> ${target}\n`)
+      process.stdout.write(`${prefix}${connector}${cyan(entry.name)} -> ${yellow(target)}\n`)
     } else if (entry.isDirectory()) {
-      process.stdout.write(`${prefix}${connector}${entry.name}\n`)
+      process.stdout.write(`${prefix}${connector}${bold(cyan(entry.name))}\n`)
       await printTree(entryPath, `${prefix}${last ? "    " : "│   "}`)
     } else {
-      process.stdout.write(`${prefix}${connector}${entry.name}\n`)
+      process.stdout.write(`${prefix}${connector}${green(entry.name)}\n`)
     }
   }
 }
@@ -181,11 +181,11 @@ const main = async () => {
         )
         try {
           await cloneAction(config, options, tempTarget)
-          process.stdout.write(`${displayPath(targetPath)}\n`)
           if (fs.statSync(tempTarget).isDirectory()) {
+            process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
             await printTree(tempTarget)
           } else {
-            process.stdout.write(`└── ${path.basename(targetPath)}\n`)
+            process.stdout.write(`${green(displayPath(targetPath))}\n`)
           }
         } finally {
           await fs.promises.rm(tempTarget, { recursive: true, force: true })
@@ -214,11 +214,11 @@ const main = async () => {
 
     const outputResult = async () => {
       if (options.tree) {
-        process.stdout.write(`${displayPath(targetPath)}\n`)
         if (fs.statSync(targetPath).isDirectory()) {
+          process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
           await printTree(targetPath)
         } else {
-          process.stdout.write(`└── ${path.basename(targetPath)}\n`)
+          process.stdout.write(`${green(displayPath(targetPath))}\n`)
         }
       }
     }

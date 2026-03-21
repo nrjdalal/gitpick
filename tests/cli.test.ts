@@ -1131,7 +1131,8 @@ describe("config — .gitpick.jsonc", () => {
 
 describe("--tree output", () => {
   function parseTreeOutput(output: string) {
-    const lines = output.trim().split("\n")
+    const stripped = stripAnsi(output).trim()
+    const lines = stripped.split("\n")
     return { header: lines[0], tree: lines.slice(1).join("\n") }
   }
 
@@ -1205,7 +1206,7 @@ describe("--tree output", () => {
     expect(header.startsWith("./")).toBe(true)
   }, 30000)
 
-  it("blob shows file node", async () => {
+  it("blob shows just the file path", async () => {
     const t = target()
     const { output, exitCode } = await run([
       "clone",
@@ -1214,11 +1215,13 @@ describe("--tree output", () => {
       "--tree",
     ])
     expect(exitCode).toBe(0)
-    const { tree } = parseTreeOutput(output)
-    expect(tree).toBe("└── file.txt")
+    const stripped = stripAnsi(output).trim()
+    const lines = stripped.split("\n")
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toContain("file.txt")
   }, 30000)
 
-  it("dry-run blob shows file node", async () => {
+  it("dry-run blob shows just the file path", async () => {
     const t = target()
     const { output, exitCode } = await run([
       "nrjdalal/picksuite/blob/main/file.txt",
@@ -1227,7 +1230,9 @@ describe("--tree output", () => {
       "--tree",
     ])
     expect(exitCode).toBe(0)
-    const { tree } = parseTreeOutput(output)
-    expect(tree).toBe("└── file.txt")
+    const stripped = stripAnsi(output).trim()
+    const lines = stripped.split("\n")
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toContain("file.txt")
   }, 30000)
 })
