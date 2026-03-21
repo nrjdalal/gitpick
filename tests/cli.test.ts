@@ -1261,7 +1261,7 @@ describe("--quiet output", () => {
 })
 
 describe("--verbose output", () => {
-  it("shows clone metadata on success", async () => {
+  it("shows clone metadata and stats on success", async () => {
     const t = target()
     const { output, exitCode } = await run([
       "clone",
@@ -1276,7 +1276,10 @@ describe("--verbose output", () => {
     expect(stripped).toContain("from:")
     expect(stripped).toContain("picksuite.git")
     expect(stripped).toContain("files:")
-    expect(stripped).toContain("duration:")
+    expect(stripped).toContain("network:")
+    expect(stripped).toContain("copy:")
+    expect(stripped).toContain("total:")
+    expect(stripped).toMatch(/\d+ B|\d+\.\d+ KB|\d+\.\d+ MB/)
   }, 30000)
 
   it("reports full clone strategy for SHA", async () => {
