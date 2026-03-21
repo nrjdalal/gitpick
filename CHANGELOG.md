@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.18.0 (2026-03-22)
+
+- **Add `--quiet` / `-q` flag** — suppress all output except errors, ideal for CI pipelines and scripts
+- **Add `--verbose` flag** — show detailed clone info: strategy (shallow/full), source URL, target path, file count, duration
+- Update banner to two lines for readability
+- Add `dim` color formatter
+- Reorder README features list
+
 ## v4.17.0 (2026-03-22)
 
 - **Add `--tree` flag** — display cloned file structure as a colored tree (like the `tree` command)

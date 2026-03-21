@@ -61,14 +61,14 @@ npx gitpick owner/repo --dry-run
 ## ✨ Features
 
 - 🔍 Clone individual files or folders from GitHub, GitLab and Bitbucket
-- ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
-- 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
-- 📦 Can easily clone all submodules with `-r` | `--recursive`
-- 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
+- ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - 🔐 Seamlessly works with both public and private repositories using a PAT
+- 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
 - 🌳 View cloned file structure as a colored tree with `--tree`
+- 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
+- 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
 
