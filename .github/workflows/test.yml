@@ -31,3 +31,8 @@ jobs:
 
       - name: Test Config
         run: bash tests/config.sh
+
+      - name: Test Windows Paths
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\tests\windows.ps1
