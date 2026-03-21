@@ -1,5 +1,20 @@
 # Changelog
 
+## v5.0.0 (2026-03-22)
+
+- **Interactive mode (`-i` / `--interactive`)** - browse any repo's file tree in your terminal and cherry-pick exactly the files and folders you want
+  - Hierarchical tree view with expand/collapse, multi-select, select all
+  - Keyboard navigation: arrow keys, `j`/`k`, `h`/`l`, space, enter, `c` to confirm, `q` to quit
+  - Shows selection stats: folder/file count, total size, scroll position
+  - Dark gray background highlight on current line, `●`/`○` selection indicators
+  - Auto-expands all levels for small repos (<=30 entries), 2 levels for larger ones
+  - Respects `--dry-run`, `--overwrite`, `--recursive`, `--tree`
+  - Graceful TTY guard, SIGINT cleanup, alternate screen buffer
+  - Works with GitHub, GitLab, Bitbucket, public and private repos
+  - Zero new dependencies
+- Add interactive mode tests (TTY guard, help text)
+- Update README with interactive mode docs, table of contents, controls reference
+
 ## v4.19.0 (2026-03-22)
 
 - **Environment variable token support** — `GITHUB_TOKEN`/`GH_TOKEN`, `GITLAB_TOKEN`, `BITBUCKET_TOKEN` auto-detected for private repos without embedding tokens in URLs
