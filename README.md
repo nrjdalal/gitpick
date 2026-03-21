@@ -24,6 +24,9 @@ Unlike other tools that force you to tweak URLs or follow strict formats to clon
 ### See [Quick Usage](#-quick-usage) for to learn more.
 
 ```sh
+# interactive mode — browse and pick files/folders
+npx gitpick owner/repo -i
+npx gitpick https://github.com/owner/repo -i
 # clone a repo without .git
 npx gitpick owner/repo
 npx gitpick https://github.com/owner/repo
@@ -71,6 +74,7 @@ npx gitpick owner/repo --dry-run
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
+- **🆕 Interactive mode** — browse and cherry-pick files/folders with `-i` | `--interactive`
 
 ---
 
@@ -105,10 +109,62 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 
 ---
 
+## 🆕 Interactive Mode
+
+> **New in v5.0** — Browse any repository's file tree in your terminal and cherry-pick exactly the files and folders you want.
+
+```sh
+npx gitpick owner/repo -i
+npx gitpick owner/repo -i -b canary
+npx gitpick https://github.com/owner/repo -i
+npx gitpick https://gitlab.com/owner/repo -i
+```
+
+**How it works:**
+
+1. GitPick fetches the repository
+2. An interactive file tree appears in your terminal
+3. Navigate with arrow keys, select with space, expand/collapse folders with enter
+4. Press `c` to confirm — only your selected files get copied
+
+```
+  nrjdalal/gitpick repository:main > gitpick
+
+> ● .
+  ● ├── ▾ bin/
+  ● │   ├── ▸ external/
+  ● │   ├── ▸ utils/
+  ○ │   └──   index.ts
+  ○ ├── ▸ tests/
+  ○ ├──   package.json
+  ○ └──   README.md
+
+  2 folders 3 files • 12.4 KB
+
+  ↑↓:navigate  enter:expand  space:select  c:confirm  q:quit
+```
+
+**Controls:**
+
+| Key               | Action                     |
+| ----------------- | -------------------------- |
+| `↑` `↓` / `j` `k` | Navigate up/down           |
+| `←` `→` / `h` `l` | Collapse/expand folder     |
+| `Enter`           | Toggle expand/collapse     |
+| `Space`           | Toggle selection           |
+| `.` (first row)   | Select/deselect all        |
+| `c`               | Confirm and clone selected |
+| `q` / `Ctrl+C`    | Quit without cloning       |
+
+Works with GitHub, GitLab, Bitbucket, public and private repos.
+
+---
+
 ## 🔧 Options
 
 ```
 -b, --branch       Branch/SHA to clone
+-i, --interactive  Browse and pick files/folders interactively
 -n, --dry-run      Show what would be cloned without cloning
 -o, --overwrite    Skip overwrite prompt
 -r, --recursive    Clone submodules
