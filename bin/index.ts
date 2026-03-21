@@ -179,6 +179,17 @@ const main = async () => {
 
     const targetPath = path.resolve(config.target)
 
+    const renderTree = async (clonedPath: string) => {
+      if (fs.statSync(clonedPath).isDirectory()) {
+        process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
+        await printTree(clonedPath)
+      } else {
+        process.stdout.write(`${bold(cyan(displayPath(path.dirname(targetPath))))}\n`)
+        process.stdout.write(`└── ${path.basename(targetPath)}\n`)
+      }
+      process.stdout.write("\n")
+    }
+
     if (options.dryRun) {
       if (options.tree) {
         const tempTarget = path.resolve(
@@ -187,15 +198,7 @@ const main = async () => {
         )
         try {
           await cloneAction(config, options, tempTarget)
-          if (fs.statSync(tempTarget).isDirectory()) {
-            process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
-            await printTree(tempTarget)
-          } else {
-            const parentDir = path.dirname(targetPath)
-            process.stdout.write(`${bold(cyan(displayPath(parentDir)))}\n`)
-            process.stdout.write(`└── ${path.basename(targetPath)}\n`)
-          }
-          process.stdout.write("\n")
+          await renderTree(tempTarget)
         } finally {
           await fs.promises.rm(tempTarget, { recursive: true, force: true })
         }
@@ -221,33 +224,19 @@ const main = async () => {
       }
     }
 
-    const outputResult = async () => {
-      if (options.tree) {
-        if (fs.statSync(targetPath).isDirectory()) {
-          process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
-          await printTree(targetPath)
-        } else {
-          const parentDir = path.dirname(targetPath)
-          process.stdout.write(`${bold(cyan(displayPath(parentDir)))}\n`)
-          process.stdout.write(`└── ${path.basename(targetPath)}\n`)
-        }
-        process.stdout.write("\n")
-      }
-    }
-
     if (options.watch) {
       if (!silent)
         console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
       await cloneAction(config, options, targetPath)
-      await outputResult()
+      if (options.tree) await renderTree(targetPath)
       const watchInterval = parseTimeString(options.watch)
       setInterval(async () => {
         await cloneAction(config, options, targetPath)
-        await outputResult()
+        if (options.tree) await renderTree(targetPath)
       }, watchInterval)
     } else {
       await cloneAction(config, options, targetPath)
-      await outputResult()
+      if (options.tree) await renderTree(targetPath)
       process.exit(0)
     }
   } catch (err) {
