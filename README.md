@@ -95,8 +95,8 @@ npx gitpick <url/shorthand> -r                      # clone submodules
 npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
 npx gitpick <url/shorthand> --dry-run               # preview without cloning
 npx gitpick https://<token>@github.com/owner/repo   # private repository
-npx gitpick https://gitlab.com/owner/repo            # GitLab
-npx gitpick https://bitbucket.org/owner/repo         # Bitbucket
+npx gitpick https://gitlab.com/owner/repo           # GitLab
+npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 ```
 
 <img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
