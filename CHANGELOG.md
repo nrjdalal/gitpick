@@ -1,5 +1,10 @@
 # Changelog
 
+## v4.16.2 (2026-03-21)
+
+- Add CLI help examples for `--dry-run`, GitLab and Bitbucket
+- Update README with package sizes, multi-host config examples, and verified adopters
+
 ## v4.16.1 (2026-03-21)
 
 - Add `--dry-run`, GitLab and Bitbucket examples to CLI help output
