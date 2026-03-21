@@ -4,12 +4,14 @@
 
 **Clone exactly what you need aka straightforward project scaffolding!**
 
-📦 `Zero dependencies` / `Un/packed (~25/10kb)` / `Faster and more features` yet drop-in replacement for `degit`
-
 [![Twitter](https://img.shields.io/twitter/follow/nrjdalal_dev?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![downloads](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![stars](https://img.shields.io/github/stars/nrjdalal/gitpick?color=blue)](https://github.com/nrjdalal/gitpick)
+
+**Now with Interactive Mode.** Browse any repo right in your terminal. See every file, pick what you want, skip what you don't. Just `gitpick owner/repo -i` and you're in. No more guessing paths.
+
+📦 `Zero dependencies` / `Un/packed (~37/14kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 > #### Just `copy-and-paste` any GitHub, GitLab or Bitbucket URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
 
@@ -19,11 +21,30 @@ Unlike other tools that force you to tweak URLs or follow strict formats to clon
 
 ---
 
+### Table of Contents
+
+- [Some Examples](#-some-examples)
+- [Features](#-features)
+- [Quick Usage](#-quick-usage)
+- [Options](#-options)
+- [Interactive Mode](#-interactive-mode)
+- [Private Repos](#-private-repos)
+- [Config File](#-config-file)
+- [Install Globally](#-install-globally-optional)
+- [Used By](#-used-by)
+- [Related Projects](#-related-projects)
+- [Contributing](#-contributing)
+
+---
+
 ## 📖 Some Examples
 
 ### See [Quick Usage](#-quick-usage) for to learn more.
 
 ```sh
+# interactive mode - browse and pick files/folders
+npx gitpick owner/repo -i
+npx gitpick https://github.com/owner/repo -i
 # clone a repo without .git
 npx gitpick owner/repo
 npx gitpick https://github.com/owner/repo
@@ -54,6 +75,7 @@ npx gitpick https://bitbucket.org/owner/repo
 npx gitpick https://bitbucket.org/owner/repo/src/main/path/to/folder
 # dry run (preview without cloning)
 npx gitpick owner/repo --dry-run
+npx gitpick owner/repo -i --dry-run
 ```
 
 ---
@@ -63,6 +85,7 @@ npx gitpick owner/repo --dry-run
 - 🔍 Clone individual files or folders from GitHub, GitLab and Bitbucket
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
+- **🔥 Interactive mode** - browse and cherry-pick files/folders with `-i` | `--interactive`
 - 🔐 Seamlessly works with both public and private repositories using a PAT
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
@@ -109,6 +132,7 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 
 ```
 -b, --branch       Branch/SHA to clone
+-i, --interactive  Browse and pick files/folders interactively
 -n, --dry-run      Show what would be cloned without cloning
 -o, --overwrite    Skip overwrite prompt
 -r, --recursive    Clone submodules
@@ -120,6 +144,57 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 -h, --help         display help for command
 -v, --version      display the version number
 ```
+
+---
+
+## 🔥 Interactive Mode
+
+> **New in v5.0.** Browse any repository's file tree in your terminal and cherry-pick exactly the files and folders you want.
+
+```sh
+npx gitpick owner/repo -i
+npx gitpick owner/repo -i -b canary
+npx gitpick https://github.com/owner/repo -i
+npx gitpick https://gitlab.com/owner/repo -i
+```
+
+**How it works:**
+
+1. GitPick fetches the repository
+2. An interactive file tree appears in your terminal
+3. Navigate with arrow keys, select with space, expand/collapse folders with enter
+4. Press `c` to confirm - only your selected files get copied
+
+```
+  nrjdalal/gitpick repository:main > gitpick
+
+> ● .
+  ● ├── ▾ bin/
+  ● │   ├── ▸ external/
+  ● │   ├── ▸ utils/
+  ○ │   └──   index.ts
+  ○ ├── ▸ tests/
+  ○ ├──   package.json
+  ○ └──   README.md
+
+  2 folders 3 files • 12.4 KB
+
+  ↑↓:navigate  enter:expand  space:select  c:confirm  q:quit
+```
+
+**Controls:**
+
+| Key               | Action                     |
+| ----------------- | -------------------------- |
+| `↑` `↓` / `j` `k` | Navigate up/down           |
+| `←` `→` / `h` `l` | Collapse/expand folder     |
+| `Enter`           | Toggle expand/collapse     |
+| `Space`           | Toggle selection           |
+| `.` (first row)   | Select/deselect all        |
+| `c`               | Confirm and clone selected |
+| `q` / `Ctrl+C`    | Quit without cloning       |
+
+Works with GitHub, GitLab, Bitbucket, public and private repos.
 
 ---
 
@@ -224,7 +299,7 @@ Check out more projects at [github.com/nrjdalal](https://github.com/nrjdalal)
 
 ## 🤝 Contributing
 
-Contributions welcome — any help is appreciated!
+Contributions welcome - any help is appreciated!
 
 - Fork the repo and create a branch (use descriptive names, e.g. feat/<name> or fix/<name>).
 - Make your changes, add tests if applicable, and run the checks:
