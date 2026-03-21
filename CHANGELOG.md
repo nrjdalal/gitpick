@@ -1,5 +1,17 @@
 # Changelog
 
+## v4.17.0 (2026-03-22)
+
+- **Add `--tree` flag** — display cloned file structure as a colored tree (like the `tree` command)
+  - Bold cyan for root directory, cyan for subdirs, yellow for symlinks, cyan/white for symlink targets
+  - Smart path header: `./` for cwd-relative, `~/` for home-relative, absolute otherwise
+  - Works with `--dry-run` (clones to temp dir, prints tree, cleans up)
+  - Consistent output for repos, folders, and blobs
+- `copyDir` now returns list of copied file paths
+- `cloneAction` returns `CloneResult` with files and duration
+- Fix oxlint warnings in test suite
+- Update package sizes in README
+
 ## v4.16.2 (2026-03-21)
 
 - Add CLI help examples for `--dry-run`, GitLab and Bitbucket
