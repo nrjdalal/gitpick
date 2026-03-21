@@ -1,9 +1,7 @@
 name: Release Package
 
 on:
-  workflow_run:
-    workflows: ["Test"]
-    types: [completed]
+  push:
     branches:
       - "**"
   issue_comment:
@@ -18,16 +16,39 @@ permissions:
   pull-requests: write
 
 jobs:
+  test:
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Test
+        run: bun run test
+
   release:
     if: |
-      github.event_name == 'issue_comment' && github.event.comment.user.login == github.repository_owner && contains(github.event.comment.body, 'release') ||
-      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+      always() && !failure() && !cancelled() && (
+        github.event_name == 'push' ||
+        github.event_name == 'issue_comment' && github.event.comment.user.login == github.repository_owner && contains(github.event.comment.body, 'release')
+      )
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
 
       - name: Setup Node
@@ -49,7 +70,7 @@ jobs:
           VERSIONS=$(npm view $PACKAGE_NAME dist-tags --json)
           LATEST_VERSION=$(echo $VERSIONS | bunx json latest)
           if [[ $GITHUB_EVENT_NAME == 'issue_comment' ]]; then
-            PR_NUMBER=$(echo "${{ github.event.issue.pull_request.url }}" | grep -o '[0-9]*$')
+            PR_NUMBER=$(echo "${{ github.event.issue.pull_requests.url }}" | grep -o '[0-9]*$')
             LATEST_COMMIT_SHA=$(curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/commits" | bunx json -a sha | tail -n 1)
             git checkout $LATEST_COMMIT_SHA
             TAG="test"
@@ -81,11 +102,10 @@ jobs:
               -d "{\"body\": \"Test package released - [\`$PACKAGE_NAME@$RELEASE_VERSION\`]($PACKAGE_URL)\"}" >/dev/null \
               && echo "🟢 Release comment to PR added!" || echo "🔴 Failed to add release comment to PR."
           else
-            COMMIT_SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
-            curl -fsSL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$COMMIT_SHA/comments" \
+            curl -fsSL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
               -d "{\"body\": \"Package released - [\`$PACKAGE_NAME@$RELEASE_VERSION\`]($PACKAGE_URL)\"}" >/dev/null \
               && echo "🟢 Release comment added!" || echo "🔴 Failed to add release comment."
-            curl -fsSL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$COMMIT_SHA" \
+            curl -fsSL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
               -d "{\"state\": \"success\", \"context\": \"Package released\", \"description\": \"$PACKAGE_NAME@$RELEASE_VERSION\", \"target_url\": \"$PACKAGE_URL\"}" >/dev/null \
               && echo "🟢 Release status updated!" || echo "🔴 Failed to update release status."
           fi
