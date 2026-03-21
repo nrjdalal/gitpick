@@ -191,7 +191,9 @@ const main = async () => {
             process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
             await printTree(tempTarget)
           } else {
-            process.stdout.write(`${green(displayPath(targetPath))}\n`)
+            const parentDir = path.dirname(targetPath)
+            process.stdout.write(`${bold(cyan(displayPath(parentDir)))}\n`)
+            process.stdout.write(`└── ${path.basename(targetPath)}\n`)
           }
           process.stdout.write("\n")
         } finally {
@@ -225,7 +227,9 @@ const main = async () => {
           process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
           await printTree(targetPath)
         } else {
-          process.stdout.write(`${green(displayPath(targetPath))}\n`)
+          const parentDir = path.dirname(targetPath)
+          process.stdout.write(`${bold(cyan(displayPath(parentDir)))}\n`)
+          process.stdout.write(`└── ${path.basename(targetPath)}\n`)
         }
         process.stdout.write("\n")
       }
