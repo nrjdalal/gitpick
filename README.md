@@ -133,15 +133,17 @@ Create a `.gitpick.json` or `.gitpick.jsonc` in your project to pick multiple fi
   "https://github.com/owner/repo/blob/main/path/to/file",
   // clone a branch
   "owner/repo -b canary",
+  "https://github.com/owner/repo -b canary",
   "owner/repo/tree/canary",
+  "https://github.com/owner/repo/tree/canary",
   // clone a commit SHA
   "owner/repo -b cc8e93",
+  "https://github.com/owner/repo/commit/cc8e93",
   // clone submodules
   "owner/repo -r",
+  "https://github.com/owner/repo -r",
   // clone a private repo
   "https://<token>@github.com/owner/repo",
-  // clone with custom target
-  "owner/repo/tree/main/src my-target",
 ]
 ```
 
