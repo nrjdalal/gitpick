@@ -4,14 +4,14 @@
 
 **Clone exactly what you need aka straightforward project scaffolding!**
 
-**Now with Interactive Mode** — browse any repo right in your terminal. See every file, pick what you want, skip what you don't. Just `gitpick owner/repo -i` and you're in. No more guessing paths.
-
-📦 `Zero dependencies` / `Un/packed (~37/14kb)` / `Faster and more features` yet drop-in replacement for `degit`
-
 [![Twitter](https://img.shields.io/twitter/follow/nrjdalal_dev?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![downloads](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![stars](https://img.shields.io/github/stars/nrjdalal/gitpick?color=blue)](https://github.com/nrjdalal/gitpick)
+
+**Now with Interactive Mode** — browse any repo right in your terminal. See every file, pick what you want, skip what you don't. Just `gitpick owner/repo -i` and you're in. No more guessing paths.
+
+📦 `Zero dependencies` / `Un/packed (~37/14kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 > #### Just `copy-and-paste` any GitHub, GitLab or Bitbucket URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
 
