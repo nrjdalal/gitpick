@@ -232,7 +232,8 @@ const main = async () => {
         await spawn("git", ["checkout", config.branch], { cwd: tempDir })
       }
 
-      // Walk local tree to build entries
+      // Walk local tree to build entries (scoped to config.path if set)
+      const walkRoot = config.path ? path.join(tempDir, config.path) : tempDir
       const entries: TreeEntry[] = []
       async function walkDir(dir: string, rel: string) {
         const items = await fs.promises.readdir(dir, { withFileTypes: true })
@@ -260,7 +261,7 @@ const main = async () => {
           }
         }
       }
-      await walkDir(tempDir, "")
+      await walkDir(walkRoot, "")
 
       s.success(`Fetched ${config.owner}/${config.repository} (${entries.length} entries)`)
 
@@ -312,7 +313,7 @@ const main = async () => {
 
       let copiedFiles = 0
       for (const sel of selected) {
-        const src = path.join(tempDir, sel)
+        const src = path.join(walkRoot, sel)
         const dest = path.join(targetPath, sel)
         const stat = await fs.promises.stat(src).catch(() => null)
         if (!stat) continue
