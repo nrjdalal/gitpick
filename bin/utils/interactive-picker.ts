@@ -231,6 +231,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       stdin.setRawMode(wasRaw ?? false)
       stdin.pause()
       stdin.removeListener("data", onKey)
+      stream.removeListener("resize", onResize)
       // Exit alternate screen, show cursor
       stream.write("\x1B[?25h\x1B[?1049l")
     }
@@ -246,8 +247,10 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       resolve([])
       process.exit(0)
     }
+    const onResize = () => render()
     process.on("exit", onExit)
     process.on("SIGINT", onSigint)
+    stream.on("resize", onResize)
 
     function render() {
       const rows = stream.rows || 24
