@@ -4,8 +4,13 @@ import os from "node:os"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
+import spawn from "@/external/nano-spawn"
+import { spinner } from "@/external/yocto-spinner"
 import { bold, cyan, green, red, yellow } from "@/external/yoctocolors"
 import { cloneAction } from "@/utils/clone-action"
+import { copyDir } from "@/utils/copy-dir"
+import { fetchRepoTree } from "@/utils/fetch-tree"
+import { interactivePicker } from "@/utils/interactive-picker"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { configFromUrl } from "@/utils/transform-url"
 import { notifyUpdate, scheduleUpdateCheck } from "@/utils/update-notifier"
@@ -29,6 +34,7 @@ ${bold("Arguments:")}
 
 ${bold("Options:")}
   ${cyan("-b, --branch ")}      Branch/SHA to clone
+  ${cyan("-i, --interactive")}  Browse and pick files/folders interactively
   ${cyan("-n, --dry-run")}      Show what would be cloned without cloning
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
   ${cyan("-r, --recursive")}    Clone submodules
@@ -112,6 +118,7 @@ const main = async () => {
         "dry-run": { type: "boolean", short: "n" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
+        interactive: { type: "boolean", short: "i" },
         quiet: { type: "boolean", short: "q" },
         tree: { type: "boolean" },
         verbose: { type: "boolean" },
@@ -144,6 +151,7 @@ const main = async () => {
       branch: values.branch,
       dryRun: values["dry-run"],
       force: values.force,
+      interactive: values.interactive,
       quiet: values.quiet,
       tree: values.tree,
       verbose: values.verbose,
@@ -187,6 +195,100 @@ const main = async () => {
     }
 
     const targetPath = path.resolve(config.target)
+
+    if (options.interactive) {
+      if (!process.stdout.isTTY) {
+        throw new Error("Interactive mode requires a TTY")
+      }
+
+      const s = spinner()
+      s.start(`Fetching file tree from ${config.owner}/${config.repository}...`)
+      const entries = await fetchRepoTree(config)
+      s.success(`Fetched ${entries.length} entries from ${config.owner}/${config.repository}`)
+
+      if (!entries.length) {
+        console.log(yellow("\nRepository has no files."))
+        process.exit(0)
+      }
+
+      const selected = await interactivePicker(
+        entries,
+        `${config.owner}/${config.repository} ${cyan("repository:" + config.branch)} > ${green(config.target)}`,
+      )
+
+      if (!selected.length) {
+        console.log("\nNo files selected.")
+        process.exit(0)
+      }
+
+      console.log(
+        `\n${green("✔")} Picking ${selected.length} selected path${selected.length !== 1 ? "s" : ""}...`,
+      )
+
+      // Shallow clone to temp, then copy only selected paths
+      const tempDir = path.resolve(
+        os.tmpdir(),
+        `gitpick-interactive-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
+      )
+      const repoUrl = `https://${config.token ? config.token + "@" : ""}${config.host}/${config.owner}/${config.repository}.git`
+
+      try {
+        await spawn("git", [
+          "clone",
+          repoUrl,
+          tempDir,
+          "--branch",
+          config.branch,
+          "--depth",
+          "1",
+          "--single-branch",
+          ...(options.recursive ? ["--recursive"] : []),
+        ])
+      } catch {
+        await spawn("git", [
+          "clone",
+          repoUrl,
+          tempDir,
+          ...(options.recursive ? ["--recursive"] : []),
+        ])
+        await spawn("git", ["checkout", config.branch], { cwd: tempDir })
+      }
+
+      await fs.promises.mkdir(targetPath, { recursive: true })
+
+      let copiedFiles = 0
+      for (const sel of selected) {
+        const src = path.join(tempDir, sel)
+        const dest = path.join(targetPath, sel)
+        const stat = await fs.promises.stat(src).catch(() => null)
+        if (!stat) continue
+
+        if (stat.isDirectory()) {
+          await fs.promises.mkdir(dest, { recursive: true })
+          const files = await copyDir(src, dest)
+          copiedFiles += files.length
+        } else {
+          await fs.promises.mkdir(path.dirname(dest), { recursive: true })
+          await fs.promises.copyFile(src, dest)
+          copiedFiles++
+        }
+      }
+
+      await fs.promises.rm(tempDir, { recursive: true, force: true })
+
+      console.log(
+        green(
+          `✔ Copied ${copiedFiles} file${copiedFiles !== 1 ? "s" : ""} to ${displayPath(targetPath)}`,
+        ),
+      )
+      if (options.tree) {
+        process.stdout.write(`\n${bold(cyan(displayPath(targetPath)))}\n`)
+        await printTree(targetPath)
+        process.stdout.write("\n")
+      }
+      notifyUpdate(version, false)
+      process.exit(0)
+    }
 
     const renderTree = async (clonedPath: string) => {
       if (fs.statSync(clonedPath).isDirectory()) {
