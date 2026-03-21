@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test"
+import { beforeAll, describe, expect, it } from "bun:test"
 import {
   copyFileSync,
   existsSync,
@@ -18,6 +18,7 @@ const ARTIFACTS = ".test-artifacts"
 // --- helpers ---
 
 function stripAnsi(s: string) {
+  // eslint-disable-next-line no-control-regex
   return s.replace(/\x1b\[[0-9;]*m/g, "").replace(/\x1b\]8;;[^\x07]*\x07/g, "")
 }
 
