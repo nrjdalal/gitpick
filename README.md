@@ -4,7 +4,7 @@
 
 **Clone exactly what you need aka straightforward project scaffolding!**
 
-📦 `Zero dependencies` / `Un/packed (~25/10kb)` / `Faster and more features` yet drop-in replacement for `degit`
+📦 `Zero dependencies` / `Un/packed (~37/14kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 [![Twitter](https://img.shields.io/twitter/follow/nrjdalal_dev?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
@@ -16,6 +16,22 @@
 Unlike other tools that force you to tweak URLs or follow strict formats to clone files, folders, branches or commits GitPick works seamlessly with any URL.
 
 <img width="400" alt="GitPick Meme" src="https://github.com/user-attachments/assets/180c3e5b-320c-48d7-aaf9-a7402e74c882" />
+
+---
+
+### Table of Contents
+
+- [Some Examples](#-some-examples)
+- [Features](#-features)
+- [Quick Usage](#-quick-usage)
+- [Interactive Mode](#-interactive-mode)
+- [Options](#-options)
+- [Private Repos](#-private-repos)
+- [Config File](#-config-file)
+- [Install Globally](#-install-globally-optional)
+- [Used By](#-used-by)
+- [Related Projects](#-related-projects)
+- [Contributing](#-contributing)
 
 ---
 
@@ -57,6 +73,7 @@ npx gitpick https://bitbucket.org/owner/repo
 npx gitpick https://bitbucket.org/owner/repo/src/main/path/to/folder
 # dry run (preview without cloning)
 npx gitpick owner/repo --dry-run
+npx gitpick owner/repo -i --dry-run
 ```
 
 ---
@@ -74,7 +91,7 @@ npx gitpick owner/repo --dry-run
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
-- **🆕 Interactive mode** — browse and cherry-pick files/folders with `-i` | `--interactive`
+- **🔥 Interactive mode** — browse and cherry-pick files/folders with `-i` | `--interactive`
 
 ---
 
@@ -109,7 +126,7 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 
 ---
 
-## 🆕 Interactive Mode
+## 🔥 Interactive Mode
 
 > **New in v5.0** — Browse any repository's file tree in your terminal and cherry-pick exactly the files and folders you want.
 
