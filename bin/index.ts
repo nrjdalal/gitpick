@@ -8,6 +8,7 @@ import { bold, cyan, green, red, yellow } from "@/external/yoctocolors"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { configFromUrl } from "@/utils/transform-url"
+import { notifyUpdate, scheduleUpdateCheck } from "@/utils/update-notifier"
 import { useConfig } from "@/utils/use-config"
 import { name, version } from "~/package.json"
 
@@ -101,6 +102,8 @@ const parse: typeof parseArgs = (config) => {
 }
 
 const main = async () => {
+  scheduleUpdateCheck()
+
   try {
     const { positionals, values } = parse({
       allowPositionals: true,
@@ -210,6 +213,7 @@ const main = async () => {
         }
       }
       if (!silent) console.log()
+      notifyUpdate(version, silent)
       process.exit(0)
     }
     options.overwrite = options.overwrite || options.force
@@ -243,6 +247,7 @@ const main = async () => {
     } else {
       await cloneAction(config, options, targetPath)
       if (options.tree) await renderTree(targetPath)
+      notifyUpdate(version, silent)
       process.exit(0)
     }
   } catch (err) {

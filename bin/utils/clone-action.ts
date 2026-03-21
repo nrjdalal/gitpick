@@ -7,9 +7,19 @@ import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
 
+const formatSize = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export type CloneResult = {
   files: string[]
   duration: number
+  networkTime: number
+  copyTime: number
+  totalSize: number
+  cloneStrategy: string
 }
 
 export const cloneAction = async (
@@ -55,6 +65,7 @@ export const cloneAction = async (
   }
 
   let cloneStrategy = "shallow"
+  const networkStart = performance.now()
 
   try {
     await spawn("git", [
@@ -74,11 +85,14 @@ export const cloneAction = async (
     await spawn("git", ["checkout", config.branch], { cwd: tempDir })
   }
 
+  const networkTime = Number(((performance.now() - networkStart) / 1000).toFixed(2))
+
   const sourcePath = path.resolve(tempDir, config.path)
 
   const sourceStat = await fs.promises.stat(sourcePath)
 
   let files: string[] = []
+  const copyStart = performance.now()
 
   if (sourceStat.isDirectory()) {
     await fs.promises.mkdir(targetPath, { recursive: true })
@@ -91,7 +105,21 @@ export const cloneAction = async (
     files = [path.basename(targetPath)]
   }
 
+  const copyTime = Number(((performance.now() - copyStart) / 1000).toFixed(2))
   const duration = Number(((performance.now() - start) / 1000).toFixed(2))
+
+  let totalSize = 0
+  for (const file of files) {
+    try {
+      const stat = await fs.promises.stat(path.join(targetPath, file))
+      totalSize += stat.size
+    } catch {
+      // single file (blob) — targetPath is the file itself
+      const stat = await fs.promises.stat(targetPath)
+      totalSize += stat.size
+      break
+    }
+  }
 
   if (!silent) {
     if (!options.watch) {
@@ -107,11 +135,13 @@ export const cloneAction = async (
     )
     console.log(dim(`  from:     ${displayUrl} @ ${cyan(config.branch)}`))
     console.log(dim(`  to:       ${targetPath}`))
-    console.log(dim(`  files:    ${files.length}`))
-    console.log(dim(`  duration: ${duration}s`))
+    console.log(dim(`  files:    ${files.length} (${formatSize(totalSize)})`))
+    console.log(dim(`  network:  ${networkTime}s`))
+    console.log(dim(`  copy:     ${copyTime}s`))
+    console.log(dim(`  total:    ${duration}s`))
   }
 
   await fs.promises.rm(tempDir, { recursive: true, force: true })
 
-  return { files, duration }
+  return { files, duration, networkTime, copyTime, totalSize, cloneStrategy }
 }
