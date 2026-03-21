@@ -1204,4 +1204,30 @@ describe("--tree output", () => {
     const { header } = parseTreeOutput(output)
     expect(header.startsWith("./")).toBe(true)
   }, 30000)
+
+  it("blob shows file node", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      t,
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const { tree } = parseTreeOutput(output)
+    expect(tree).toBe("└── file.txt")
+  }, 30000)
+
+  it("dry-run blob shows file node", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "nrjdalal/picksuite/blob/main/file.txt",
+      t,
+      "--dry-run",
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const { tree } = parseTreeOutput(output)
+    expect(tree).toBe("└── file.txt")
+  }, 30000)
 })

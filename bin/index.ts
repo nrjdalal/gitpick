@@ -184,6 +184,8 @@ const main = async () => {
           process.stdout.write(`${displayPath(targetPath)}\n`)
           if (fs.statSync(tempTarget).isDirectory()) {
             await printTree(tempTarget)
+          } else {
+            process.stdout.write(`└── ${path.basename(targetPath)}\n`)
           }
         } finally {
           await fs.promises.rm(tempTarget, { recursive: true, force: true })
@@ -215,6 +217,8 @@ const main = async () => {
         process.stdout.write(`${displayPath(targetPath)}\n`)
         if (fs.statSync(targetPath).isDirectory()) {
           await printTree(targetPath)
+        } else {
+          process.stdout.write(`└── ${path.basename(targetPath)}\n`)
         }
       }
     }
