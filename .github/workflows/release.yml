@@ -16,10 +16,34 @@ permissions:
   pull-requests: write
 
 jobs:
+  test:
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Test
+        run: bun run test
+
   release:
     if: |
-      github.event_name == 'push' || 
-      github.event_name == 'issue_comment' && github.event.comment.user.login == github.repository_owner && contains(github.event.comment.body, 'release')
+      always() && !failure() && !cancelled() && (
+        github.event_name == 'push' ||
+        github.event_name == 'issue_comment' && github.event.comment.user.login == github.repository_owner && contains(github.event.comment.body, 'release')
+      )
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

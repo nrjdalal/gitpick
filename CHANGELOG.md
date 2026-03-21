@@ -1,5 +1,16 @@
 # Changelog
 
+## v4.16.0 (2026-03-21)
+
+- **Multi-host support** — clone from GitLab and Bitbucket in addition to GitHub
+- Add `--dry-run` / `-n` flag to preview what would be cloned without cloning
+- Add `/commit/` URL support — `owner/repo/commit/SHA` correctly extracts the commit SHA
+- Add `refs/remotes` and `refs/tags` support for raw URLs (in addition to `refs/heads`)
+- Preserve shorthand raw URL parsing (`owner/repo/refs/heads/branch/file`)
+- Migrate test suite from bash scripts to bun:test (106 tests across dry-run, clone, config, integrity)
+- Gate releases behind passing tests in CI
+- Fix `pull_request.url` reference in release workflow
+
 ## v4.15.0 (2026-03-21)
 
 - **34KB → 19KB (43% smaller), zero dependencies**

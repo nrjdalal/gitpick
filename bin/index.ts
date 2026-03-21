@@ -6,14 +6,14 @@ import { parseArgs } from "node:util"
 import { bold, cyan, green, red, yellow } from "@/external/yoctocolors"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
-import { githubConfigFromUrl } from "@/utils/transform-url"
+import { configFromUrl } from "@/utils/transform-url"
 import { useConfig } from "@/utils/use-config"
 import { name, version } from "~/package.json"
 
 const terminalLink = (text: string, url: string) => `\x1b]8;;${url}\x07${text}\x1b]8;;\x07`
 
 const helpMessage = `
-With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific directories or files from GitHub!
+With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific directories or files from GitHub, GitLab and Bitbucket!
 
   $ gitpick ${yellow("<url>")} ${green("[target]")} ${cyan("[options]")}
 
@@ -22,11 +22,12 @@ ${bold("Hint:")}
   GitPick fallbacks to the default behavior of \`git clone\`
 
 ${bold("Arguments:")}
-  ${yellow("url")}                GitHub URL with path to file/folder/repository
+  ${yellow("url")}                GitHub/GitLab/Bitbucket URL with path to file/folder/repository
   ${green("target")}             Directory to clone into (optional)
 
 ${bold("Options:")}
   ${cyan("-b, --branch ")}      Branch/SHA to clone
+  ${cyan("-n, --dry-run")}      Show what would be cloned without cloning
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
   ${cyan("-r, --recursive")}    Clone submodules
   ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
@@ -57,6 +58,7 @@ const main = async () => {
       allowPositionals: true,
       options: {
         branch: { type: "string", short: "b" },
+        "dry-run": { type: "boolean", short: "n" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
         overwrite: { type: "boolean", short: "o" },
@@ -86,6 +88,7 @@ const main = async () => {
 
     const options = {
       branch: values.branch,
+      dryRun: values["dry-run"],
       force: values.force,
       overwrite: values.overwrite,
       recursive: values.recursive,
@@ -93,10 +96,10 @@ const main = async () => {
     }
 
     console.log(
-      `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches, commits and more from GitHub!`,
+      `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches, commits and more from GitHub, GitLab and Bitbucket!`,
     )
 
-    const config = await githubConfigFromUrl(url, {
+    const config = await configFromUrl(url, {
       branch: options.branch,
       target,
     })
@@ -119,6 +122,11 @@ const main = async () => {
           : `${!config.path.length ? ">" : yellow(config.path) + " >"} ${green(config.target)}`
       }`,
     )
+
+    if (options.dryRun) {
+      console.log()
+      process.exit(0)
+    }
 
     const targetPath = path.resolve(config.target)
     options.overwrite = options.overwrite || options.force
