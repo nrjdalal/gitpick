@@ -4,7 +4,7 @@
 
 **Clone exactly what you need aka straightforward project scaffolding!**
 
-📦 `Zero dependencies` / `Un/packed (~19/8kb)` / `Faster and more features` yet drop-in replacement for `degit`
+📦 `Zero dependencies` / `Un/packed (~22/9kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 [![Twitter](https://img.shields.io/twitter/follow/nrjdalal_dev?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
@@ -83,18 +83,20 @@ npx gitpick <url/shorthand> [target] [options]
 Examples:
 
 ```sh
-npx gitpick https://github.com/owner/repo          # repo without .git
-npx gitpick owner/repo/tree/main/path/to/folder    # a folder aka tree
-npx gitpick owner/repo/blob/main/path/to/file      # a file aka blob
+npx gitpick https://github.com/owner/repo           # repo without .git
+npx gitpick owner/repo/tree/main/path/to/folder     # a folder aka tree
+npx gitpick owner/repo/blob/main/path/to/file       # a file aka blob
 
-npx gitpick <url/shorthand>                        # default git behavior
-npx gitpick <url/shorthand> [target]               # with optional target
-npx gitpick <url/shorthand> -b [branch/SHA]        # branch or commit SHA
-npx gitpick <url/shorthand> -o                     # overwrite if exists
-npx gitpick <url/shorthand> -r                     # clone submodules
-npx gitpick <url/shorthand> -w 30s                 # sync every 30 seconds
-npx gitpick https://<token>@github.com/owner/repo  # private repository
-npx gitpick <url/shorthand> --dry-run              # preview without cloning
+npx gitpick <url/shorthand>                         # default git behavior
+npx gitpick <url/shorthand> [target]                # with optional target
+npx gitpick <url/shorthand> -b [branch/SHA]         # branch or commit SHA
+npx gitpick <url/shorthand> -o                      # overwrite if exists
+npx gitpick <url/shorthand> -r                      # clone submodules
+npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
+npx gitpick <url/shorthand> --dry-run               # preview without cloning
+npx gitpick https://<token>@github.com/owner/repo   # private repository
+npx gitpick https://gitlab.com/owner/repo            # GitLab
+npx gitpick https://bitbucket.org/owner/repo         # Bitbucket
 ```
 
 <img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
@@ -159,6 +161,12 @@ Create a `.gitpick.json` or `.gitpick.jsonc` in your project to pick multiple fi
   "https://github.com/owner/repo -r",
   // clone a private repo
   "https://<token>@github.com/owner/repo",
+  // GitLab
+  "https://gitlab.com/owner/repo",
+  "https://gitlab.com/owner/repo/-/tree/main/path/to/folder",
+  // Bitbucket
+  "https://bitbucket.org/owner/repo",
+  "https://bitbucket.org/owner/repo/src/main/path/to/folder",
 ]
 ```
 
