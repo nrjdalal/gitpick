@@ -2,9 +2,9 @@ import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
 
+import spawn from "@/external/nano-spawn"
+import { spinner } from "@/external/yocto-spinner"
 import { copyDir } from "@/utils/copy-dir"
-import spawn from "@/utils/spawn"
-import { spinner } from "@/utils/spinner"
 
 export const cloneAction = async (
   config: {

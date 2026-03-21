@@ -2,7 +2,7 @@
 import process from "node:process"
 import { stripVTControlCharacters } from "node:util"
 
-import { cyan, green } from "@/utils/colors"
+import { cyan, green } from "@/external/yoctocolors"
 
 const isUnicodeSupported =
   process.platform !== "win32" ||

@@ -1,8 +1,8 @@
 import fs from "node:fs"
 import path from "node:path"
 
-import spawn from "@/utils/spawn"
-import stripJsonComments from "@/utils/strip-json-comments"
+import spawn from "@/external/nano-spawn"
+import stripJsonComments from "@/external/strip-json-comments"
 
 const configFiles = [".gitpick.json", ".gitpick.jsonc"]
 
