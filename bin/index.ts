@@ -41,6 +41,9 @@ ${bold("Examples:")}
   $ gitpick <url> [target] -b [branch/SHA]
   $ gitpick <url> [target] -w [time]
   $ gitpick <url> [target] -b [branch/SHA] -w [time]
+  $ gitpick <url> --dry-run
+  $ gitpick https://gitlab.com/owner/repo
+  $ gitpick https://bitbucket.org/owner/repo
   
 🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
 
