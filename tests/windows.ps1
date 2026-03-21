@@ -8,8 +8,17 @@ New-Item -ItemType Directory -Force $ARTIFACTS | Out-Null
 $urls = @(
   "nrjdalal/gitpick/blob/main/bin/index.ts"
   "nrjdalal/gitpick"
+  "https://github.com/nrjdalal/gitpick"
+  "git@github.com:nrjdalal/gitpick.git"
+  "https://github.com/nrjdalal/gitpick.git"
   "nrjdalal/gitpick/tree/main/bin"
+  "https://github.com/nrjdalal/gitpick/tree/main/bin"
+  "git@github.com:nrjdalal/gitpick.git/tree/main/bin"
+  "https://github.com/nrjdalal/gitpick.git/tree/main/bin"
   "nrjdalal/gitpick/tree/master/bin -b main"
+  "https://github.com/nrjdalal/gitpick/tree/master/bin -b main"
+  "git@github.com:nrjdalal/gitpick.git/tree/master/bin -b main"
+  "https://github.com/nrjdalal/gitpick.git/tree/master/bin -b main"
   "nrjdalal/zerostarter/tree/main"
 )
 
@@ -33,7 +42,7 @@ for ($i = 0; $i -lt $urls.Count; $i++) {
   }
 
   if (Test-Path $target) {
-    node tests/tree.mjs $target
+    node tests\tree.mjs $target
     Write-Host "V Test case #$num passed: $url"
     $passed++
   } else {
