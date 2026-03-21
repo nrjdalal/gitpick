@@ -1235,3 +1235,62 @@ describe("--tree output", () => {
     expect(tree).toBe("└── file.txt")
   }, 30000)
 })
+
+// =====================================================================
+// QUIET & VERBOSE
+// =====================================================================
+
+describe("--quiet output", () => {
+  it("suppresses all output on clone", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "-q",
+    ])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe("")
+  }, 30000)
+
+  it("suppresses all output on dry-run", async () => {
+    const { output, exitCode } = await run(["nrjdalal/picksuite", "--dry-run", "-q"])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe("")
+  }, 30000)
+})
+
+describe("--verbose output", () => {
+  it("shows clone metadata on success", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--verbose",
+    ])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    expect(stripped).toContain("clone:")
+    expect(stripped).toContain("shallow")
+    expect(stripped).toContain("from:")
+    expect(stripped).toContain("picksuite.git")
+    expect(stripped).toContain("files:")
+    expect(stripped).toContain("duration:")
+  }, 30000)
+
+  it("reports full clone strategy for SHA", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite",
+      "-b",
+      "8af536b",
+      t,
+      "--verbose",
+    ])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    expect(stripped).toContain("full (depth=full)")
+  }, 30000)
+})
