@@ -1,5 +1,10 @@
 # Changelog
 
+## v4.16.1 (2026-03-21)
+
+- Add `--dry-run`, GitLab and Bitbucket examples to CLI help output
+- Update README with package sizes and multi-host config examples
+
 ## v4.16.0 (2026-03-21)
 
 - **Multi-host support** — clone from GitLab and Bitbucket in addition to GitHub
