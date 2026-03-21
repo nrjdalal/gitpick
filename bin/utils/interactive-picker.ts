@@ -2,8 +2,9 @@ import { cyan, dim, green, yellow } from "@/external/yoctocolors"
 
 export type TreeEntry = {
   path: string
-  type: "blob" | "tree"
+  type: "blob" | "tree" | "symlink"
   size?: number
+  linkTarget?: string
 }
 
 const stripAnsi = (s: string) => s.replace(/\x1B\[\d+(?:;\d+)*m/g, "")
@@ -11,8 +12,9 @@ const stripAnsi = (s: string) => s.replace(/\x1B\[\d+(?:;\d+)*m/g, "")
 type TreeNode = {
   name: string
   path: string
-  type: "blob" | "tree"
+  type: "blob" | "tree" | "symlink"
   size: number
+  linkTarget: string
   children: TreeNode[]
   expanded: boolean
   selected: boolean
@@ -37,6 +39,7 @@ function buildTree(entries: TreeEntry[]): TreeNode[] {
       path: entry.path,
       type: entry.type,
       size: entry.size || 0,
+      linkTarget: entry.linkTarget || "",
       children: [],
       expanded: false,
       selected: false,
@@ -67,6 +70,7 @@ function buildTree(entries: TreeEntry[]): TreeNode[] {
               path: currentPath,
               type: "tree",
               size: 0,
+              linkTarget: "",
               children: [],
               expanded: false,
               selected: false,
@@ -292,7 +296,16 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         const idx = scrollOffset + i + 1 // +1 for the dot row
         const isCursor = idx === cursor
         const checkbox = item.node.selected ? green("●") : dim("○")
-        const nameStr = item.node.type === "tree" ? cyan(item.node.name + "/") : item.node.name
+        const nameStr =
+          item.node.type === "tree"
+            ? cyan(item.node.name + "/")
+            : item.node.type === "symlink"
+              ? yellow(item.node.name) +
+                dim(" -> ") +
+                (item.node.linkTarget.endsWith("/")
+                  ? cyan(item.node.linkTarget)
+                  : item.node.linkTarget)
+              : item.node.name
         const expandIcon =
           item.node.type === "tree" ? (item.node.expanded ? dim("▾ ") : dim("▸ ")) : "  "
         const pointer = isCursor ? yellow(">") : " "
@@ -312,22 +325,24 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
 
       // Footer
       out += "\n"
-      const countParts: string[] = []
-      if (folders > 0) countParts.push(cyan(`${folders} folder${folders !== 1 ? "s" : ""}`))
-      if (files > 0) countParts.push(`${files} file${files !== 1 ? "s" : ""}`)
-      const metaParts: string[] = []
-      if (countParts.length > 0) metaParts.push(countParts.join(" "))
-      if (metaParts.length > 0) metaParts.push(dim(formatSize(size)))
       const scrollInfo =
         items.length > treeViewportHeight
           ? dim(
               ` • ${scrollOffset + 1}-${Math.min(scrollOffset + treeViewportHeight, items.length)}/${items.length}`,
             )
           : ""
-      const statusLine =
-        metaParts.length > 0
-          ? `  ${metaParts.join(dim(" • "))}${scrollInfo}`
-          : dim("  nothing selected") + scrollInfo
+      let statusLine: string
+      if (allSelected) {
+        statusLine = `  all selected${scrollInfo}`
+      } else if (files + folders > 0) {
+        const countParts: string[] = []
+        if (folders > 0) countParts.push(cyan(`${folders} folder${folders !== 1 ? "s" : ""}`))
+        if (files > 0) countParts.push(`${files} file${files !== 1 ? "s" : ""}`)
+        const metaParts: string[] = [countParts.join(" "), dim(formatSize(size))]
+        statusLine = `  ${metaParts.join(dim(" • "))}${scrollInfo}`
+      } else {
+        statusLine = dim("  nothing selected") + scrollInfo
+      }
       out += statusLine + "\n"
       out += "\n"
       const instructions = dim("↑↓:navigate  enter:expand  space:select  c:confirm  q:quit")

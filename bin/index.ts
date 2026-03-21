@@ -240,7 +240,18 @@ const main = async () => {
           if (item.name === ".git") continue
           const itemRel = rel ? `${rel}/${item.name}` : item.name
           const itemPath = path.join(dir, item.name)
-          if (item.isDirectory()) {
+          if (item.isSymbolicLink()) {
+            const linkTarget = await fs.promises.readlink(itemPath)
+            let resolvedIsDir = false
+            try {
+              resolvedIsDir = (await fs.promises.stat(itemPath)).isDirectory()
+            } catch {}
+            entries.push({
+              path: itemRel,
+              type: "symlink",
+              linkTarget: resolvedIsDir ? linkTarget + "/" : linkTarget,
+            })
+          } else if (item.isDirectory()) {
             entries.push({ path: itemRel, type: "tree" })
             await walkDir(itemPath, itemRel)
           } else {
