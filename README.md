@@ -24,8 +24,8 @@ Unlike other tools that force you to tweak URLs or follow strict formats to clon
 - [Some Examples](#-some-examples)
 - [Features](#-features)
 - [Quick Usage](#-quick-usage)
-- [Interactive Mode](#-interactive-mode)
 - [Options](#-options)
+- [Interactive Mode](#-interactive-mode)
 - [Private Repos](#-private-repos)
 - [Config File](#-config-file)
 - [Install Globally](#-install-globally-optional)
@@ -126,6 +126,25 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 
 ---
 
+## 🔧 Options
+
+```
+-b, --branch       Branch/SHA to clone
+-i, --interactive  Browse and pick files/folders interactively
+-n, --dry-run      Show what would be cloned without cloning
+-o, --overwrite    Skip overwrite prompt
+-r, --recursive    Clone submodules
+-w, --watch [time] Watch the repository and sync every [time]
+                   (e.g. 1h, 30m, 15s)
+    --tree         List copied files as a tree
+-q, --quiet        Suppress all output except errors
+    --verbose      Show detailed clone information
+-h, --help         display help for command
+-v, --version      display the version number
+```
+
+---
+
 ## 🔥 Interactive Mode
 
 > **New in v5.0** — Browse any repository's file tree in your terminal and cherry-pick exactly the files and folders you want.
@@ -174,25 +193,6 @@ npx gitpick https://gitlab.com/owner/repo -i
 | `q` / `Ctrl+C`    | Quit without cloning       |
 
 Works with GitHub, GitLab, Bitbucket, public and private repos.
-
----
-
-## 🔧 Options
-
-```
--b, --branch       Branch/SHA to clone
--i, --interactive  Browse and pick files/folders interactively
--n, --dry-run      Show what would be cloned without cloning
--o, --overwrite    Skip overwrite prompt
--r, --recursive    Clone submodules
--w, --watch [time] Watch the repository and sync every [time]
-                   (e.g. 1h, 30m, 15s)
-    --tree         List copied files as a tree
--q, --quiet        Suppress all output except errors
-    --verbose      Show detailed clone information
--h, --help         display help for command
--v, --version      display the version number
-```
 
 ---
 
