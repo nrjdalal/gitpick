@@ -68,6 +68,8 @@ npx gitpick owner/repo --dry-run
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔐 Seamlessly works with both public and private repositories using a PAT
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
+- 🌳 View cloned file structure as a colored tree with `--tree`
+- 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
 
 ---
