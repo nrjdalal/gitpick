@@ -15,6 +15,8 @@
 
 Unlike other tools that force you to tweak URLs or follow strict formats to clone files, folders, branches or commits GitPick works seamlessly with any URL.
 
+> 🔥 **New in v5.0** — [Interactive mode](#-interactive-mode): browse any repo's file tree in your terminal and cherry-pick exactly what you need with `gitpick owner/repo -i`
+
 <img width="400" alt="GitPick Meme" src="https://github.com/user-attachments/assets/180c3e5b-320c-48d7-aaf9-a7402e74c882" />
 
 ---
