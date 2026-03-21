@@ -73,13 +73,19 @@ const printTree = async (dir: string, prefix = "") => {
     const entryPath = path.join(dir, entry.name)
 
     if (entry.isSymbolicLink()) {
-      const target = await fs.promises.readlink(entryPath)
-      process.stdout.write(`${prefix}${connector}${cyan(entry.name)} -> ${yellow(target)}\n`)
+      const linkTarget = await fs.promises.readlink(entryPath)
+      let resolvedIsDir = false
+      try {
+        resolvedIsDir = fs.statSync(entryPath).isDirectory()
+      } catch {}
+      process.stdout.write(
+        `${prefix}${connector}${yellow(entry.name)} -> ${resolvedIsDir ? cyan(linkTarget) : linkTarget}\n`,
+      )
     } else if (entry.isDirectory()) {
-      process.stdout.write(`${prefix}${connector}${bold(cyan(entry.name))}\n`)
+      process.stdout.write(`${prefix}${connector}${cyan(entry.name)}\n`)
       await printTree(entryPath, `${prefix}${last ? "    " : "│   "}`)
     } else {
-      process.stdout.write(`${prefix}${connector}${green(entry.name)}\n`)
+      process.stdout.write(`${prefix}${connector}${entry.name}\n`)
     }
   }
 }
