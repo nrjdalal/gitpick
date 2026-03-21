@@ -4,6 +4,8 @@
 
 **Clone exactly what you need aka straightforward project scaffolding!**
 
+**Now with Interactive Mode** — browse any repo right in your terminal. See every file, pick what you want, skip what you don't. Just `gitpick owner/repo -i` and you're in. No more guessing paths.
+
 📦 `Zero dependencies` / `Un/packed (~37/14kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 [![Twitter](https://img.shields.io/twitter/follow/nrjdalal_dev?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
@@ -14,8 +16,6 @@
 > #### Just `copy-and-paste` any GitHub, GitLab or Bitbucket URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
 
 Unlike other tools that force you to tweak URLs or follow strict formats to clone files, folders, branches or commits GitPick works seamlessly with any URL.
-
-> 🔥 **New in v5.0** — [Interactive mode](#-interactive-mode): browse any repo's file tree in your terminal and cherry-pick exactly what you need with `gitpick owner/repo -i`
 
 <img width="400" alt="GitPick Meme" src="https://github.com/user-attachments/assets/180c3e5b-320c-48d7-aaf9-a7402e74c882" />
 
