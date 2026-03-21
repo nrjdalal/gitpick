@@ -61,13 +61,15 @@ npx gitpick owner/repo --dry-run
 ## ✨ Features
 
 - 🔍 Clone individual files or folders from GitHub, GitLab and Bitbucket
-- ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
-- 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
-- 📦 Can easily clone all submodules with `-r` | `--recursive`
-- 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
+- ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - 🔐 Seamlessly works with both public and private repositories using a PAT
+- 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
+- 🌳 View cloned file structure as a colored tree with `--tree`
+- 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
+- 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
+- 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
 
 ---
@@ -95,8 +97,8 @@ npx gitpick <url/shorthand> -r                      # clone submodules
 npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
 npx gitpick <url/shorthand> --dry-run               # preview without cloning
 npx gitpick https://<token>@github.com/owner/repo   # private repository
-npx gitpick https://gitlab.com/owner/repo            # GitLab
-npx gitpick https://bitbucket.org/owner/repo         # Bitbucket
+npx gitpick https://gitlab.com/owner/repo           # GitLab
+npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 ```
 
 <img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
@@ -113,6 +115,8 @@ npx gitpick https://bitbucket.org/owner/repo         # Bitbucket
 -w, --watch [time] Watch the repository and sync every [time]
                    (e.g. 1h, 30m, 15s)
     --tree         List copied files as a tree
+-q, --quiet        Suppress all output except errors
+    --verbose      Show detailed clone information
 -h, --help         display help for command
 -v, --version      display the version number
 ```

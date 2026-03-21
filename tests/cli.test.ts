@@ -1235,3 +1235,120 @@ describe("--tree output", () => {
     expect(tree).toBe("└── file.txt")
   }, 30000)
 })
+
+// =====================================================================
+// QUIET & VERBOSE
+// =====================================================================
+
+describe("--quiet output", () => {
+  it("suppresses all output on clone", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "-q",
+    ])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe("")
+  }, 30000)
+
+  it("suppresses all output on dry-run", async () => {
+    const { output, exitCode } = await run(["nrjdalal/picksuite", "--dry-run", "-q"])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe("")
+  }, 30000)
+})
+
+describe("--verbose output", () => {
+  it("shows clone metadata on success", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--verbose",
+    ])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    expect(stripped).toContain("clone:")
+    expect(stripped).toContain("shallow")
+    expect(stripped).toContain("from:")
+    expect(stripped).toContain("picksuite.git")
+    expect(stripped).toContain("files:")
+    expect(stripped).toContain("duration:")
+  }, 30000)
+
+  it("reports full clone strategy for SHA", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite",
+      "-b",
+      "8af536b",
+      t,
+      "--verbose",
+    ])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    expect(stripped).toContain("full (depth=full)")
+  }, 30000)
+})
+
+describe("--quiet / --verbose interactions", () => {
+  it("--quiet with --tree shows tree only, no banner or spinner", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "-q",
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    // tree output still shows (--tree takes precedence for its own output)
+    expect(stripped).not.toContain("GitPick")
+    expect(stripped).not.toContain("Picked")
+    expect(stripped).not.toContain("✔")
+  }, 30000)
+
+  it("--verbose with --tree shows tree but no verbose metadata", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--verbose",
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    // --tree silences verbose output
+    expect(stripped).not.toContain("clone:")
+    expect(stripped).not.toContain("from:")
+    // but tree still renders
+    expect(stripped).toContain("deep")
+    expect(stripped).toContain("nested.txt")
+  }, 30000)
+
+  it("--quiet dry-run produces no output", async () => {
+    const { output, exitCode } = await run([
+      "nrjdalal/picksuite/tree/main/folder",
+      "--dry-run",
+      "-q",
+    ])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe("")
+  }, 30000)
+
+  it("--verbose dry-run shows info line but no clone metadata", async () => {
+    const { output, exitCode } = await run(["nrjdalal/picksuite", "--dry-run", "--verbose"])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    expect(stripped).toContain("picksuite")
+    // no clone metadata since nothing was cloned
+    expect(stripped).not.toContain("clone:")
+    expect(stripped).not.toContain("duration:")
+  }, 30000)
+})
