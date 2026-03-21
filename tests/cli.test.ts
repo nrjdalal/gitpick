@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test"
+import { beforeAll, describe, expect, it } from "bun:test"
 import {
   copyFileSync,
   existsSync,
@@ -18,6 +18,7 @@ const ARTIFACTS = ".test-artifacts"
 // --- helpers ---
 
 function stripAnsi(s: string) {
+  // eslint-disable-next-line no-control-regex
   return s.replace(/\x1b\[[0-9;]*m/g, "").replace(/\x1b\]8;;[^\x07]*\x07/g, "")
 }
 
@@ -1123,4 +1124,114 @@ describe("config — .gitpick.jsonc", () => {
       }
     })
   }
+})
+
+// =====================================================================
+// TREE OUTPUT
+// =====================================================================
+
+describe("--tree output", () => {
+  function parseTreeOutput(output: string) {
+    const stripped = stripAnsi(output).trim()
+    const lines = stripped.split("\n")
+    return { header: lines[0], tree: lines.slice(1).join("\n") }
+  }
+
+  const fwd = (s: string) => s.replaceAll("\\", "/")
+
+  it("clone tree shows header and tree", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(fwd(t))
+    expect(tree).toBe(TREE_FOLDER)
+  }, 30000)
+
+  it("clone repo shows header and full tree", async () => {
+    const t = target()
+    const { output, exitCode } = await run(["clone", "nrjdalal/picksuite", t, "--tree"])
+    expect(exitCode).toBe(0)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(fwd(t))
+    expect(tree).toBe(TREE_REPO_MAIN)
+  }, 30000)
+
+  it("no human-readable output with --tree", async () => {
+    const t = target()
+    const { output } = await run(["clone", "nrjdalal/picksuite/tree/main/folder", t, "--tree"])
+    expect(stripAnsi(output)).not.toContain("GitPick")
+    expect(stripAnsi(output)).not.toContain("✔")
+    expect(stripAnsi(output)).not.toContain("Picked")
+  }, 30000)
+
+  it("dry-run tree shows header and tree without leaving files", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--dry-run",
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(fwd(t))
+    expect(tree).toBe(TREE_FOLDER)
+    expect(existsSync(resolve(t))).toBe(false)
+  }, 30000)
+
+  it("dry-run repo shows header and full tree", async () => {
+    const t = target()
+    const { output, exitCode } = await run(["nrjdalal/picksuite", t, "--dry-run", "--tree"])
+    expect(exitCode).toBe(0)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(fwd(t))
+    expect(tree).toBe(TREE_REPO_MAIN)
+  }, 30000)
+
+  it("header uses ./ for relative paths", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const { header } = parseTreeOutput(output)
+    expect(header.startsWith("./")).toBe(true)
+  }, 30000)
+
+  it("blob shows parent dir header and file node", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      t,
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(fwd(join(ARTIFACTS, "cli")))
+    expect(tree).toBe("└── file.txt")
+  }, 30000)
+
+  it("dry-run blob shows parent dir header and file node", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "nrjdalal/picksuite/blob/main/file.txt",
+      t,
+      "--dry-run",
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(fwd(join(ARTIFACTS, "cli")))
+    expect(tree).toBe("└── file.txt")
+  }, 30000)
 })

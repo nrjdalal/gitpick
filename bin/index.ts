@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from "node:fs"
+import os from "node:os"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
@@ -32,6 +33,7 @@ ${bold("Options:")}
   ${cyan("-r, --recursive")}    Clone submodules
   ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
                      (e.g. 1h, 30m, 15s)
+  ${cyan("    --tree")}         List copied files as a tree
   ${cyan("-h, --help")}         display help for command
   ${cyan("-v, --version")}      display the version number
 
@@ -46,6 +48,47 @@ ${bold("Examples:")}
   $ gitpick https://bitbucket.org/owner/repo
   
 🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
+
+const displayPath = (targetPath: string) => {
+  const cwd = process.cwd()
+  const home = os.homedir()
+  const sep = path.sep
+  if (targetPath === cwd) return "."
+  if (targetPath.startsWith(cwd + sep))
+    return "./" + path.relative(cwd, targetPath).replaceAll(sep, "/")
+  if (targetPath.startsWith(home + sep))
+    return "~/" + path.relative(home, targetPath).replaceAll(sep, "/")
+  return targetPath
+}
+
+const printTree = async (dir: string, prefix = "") => {
+  const entries = (await fs.promises.readdir(dir, { withFileTypes: true }))
+    .filter((e) => e.name !== ".git")
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i]
+    const last = i === entries.length - 1
+    const connector = last ? "└── " : "├── "
+    const entryPath = path.join(dir, entry.name)
+
+    if (entry.isSymbolicLink()) {
+      const linkTarget = await fs.promises.readlink(entryPath)
+      let resolvedIsDir = false
+      try {
+        resolvedIsDir = fs.statSync(entryPath).isDirectory()
+      } catch {}
+      process.stdout.write(
+        `${prefix}${connector}${yellow(entry.name)} -> ${resolvedIsDir ? cyan(linkTarget) : linkTarget}\n`,
+      )
+    } else if (entry.isDirectory()) {
+      process.stdout.write(`${prefix}${connector}${cyan(entry.name)}\n`)
+      await printTree(entryPath, `${prefix}${last ? "    " : "│   "}`)
+    } else {
+      process.stdout.write(`${prefix}${connector}${entry.name}\n`)
+    }
+  }
+}
 
 const parse: typeof parseArgs = (config) => {
   try {
@@ -64,6 +107,7 @@ const main = async () => {
         "dry-run": { type: "boolean", short: "n" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
+        tree: { type: "boolean" },
         overwrite: { type: "boolean", short: "o" },
         recursive: { type: "boolean", short: "r" },
         version: { type: "boolean", short: "v" },
@@ -93,14 +137,19 @@ const main = async () => {
       branch: values.branch,
       dryRun: values["dry-run"],
       force: values.force,
+      tree: values.tree,
       overwrite: values.overwrite,
       recursive: values.recursive,
       watch: values.watch,
     }
 
-    console.log(
-      `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches, commits and more from GitHub, GitLab and Bitbucket!`,
-    )
+    const silent = options.tree
+
+    if (!silent) {
+      console.log(
+        `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches, commits and more from GitHub, GitLab and Bitbucket!`,
+      )
+    }
 
     const config = await configFromUrl(url, {
       branch: options.branch,
@@ -118,20 +167,45 @@ const main = async () => {
       config.target = [...parts, lastPart].join("/")
     }
 
-    console.info(
-      `\n${green("✔")} ${config.owner}/${config.repository} ${cyan(config.type + ":" + config.branch)} ${
-        config.type === "repository"
-          ? `> ${green(config.target)}`
-          : `${!config.path.length ? ">" : yellow(config.path) + " >"} ${green(config.target)}`
-      }`,
-    )
-
-    if (options.dryRun) {
-      console.log()
-      process.exit(0)
+    if (!silent) {
+      console.info(
+        `\n${green("✔")} ${config.owner}/${config.repository} ${cyan(config.type + ":" + config.branch)} ${
+          config.type === "repository"
+            ? `> ${green(config.target)}`
+            : `${!config.path.length ? ">" : yellow(config.path) + " >"} ${green(config.target)}`
+        }`,
+      )
     }
 
     const targetPath = path.resolve(config.target)
+
+    const renderTree = async (clonedPath: string) => {
+      if (fs.statSync(clonedPath).isDirectory()) {
+        process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
+        await printTree(clonedPath)
+      } else {
+        process.stdout.write(`${bold(cyan(displayPath(path.dirname(targetPath))))}\n`)
+        process.stdout.write(`└── ${path.basename(targetPath)}\n`)
+      }
+      process.stdout.write("\n")
+    }
+
+    if (options.dryRun) {
+      if (options.tree) {
+        const tempTarget = path.resolve(
+          os.tmpdir(),
+          `gitpick-dry-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
+        )
+        try {
+          await cloneAction(config, options, tempTarget)
+          await renderTree(tempTarget)
+        } finally {
+          await fs.promises.rm(tempTarget, { recursive: true, force: true })
+        }
+      }
+      if (!silent) console.log()
+      process.exit(0)
+    }
     options.overwrite = options.overwrite || options.force
     if (options.watch) options.overwrite = true
 
@@ -151,12 +225,18 @@ const main = async () => {
     }
 
     if (options.watch) {
-      console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
+      if (!silent)
+        console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
       await cloneAction(config, options, targetPath)
+      if (options.tree) await renderTree(targetPath)
       const watchInterval = parseTimeString(options.watch)
-      setInterval(async () => await cloneAction(config, options, targetPath), watchInterval)
+      setInterval(async () => {
+        await cloneAction(config, options, targetPath)
+        if (options.tree) await renderTree(targetPath)
+      }, watchInterval)
     } else {
       await cloneAction(config, options, targetPath)
+      if (options.tree) await renderTree(targetPath)
       process.exit(0)
     }
   } catch (err) {
