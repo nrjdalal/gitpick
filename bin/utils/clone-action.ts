@@ -9,6 +9,7 @@ import { copyDir } from "@/utils/copy-dir"
 export const cloneAction = async (
   config: {
     token: string
+    host: string
     owner: string
     repository: string
     branch: string
@@ -25,7 +26,7 @@ export const cloneAction = async (
     await spawn("git", ["config", "--global", "core.longpaths", "true"])
   }
 
-  const repoUrl = `https://${config.token ? config.token + "@" : config.token}github.com/${config.owner}/${config.repository}.git`
+  const repoUrl = `https://${config.token ? config.token + "@" : config.token}${config.host}/${config.owner}/${config.repository}.git`
   const tempDir = path.resolve(
     os.tmpdir(),
     `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,

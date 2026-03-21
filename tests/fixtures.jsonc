@@ -1,22 +1,27 @@
 // Example config, run tests using `bun run test:config`
 [
-  // blob pick
-  "nrjdalal/gitpick/blob/main/bin/index.ts 1",
-  // repository picks
-  "nrjdalal/gitpick 2",
-  "https://github.com/nrjdalal/gitpick 3",
-  "git@github.com:nrjdalal/gitpick.git 4",
-  "https://github.com/nrjdalal/gitpick.git 5",
+  // repo picks
+  "nrjdalal/picksuite 1",
+  "https://github.com/nrjdalal/picksuite 2",
+  "git@github.com:nrjdalal/picksuite.git 3",
+  "https://github.com/nrjdalal/picksuite.git 4",
   // tree picks
-  "nrjdalal/gitpick/tree/main/bin 6",
-  "https://github.com/nrjdalal/gitpick/tree/main/bin 7",
-  "git@github.com:nrjdalal/gitpick.git/tree/main/bin 8",
-  "https://github.com/nrjdalal/gitpick.git/tree/main/bin 9",
-  // tree picks with branch override
-  "nrjdalal/gitpick/tree/master/bin -b main 10",
-  "https://github.com/nrjdalal/gitpick/tree/master/bin -b main 11",
-  "git@github.com:nrjdalal/gitpick.git/tree/master/bin -b main 12",
-  "https://github.com/nrjdalal/gitpick.git/tree/master/bin -b main 13",
-  // symlink support
-  "nrjdalal/zerostarter/tree/main 14",
+  "nrjdalal/picksuite/tree/main/folder 5",
+  "https://github.com/nrjdalal/picksuite/tree/main/folder 6",
+  "git@github.com:nrjdalal/picksuite.git/tree/main/folder 7",
+  "https://github.com/nrjdalal/picksuite.git/tree/main/folder 8",
+  // blob pick
+  "nrjdalal/picksuite/blob/main/file.txt 9",
+  // branch picks
+  "nrjdalal/picksuite -b dev 10",
+  "nrjdalal/picksuite/tree/dev 11",
+  // commit SHA
+  "nrjdalal/picksuite -b 8af536b 12",
+  // branch override
+  "nrjdalal/picksuite/tree/dev/folder -b main 13",
+  // symlink support (full repo has symlinks)
+  "nrjdalal/picksuite -r 14",
+  // gitlab
+  "https://gitlab.com/pages/plain-html -b main 15",
+  "https://gitlab.com/pages/plain-html/-/tree/main/public 16",
 ]

@@ -1,6 +1,18 @@
 import { getDefaultBranch } from "@/utils/get-default-branch"
 
-export async function githubConfigFromUrl(
+type Host = "github.com" | "gitlab.com" | "bitbucket.org"
+
+const PREFIXES: { prefix: string; host: Host }[] = [
+  { prefix: "git@github.com:", host: "github.com" },
+  { prefix: "https://github.com/", host: "github.com" },
+  { prefix: "https://raw.githubusercontent.com/", host: "github.com" },
+  { prefix: "git@gitlab.com:", host: "gitlab.com" },
+  { prefix: "https://gitlab.com/", host: "gitlab.com" },
+  { prefix: "git@bitbucket.org:", host: "bitbucket.org" },
+  { prefix: "https://bitbucket.org/", host: "bitbucket.org" },
+]
+
+export async function configFromUrl(
   url: string,
   {
     branch,
@@ -10,63 +22,100 @@ export async function githubConfigFromUrl(
     target?: string | null
   },
 ) {
-  const regex = /^https:\/\/([^@]+)@github\.com/
-  const match = url.match(regex)
+  const tokenRegex = /^https:\/\/([^@]+)@(github\.com|gitlab\.com|bitbucket\.org)/
+  const tokenMatch = url.match(tokenRegex)
 
   let token = ""
-  if (match) {
-    token = match[1]
-    url = url.replace(regex, "https://github.com")
+  if (tokenMatch) {
+    token = tokenMatch[1]
+    url = url.replace(`${tokenMatch[1]}@`, "")
   }
 
-  const prefixes = ["git@github.com:", "https://github.com/", "https://raw.githubusercontent.com/"]
+  let host: Host = "github.com"
+  let isRaw = false
 
-  for (const prefix of prefixes) {
+  for (const { prefix, host: h } of PREFIXES) {
     if (url.startsWith(prefix)) {
+      host = h
+      isRaw = prefix.includes("raw.githubusercontent.com")
       url = url.replace(prefix, "")
       break
     }
   }
 
   const split = url.split("/")
-
   const owner = split[0]
-  const repository = split[1].endsWith(".git") ? split[1].slice(0, -4) : split[1]
-  const type =
-    split[2] === "blob"
-      ? "blob"
-      : split[2] === "tree"
-        ? "tree"
-        : split[2] + split[3] === "refsheads"
-          ? "raw"
-          : "repository"
-  const resolvedBranch = branch
-    ? branch
-    : type === "repository"
-      ? await getDefaultBranch(
-          `https://${token ? token + "@" : token}github.com/${owner}/${repository}`,
-        )
-      : type === "raw"
-        ? split[4]
-        : split[3]
-  const path = type
-    ? type === "raw"
-      ? split.slice(5).join("/")
-      : split.slice(4).join("/")
-    : split.slice(2).join("/") || "/"
+  const repository = split[1]?.endsWith(".git") ? split[1].slice(0, -4) : split[1]
+
+  const repoUrl = `https://${token ? token + "@" : token}${host}/${owner}/${repository}`
+
+  let type: string
+  let resolvedBranch: string
+  let resolvedPath: string
+
+  if (host === "github.com") {
+    if (isRaw && split[2] === "refs" && split[3] === "heads") {
+      type = "raw"
+      resolvedBranch = branch || split[4]
+      resolvedPath = split.slice(5).join("/")
+    } else if (split[2] === "blob") {
+      type = "blob"
+      resolvedBranch = branch || split[3]
+      resolvedPath = split.slice(4).join("/")
+    } else if (split[2] === "tree") {
+      type = "tree"
+      resolvedBranch = branch || split[3]
+      resolvedPath = split.slice(4).join("/")
+    } else if (split[2] === "commit") {
+      type = "repository"
+      resolvedBranch = branch || split[3]
+      resolvedPath = ""
+    } else {
+      type = "repository"
+      resolvedBranch = branch || (await getDefaultBranch(repoUrl))
+      resolvedPath = ""
+    }
+  } else if (host === "gitlab.com") {
+    if (split[2] === "-" && split[3] === "blob") {
+      type = "blob"
+      resolvedBranch = branch || split[4]
+      resolvedPath = split.slice(5).join("/")
+    } else if (split[2] === "-" && split[3] === "tree") {
+      type = "tree"
+      resolvedBranch = branch || split[4]
+      resolvedPath = split.slice(5).join("/")
+    } else {
+      type = "repository"
+      resolvedBranch = branch || (await getDefaultBranch(repoUrl))
+      resolvedPath = ""
+    }
+  } else {
+    // bitbucket.org — uses /src/branch/path for both files and dirs
+    if (split[2] === "src") {
+      type = "tree"
+      resolvedBranch = branch || split[3]
+      resolvedPath = split.slice(4).join("/")
+    } else {
+      type = "repository"
+      resolvedBranch = branch || (await getDefaultBranch(repoUrl))
+      resolvedPath = ""
+    }
+  }
+
   const resolvedTarget = target
     ? target
     : type === "blob"
       ? "."
-      : path.split("/").pop() || repository
+      : resolvedPath.split("/").pop() || repository
 
   return {
     token,
+    host,
     owner,
     repository,
     type,
     branch: resolvedBranch,
-    path,
+    path: resolvedPath,
     target: resolvedTarget,
   }
 }
