@@ -122,9 +122,16 @@ Create a `.gitpick.json` or `.gitpick.jsonc` in your project to pick multiple fi
 ```jsonc
 // .gitpick.jsonc
 [
-  "owner/repo/tree/main/src",
-  "owner/repo/blob/main/README.md docs",
-  "other/repo/tree/main/configs my-configs",
+  // blob pick
+  "owner/repo/blob/main/path/to/file target-dir",
+  // repository picks
+  "owner/repo target-dir",
+  "https://github.com/owner/repo target-dir",
+  // tree picks
+  "owner/repo/tree/main/src target-dir",
+  "https://github.com/owner/repo/tree/main/src target-dir",
+  // tree picks with branch override
+  "owner/repo/tree/master/src -b main target-dir",
 ]
 ```
 
