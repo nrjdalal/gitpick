@@ -52,10 +52,14 @@ export async function configFromUrl(
   let resolvedPath: string
 
   if (host === "github.com") {
-    if (split[2] === "refs" && ["heads", "remotes", "tags"].includes(split[3])) {
+    if (split[2] === "refs" && ["heads", "tags"].includes(split[3])) {
       type = "raw"
       resolvedBranch = branch || split[4]
       resolvedPath = split.slice(5).join("/")
+    } else if (split[2] === "refs" && split[3] === "remotes") {
+      type = "raw"
+      resolvedBranch = branch || `${split[4]}/${split[5]}`
+      resolvedPath = split.slice(6).join("/")
     } else if (split[2] === "blob") {
       type = "blob"
       resolvedBranch = branch || split[3]

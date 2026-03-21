@@ -431,6 +431,15 @@ describe("dry-run — URL parsing without cloning", () => {
       ),
     30000,
   )
+  it(
+    "raw URL refs/remotes",
+    () =>
+      dryRun(
+        ["https://raw.githubusercontent.com/nrjdalal/picksuite/refs/remotes/origin/main/file.txt"],
+        "nrjdalal/picksuite raw:origin/main file.txt > file.txt",
+      ),
+    30000,
+  )
 
   // gitlab
   it(
