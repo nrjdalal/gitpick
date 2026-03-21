@@ -1,4 +1,5 @@
 $ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $ARTIFACTS = ".test-artifacts\windows"
 
@@ -34,12 +35,12 @@ for ($i = 0; $i -lt $urls.Count; $i++) {
 
   Write-Host "------------------------- $num -------------------------"
   Write-Host ""
-  Write-Host "$([char]0x1F680) Running test case #$num CMD: node dist\index.mjs clone $url $target -o"
+  Write-Host "Running test case #$num CMD: node dist\index.mjs clone $url $target -o"
 
   node dist\index.mjs clone $url.Split(" ") $target -o
 
   if ($LASTEXITCODE -ne 0) {
-    Write-Host "`n$([char]0x274C) Cloning failed for test case #$num`: $url"
+    Write-Host "`nCloning failed for test case #$num`: $url"
     $failed++
     Write-Host ""
     continue
@@ -48,10 +49,10 @@ for ($i = 0; $i -lt $urls.Count; $i++) {
   if (Test-Path $target) {
     Write-Host ""
     node tests\tree.mjs $target
-    Write-Host "`n$([char]0x2705) Test passed #$num`: $url"
+    Write-Host "`nTest passed #$num`: $url"
     $passed++
   } else {
-    Write-Host "`n$([char]0x274C) Test failed #$num`: $url"
+    Write-Host "`nTest failed #$num`: $url"
     $failed++
   }
 
@@ -59,11 +60,11 @@ for ($i = 0; $i -lt $urls.Count; $i++) {
 }
 
 Write-Host "---------------------- SUMMARY ----------------------"
-Write-Host "`n$([char]0x1F4CB) $passed out of $($urls.Count) test cases passed.`n"
+Write-Host "`n$passed out of $($urls.Count) test cases passed.`n"
 
 if ($failed -gt 0) {
-  Write-Host "$([char]0x1F6A8) Some test cases failed. Please review the errors."
+  Write-Host "Some test cases failed. Please review the errors."
   exit 1
 } else {
-  Write-Host "$([char]0x1F389) All test cases passed!"
+  Write-Host "All test cases passed!"
 }
