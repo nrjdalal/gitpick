@@ -1425,9 +1425,9 @@ describe("non-TTY spinner suppression", () => {
 // =====================================================================
 
 describe("SIGINT temp dir cleanup", () => {
-  const isWindows = process.platform === "win32"
+  const isCI = "CI" in process.env
 
-  it.skipIf(isWindows)(
+  it.skipIf(isCI)(
     "cleans up temp dir on SIGINT",
     async () => {
       const { readdirSync } = await import("node:fs")
