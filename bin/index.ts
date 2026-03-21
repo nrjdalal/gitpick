@@ -102,7 +102,7 @@ const main = async () => {
     })
 
     if (config.type === "blob") {
-      const parts = config.target.split("/").filter((part) => part !== "")
+      const parts = config.target.split(/[/\\]/).filter((part) => part !== "")
       let lastPart = parts[parts.length - 1]
       if (lastPart !== "." && lastPart !== ".." && lastPart.includes(".")) {
         parts.pop()
