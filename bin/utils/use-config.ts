@@ -19,7 +19,7 @@ export const useConfig = async () => {
   if (!configPath) return false
 
   const content = await fs.promises.readFile(configPath, "utf-8")
-  const entries = JSON.parse(stripJsonComments(content))
+  const entries = JSON.parse(stripJsonComments(content).replace(/,\s*([}\]])/g, "$1"))
 
   if (!Array.isArray(entries) || !entries.every((e: unknown) => typeof e === "string")) {
     throw new Error(`${path.basename(configPath)} must be an array of strings`)

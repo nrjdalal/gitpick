@@ -27,25 +27,16 @@ echo -e "\n🚀 Running .gitpick.jsonc config test\n"
 
 PASSED=0
 FAILED=0
-TOTAL=0
+TOTAL=14
 
-for dir in .test-artifacts/config/*/; do
-  TOTAL=$((TOTAL + 1))
-  if [ "$(ls -A "$dir" 2>/dev/null)" ]; then
-    echo "✅ $(basename "$dir")"
+for i in $(seq 1 $TOTAL); do
+  if [ "$(ls -A ".test-artifacts/config/$i" 2>/dev/null)" ]; then
+    echo "✅ Test case #$i"
     PASSED=$((PASSED + 1))
   else
-    echo "❌ $(basename "$dir") is empty"
+    echo "❌ Test case #$i"
     FAILED=$((FAILED + 1))
   fi
-done
-
-for file in .test-artifacts/config/*; do
-  [ -f "$file" ] || continue
-  [[ "$(basename "$file")" == .gitpick* ]] && continue
-  TOTAL=$((TOTAL + 1))
-  echo "✅ $(basename "$file")"
-  PASSED=$((PASSED + 1))
 done
 
 echo -e "\n📋 $PASSED/$TOTAL .gitpick.jsonc checks passed."
