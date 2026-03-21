@@ -32,12 +32,10 @@ export async function configFromUrl(
   }
 
   let host: Host = "github.com"
-  let isRaw = false
 
   for (const { prefix, host: h } of PREFIXES) {
     if (url.startsWith(prefix)) {
       host = h
-      isRaw = prefix.includes("raw.githubusercontent.com")
       url = url.replace(prefix, "")
       break
     }
@@ -54,7 +52,7 @@ export async function configFromUrl(
   let resolvedPath: string
 
   if (host === "github.com") {
-    if (isRaw && split[2] === "refs" && split[3] === "heads") {
+    if (split[2] === "refs" && ["heads", "remotes", "tags"].includes(split[3])) {
       type = "raw"
       resolvedBranch = branch || split[4]
       resolvedPath = split.slice(5).join("/")

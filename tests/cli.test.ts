@@ -405,10 +405,28 @@ describe("dry-run — URL parsing without cloning", () => {
 
   // raw URL
   it(
-    "raw URL",
+    "raw URL refs/heads",
     () =>
       dryRun(
         ["https://raw.githubusercontent.com/nrjdalal/picksuite/refs/heads/main/file.txt"],
+        "nrjdalal/picksuite raw:main file.txt > file.txt",
+      ),
+    30000,
+  )
+  it(
+    "raw URL refs/tags",
+    () =>
+      dryRun(
+        ["https://raw.githubusercontent.com/nrjdalal/picksuite/refs/tags/main/file.txt"],
+        "nrjdalal/picksuite raw:main file.txt > file.txt",
+      ),
+    30000,
+  )
+  it(
+    "raw shorthand refs/heads",
+    () =>
+      dryRun(
+        ["nrjdalal/picksuite/refs/heads/main/file.txt"],
         "nrjdalal/picksuite raw:main file.txt > file.txt",
       ),
     30000,
@@ -599,17 +617,34 @@ describe("default — gitpick <url/shorthand>", () => {
   )
 })
 
-describe("clone prefix — gitpick clone <url>", () => {
+describe("no prefix — gitpick <url> (without clone keyword)", () => {
+  async function noPrefixClone(args: string[], expectedOutput: string, expectedTree: string) {
+    const t = target()
+    if (existsSync(t)) rmSync(t, { recursive: true, force: true })
+
+    const { output, exitCode } = await run([...args, t])
+    expect(parseLine(output)).toContain(expectedOutput)
+    expect(exitCode).toBe(0)
+
+    if (expectedTree === "(file)") {
+      expect(lstatSync(t).isFile()).toBe(true)
+    } else if (expectedTree) {
+      expect(getTree(t)).toBe(expectedTree)
+    } else {
+      expect(existsSync(t)).toBe(true)
+    }
+  }
+
   it(
-    "clone repo",
+    "repo without clone prefix",
     () =>
-      cloneAndExpect(["nrjdalal/picksuite"], "nrjdalal/picksuite repository:main", TREE_REPO_MAIN),
+      noPrefixClone(["nrjdalal/picksuite"], "nrjdalal/picksuite repository:main", TREE_REPO_MAIN),
     30000,
   )
   it(
-    "clone tree",
+    "tree without clone prefix",
     () =>
-      cloneAndExpect(
+      noPrefixClone(
         ["nrjdalal/picksuite/tree/main/folder"],
         "nrjdalal/picksuite tree:main folder",
         TREE_FOLDER,
@@ -617,9 +652,9 @@ describe("clone prefix — gitpick clone <url>", () => {
     30000,
   )
   it(
-    "clone blob",
+    "blob without clone prefix",
     () =>
-      cloneAndExpect(
+      noPrefixClone(
         ["nrjdalal/picksuite/blob/main/file.txt"],
         "nrjdalal/picksuite blob:main file.txt",
         TREE_BLOB_FILE,
