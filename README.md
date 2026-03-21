@@ -80,6 +80,7 @@ npx gitpick owner/repo -i --dry-run
 
 ## ✨ Features
 
+- **🔥 Interactive mode** — browse and cherry-pick files/folders with `-i` | `--interactive`
 - 🔍 Clone individual files or folders from GitHub, GitLab and Bitbucket
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
@@ -91,7 +92,6 @@ npx gitpick owner/repo -i --dry-run
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
-- **🔥 Interactive mode** — browse and cherry-pick files/folders with `-i` | `--interactive`
 
 ---
 
