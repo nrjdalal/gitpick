@@ -1,7 +1,9 @@
 name: Release Package
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
     branches:
       - "**"
   issue_comment:
@@ -18,13 +20,14 @@ permissions:
 jobs:
   release:
     if: |
-      github.event_name == 'push' || 
-      github.event_name == 'issue_comment' && github.event.comment.user.login == github.repository_owner && contains(github.event.comment.body, 'release')
+      github.event_name == 'issue_comment' && github.event.comment.user.login == github.repository_owner && contains(github.event.comment.body, 'release') ||
+      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
 
       - name: Setup Node
@@ -78,10 +81,11 @@ jobs:
               -d "{\"body\": \"Test package released - [\`$PACKAGE_NAME@$RELEASE_VERSION\`]($PACKAGE_URL)\"}" >/dev/null \
               && echo "🟢 Release comment to PR added!" || echo "🔴 Failed to add release comment to PR."
           else
-            curl -fsSL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            COMMIT_SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+            curl -fsSL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$COMMIT_SHA/comments" \
               -d "{\"body\": \"Package released - [\`$PACKAGE_NAME@$RELEASE_VERSION\`]($PACKAGE_URL)\"}" >/dev/null \
               && echo "🟢 Release comment added!" || echo "🔴 Failed to add release comment."
-            curl -fsSL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            curl -fsSL -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$COMMIT_SHA" \
               -d "{\"state\": \"success\", \"context\": \"Package released\", \"description\": \"$PACKAGE_NAME@$RELEASE_VERSION\", \"target_url\": \"$PACKAGE_URL\"}" >/dev/null \
               && echo "🟢 Release status updated!" || echo "🔴 Failed to update release status."
           fi
