@@ -1419,3 +1419,49 @@ describe("non-TTY spinner suppression", () => {
     expect(stripped).toContain("Picked")
   }, 30000)
 })
+
+// =====================================================================
+// SIGINT CLEANUP
+// =====================================================================
+
+describe("SIGINT temp dir cleanup", () => {
+  it("cleans up temp dir on SIGINT", async () => {
+    const { readdirSync } = await import("node:fs")
+    const { tmpdir } = await import("node:os")
+
+    // Snapshot temp dirs before
+    const before = new Set(readdirSync(tmpdir()).filter((d) => d.startsWith("picksuite-")))
+
+    const proc = Bun.spawn(
+      [...CLI, "clone", "nrjdalal/picksuite", "/tmp/gitpick-sigint-test", "-o"],
+      { stdout: "pipe", stderr: "pipe" },
+    )
+
+    // Poll until a new temp dir appears (max 10s)
+    let newTempDir: string | null = null
+    for (let i = 0; i < 100; i++) {
+      await new Promise((r) => setTimeout(r, 100))
+      const current = readdirSync(tmpdir()).filter(
+        (d) => d.startsWith("picksuite-") && !before.has(d),
+      )
+      if (current.length > 0) {
+        newTempDir = current[0]
+        break
+      }
+    }
+
+    // If we found it, kill and verify cleanup
+    if (newTempDir) {
+      proc.kill("SIGINT")
+      await proc.exited
+
+      const after = readdirSync(tmpdir()).filter(
+        (d) => d.startsWith("picksuite-") && !before.has(d),
+      )
+      expect(after).toHaveLength(0)
+    } else {
+      // Clone finished before we could catch the temp dir — still valid, just skip assertion
+      await proc.exited
+    }
+  }, 30000)
+})
