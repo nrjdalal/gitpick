@@ -9,7 +9,7 @@
 [![downloads](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![stars](https://img.shields.io/github/stars/nrjdalal/gitpick?color=blue)](https://github.com/nrjdalal/gitpick)
 
-**Now with Interactive Mode** — browse any repo right in your terminal. See every file, pick what you want, skip what you don't. Just `gitpick owner/repo -i` and you're in. No more guessing paths.
+**Now with Interactive Mode.** Browse any repo right in your terminal. See every file, pick what you want, skip what you don't. Just `gitpick owner/repo -i` and you're in. No more guessing paths.
 
 📦 `Zero dependencies` / `Un/packed (~37/14kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
@@ -42,7 +42,7 @@ Unlike other tools that force you to tweak URLs or follow strict formats to clon
 ### See [Quick Usage](#-quick-usage) for to learn more.
 
 ```sh
-# interactive mode — browse and pick files/folders
+# interactive mode - browse and pick files/folders
 npx gitpick owner/repo -i
 npx gitpick https://github.com/owner/repo -i
 # clone a repo without .git
@@ -85,7 +85,7 @@ npx gitpick owner/repo -i --dry-run
 - 🔍 Clone individual files or folders from GitHub, GitLab and Bitbucket
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
-- **🔥 Interactive mode** — browse and cherry-pick files/folders with `-i` | `--interactive`
+- **🔥 Interactive mode** - browse and cherry-pick files/folders with `-i` | `--interactive`
 - 🔐 Seamlessly works with both public and private repositories using a PAT
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
@@ -149,7 +149,7 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 
 ## 🔥 Interactive Mode
 
-> **New in v5.0** — Browse any repository's file tree in your terminal and cherry-pick exactly the files and folders you want.
+> **New in v5.0.** Browse any repository's file tree in your terminal and cherry-pick exactly the files and folders you want.
 
 ```sh
 npx gitpick owner/repo -i
@@ -163,7 +163,7 @@ npx gitpick https://gitlab.com/owner/repo -i
 1. GitPick fetches the repository
 2. An interactive file tree appears in your terminal
 3. Navigate with arrow keys, select with space, expand/collapse folders with enter
-4. Press `c` to confirm — only your selected files get copied
+4. Press `c` to confirm - only your selected files get copied
 
 ```
   nrjdalal/gitpick repository:main > gitpick
