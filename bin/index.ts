@@ -32,6 +32,7 @@ ${bold("Options:")}
   ${cyan("-r, --recursive")}    Clone submodules
   ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
                      (e.g. 1h, 30m, 15s)
+  ${cyan("    --tree")}         List copied files as a tree
   ${cyan("-h, --help")}         display help for command
   ${cyan("-v, --version")}      display the version number
 
@@ -46,6 +47,29 @@ ${bold("Examples:")}
   $ gitpick https://bitbucket.org/owner/repo
   
 🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
+
+const printTree = async (dir: string, prefix = "") => {
+  const entries = (await fs.promises.readdir(dir, { withFileTypes: true }))
+    .filter((e) => e.name !== ".git")
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i]
+    const last = i === entries.length - 1
+    const connector = last ? "└── " : "├── "
+    const entryPath = path.join(dir, entry.name)
+
+    if (entry.isSymbolicLink()) {
+      const target = await fs.promises.readlink(entryPath)
+      process.stdout.write(`${prefix}${connector}${entry.name} -> ${target}\n`)
+    } else if (entry.isDirectory()) {
+      process.stdout.write(`${prefix}${connector}${entry.name}\n`)
+      await printTree(entryPath, `${prefix}${last ? "    " : "│   "}`)
+    } else {
+      process.stdout.write(`${prefix}${connector}${entry.name}\n`)
+    }
+  }
+}
 
 const parse: typeof parseArgs = (config) => {
   try {
@@ -64,6 +88,7 @@ const main = async () => {
         "dry-run": { type: "boolean", short: "n" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
+        tree: { type: "boolean" },
         overwrite: { type: "boolean", short: "o" },
         recursive: { type: "boolean", short: "r" },
         version: { type: "boolean", short: "v" },
@@ -93,14 +118,19 @@ const main = async () => {
       branch: values.branch,
       dryRun: values["dry-run"],
       force: values.force,
+      tree: values.tree,
       overwrite: values.overwrite,
       recursive: values.recursive,
       watch: values.watch,
     }
 
-    console.log(
-      `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches, commits and more from GitHub, GitLab and Bitbucket!`,
-    )
+    const silent = options.tree
+
+    if (!silent) {
+      console.log(
+        `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches, commits and more from GitHub, GitLab and Bitbucket!`,
+      )
+    }
 
     const config = await configFromUrl(url, {
       branch: options.branch,
@@ -118,16 +148,21 @@ const main = async () => {
       config.target = [...parts, lastPart].join("/")
     }
 
-    console.info(
-      `\n${green("✔")} ${config.owner}/${config.repository} ${cyan(config.type + ":" + config.branch)} ${
-        config.type === "repository"
-          ? `> ${green(config.target)}`
-          : `${!config.path.length ? ">" : yellow(config.path) + " >"} ${green(config.target)}`
-      }`,
-    )
+    if (!silent) {
+      console.info(
+        `\n${green("✔")} ${config.owner}/${config.repository} ${cyan(config.type + ":" + config.branch)} ${
+          config.type === "repository"
+            ? `> ${green(config.target)}`
+            : `${!config.path.length ? ">" : yellow(config.path) + " >"} ${green(config.target)}`
+        }`,
+      )
+    }
 
     if (options.dryRun) {
-      console.log()
+      if (options.tree && config.path) {
+        console.log(config.path)
+      }
+      if (!silent) console.log()
       process.exit(0)
     }
 
@@ -150,13 +185,29 @@ const main = async () => {
       }
     }
 
+    const outputResult = async () => {
+      if (options.tree) {
+        if (fs.statSync(targetPath).isDirectory()) {
+          await printTree(targetPath)
+        } else {
+          process.stdout.write(`└── ${path.basename(targetPath)}\n`)
+        }
+      }
+    }
+
     if (options.watch) {
-      console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
+      if (!silent)
+        console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
       await cloneAction(config, options, targetPath)
+      await outputResult()
       const watchInterval = parseTimeString(options.watch)
-      setInterval(async () => await cloneAction(config, options, targetPath), watchInterval)
+      setInterval(async () => {
+        await cloneAction(config, options, targetPath)
+        await outputResult()
+      }, watchInterval)
     } else {
       await cloneAction(config, options, targetPath)
+      await outputResult()
       process.exit(0)
     }
   } catch (err) {

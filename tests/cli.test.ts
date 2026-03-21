@@ -1124,3 +1124,46 @@ describe("config — .gitpick.jsonc", () => {
     })
   }
 })
+
+// =====================================================================
+// TREE OUTPUT
+// =====================================================================
+
+describe("--tree output", () => {
+  it("clone tree shows tree", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe(TREE_FOLDER)
+  }, 30000)
+
+  it("clone repo shows full tree", async () => {
+    const t = target()
+    const { output, exitCode } = await run(["clone", "nrjdalal/picksuite", t, "--tree"])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe(TREE_REPO_MAIN)
+  }, 30000)
+
+  it("no human-readable output with --tree", async () => {
+    const t = target()
+    const { output } = await run(["clone", "nrjdalal/picksuite/tree/main/folder", t, "--tree"])
+    expect(stripAnsi(output)).not.toContain("GitPick")
+    expect(stripAnsi(output)).not.toContain("✔")
+    expect(stripAnsi(output)).not.toContain("Picked")
+  }, 30000)
+
+  it("dry-run tree shows path", async () => {
+    const { output, exitCode } = await run([
+      "nrjdalal/picksuite/tree/main/folder",
+      "--dry-run",
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    expect(output.trim()).toBe("folder")
+  }, 30000)
+})

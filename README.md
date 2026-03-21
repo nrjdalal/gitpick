@@ -112,6 +112,7 @@ npx gitpick https://bitbucket.org/owner/repo         # Bitbucket
 -r, --recursive    Clone submodules
 -w, --watch [time] Watch the repository and sync every [time]
                    (e.g. 1h, 30m, 15s)
+    --tree         List copied files as a tree
 -h, --help         display help for command
 -v, --version      display the version number
 ```
