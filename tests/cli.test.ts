@@ -1470,3 +1470,19 @@ describe("SIGINT temp dir cleanup", () => {
     30000,
   )
 })
+
+// ---------------------------------------------------------------------------
+// Interactive mode
+// ---------------------------------------------------------------------------
+describe("interactive mode", () => {
+  it("should error on non-TTY with -i flag", async () => {
+    const { output, exitCode } = await run(["nrjdalal/gitpick", "-i", "-b", "main"])
+    expect(exitCode).not.toBe(0)
+    expect(stripAnsi(output)).toContain("Interactive mode requires a TTY")
+  })
+
+  it("should show -i in help text", async () => {
+    const { output } = await run(["--help"])
+    expect(stripAnsi(output)).toContain("-i, --interactive")
+  })
+})
