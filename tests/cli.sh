@@ -76,7 +76,7 @@ for i in "${!TEST_CASES[@]}"; do
       fi
 
       echo
-      find .test-artifacts/cli/$TEST_NUMBER -not -path '*/.*' | head -20 | sed 's|[^/]*/|  |g'
+      tree .test-artifacts/cli/$TEST_NUMBER -a -I '.git' --noreport 2>/dev/null || find .test-artifacts/cli/$TEST_NUMBER -not -path '*/.*' | sort
       echo -e "\n✅ Test passed #$TEST_NUMBER: $TEST_CASE"
       PASSED_TESTS=$((PASSED_TESTS + 1))
       REPORT+="✅ Test case #$TEST_NUMBER passed: $TEST_CASE\n"

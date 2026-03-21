@@ -33,7 +33,7 @@ for ($i = 0; $i -lt $urls.Count; $i++) {
   }
 
   if (Test-Path $target) {
-    Get-ChildItem -Recurse -Name $target | Select-Object -First 20 | ForEach-Object { Write-Host "  $_" }
+    tree $target /F /A | Select-Object -Skip 3 | Select-Object -First 20 | ForEach-Object { Write-Host $_ }
     Write-Host "V Test case #$num passed: $url"
     $passed++
   } else {

@@ -28,7 +28,7 @@ TOTAL=14
 
 for i in $(seq 1 $TOTAL); do
   if [ "$(ls -A ".test-artifacts/config/$i" 2>/dev/null)" ]; then
-    find .test-artifacts/config/$i -not -path '*/.*' | head -20 | sed 's|[^/]*/|  |g'
+    tree .test-artifacts/config/$i -a -I '.git' --noreport 2>/dev/null || find .test-artifacts/config/$i -not -path '*/.*' | sort
     echo "✅ Test case #$i"
     PASSED=$((PASSED + 1))
   else
