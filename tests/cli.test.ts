@@ -1130,7 +1130,12 @@ describe("config — .gitpick.jsonc", () => {
 // =====================================================================
 
 describe("--tree output", () => {
-  it("clone tree shows tree", async () => {
+  function parseTreeOutput(output: string) {
+    const lines = output.trim().split("\n")
+    return { header: lines[0], tree: lines.slice(1).join("\n") }
+  }
+
+  it("clone tree shows header and tree", async () => {
     const t = target()
     const { output, exitCode } = await run([
       "clone",
@@ -1139,14 +1144,18 @@ describe("--tree output", () => {
       "--tree",
     ])
     expect(exitCode).toBe(0)
-    expect(output.trim()).toBe(TREE_FOLDER)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(t)
+    expect(tree).toBe(TREE_FOLDER)
   }, 30000)
 
-  it("clone repo shows full tree", async () => {
+  it("clone repo shows header and full tree", async () => {
     const t = target()
     const { output, exitCode } = await run(["clone", "nrjdalal/picksuite", t, "--tree"])
     expect(exitCode).toBe(0)
-    expect(output.trim()).toBe(TREE_REPO_MAIN)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(t)
+    expect(tree).toBe(TREE_REPO_MAIN)
   }, 30000)
 
   it("no human-readable output with --tree", async () => {
@@ -1157,19 +1166,40 @@ describe("--tree output", () => {
     expect(stripAnsi(output)).not.toContain("Picked")
   }, 30000)
 
-  it("dry-run tree shows tree without leaving files", async () => {
+  it("dry-run tree shows header and tree without leaving files", async () => {
+    const t = target()
     const { output, exitCode } = await run([
       "nrjdalal/picksuite/tree/main/folder",
+      t,
       "--dry-run",
       "--tree",
     ])
     expect(exitCode).toBe(0)
-    expect(output.trim()).toBe(TREE_FOLDER)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(t)
+    expect(tree).toBe(TREE_FOLDER)
+    expect(existsSync(resolve(t))).toBe(false)
   }, 30000)
 
-  it("dry-run repo shows full tree", async () => {
-    const { output, exitCode } = await run(["nrjdalal/picksuite", "--dry-run", "--tree"])
+  it("dry-run repo shows header and full tree", async () => {
+    const t = target()
+    const { output, exitCode } = await run(["nrjdalal/picksuite", t, "--dry-run", "--tree"])
     expect(exitCode).toBe(0)
-    expect(output.trim()).toBe(TREE_REPO_MAIN)
+    const { header, tree } = parseTreeOutput(output)
+    expect(header).toContain(t)
+    expect(tree).toBe(TREE_REPO_MAIN)
+  }, 30000)
+
+  it("header uses ./ for relative paths", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--tree",
+    ])
+    expect(exitCode).toBe(0)
+    const { header } = parseTreeOutput(output)
+    expect(header.startsWith("./")).toBe(true)
   }, 30000)
 })

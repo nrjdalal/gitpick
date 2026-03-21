@@ -49,6 +49,15 @@ ${bold("Examples:")}
   
 🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
 
+const displayPath = (targetPath: string) => {
+  const cwd = process.cwd()
+  const home = os.homedir()
+  if (targetPath === cwd) return "."
+  if (targetPath.startsWith(cwd + "/")) return "./" + path.relative(cwd, targetPath)
+  if (targetPath.startsWith(home + "/")) return "~/" + path.relative(home, targetPath)
+  return targetPath
+}
+
 const printTree = async (dir: string, prefix = "") => {
   const entries = (await fs.promises.readdir(dir, { withFileTypes: true }))
     .filter((e) => e.name !== ".git")
@@ -159,6 +168,8 @@ const main = async () => {
       )
     }
 
+    const targetPath = path.resolve(config.target)
+
     if (options.dryRun) {
       if (options.tree) {
         const tempTarget = path.resolve(
@@ -167,10 +178,9 @@ const main = async () => {
         )
         try {
           await cloneAction(config, options, tempTarget)
+          process.stdout.write(`${displayPath(targetPath)}\n`)
           if (fs.statSync(tempTarget).isDirectory()) {
             await printTree(tempTarget)
-          } else {
-            process.stdout.write(`└── ${path.basename(tempTarget)}\n`)
           }
         } finally {
           await fs.promises.rm(tempTarget, { recursive: true, force: true })
@@ -179,8 +189,6 @@ const main = async () => {
       if (!silent) console.log()
       process.exit(0)
     }
-
-    const targetPath = path.resolve(config.target)
     options.overwrite = options.overwrite || options.force
     if (options.watch) options.overwrite = true
 
@@ -201,10 +209,9 @@ const main = async () => {
 
     const outputResult = async () => {
       if (options.tree) {
+        process.stdout.write(`${displayPath(targetPath)}\n`)
         if (fs.statSync(targetPath).isDirectory()) {
           await printTree(targetPath)
-        } else {
-          process.stdout.write(`└── ${path.basename(targetPath)}\n`)
         }
       }
     }
