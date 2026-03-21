@@ -270,7 +270,7 @@ const main = async () => {
         process.exit(0)
       }
 
-      // Dry run — just show what would be picked
+      // Dry run - just show what would be picked
       if (options.dryRun) {
         console.log(
           `\n${green("✔")} Would pick ${selected.length} path${selected.length !== 1 ? "s" : ""}:`,

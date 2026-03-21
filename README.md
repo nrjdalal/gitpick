@@ -299,7 +299,7 @@ Check out more projects at [github.com/nrjdalal](https://github.com/nrjdalal)
 
 ## 🤝 Contributing
 
-Contributions welcome — any help is appreciated!
+Contributions welcome - any help is appreciated!
 
 - Fork the repo and create a branch (use descriptive names, e.g. feat/<name> or fix/<name>).
 - Make your changes, add tests if applicable, and run the checks:

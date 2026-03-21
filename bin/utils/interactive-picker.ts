@@ -55,7 +55,7 @@ function buildTree(entries: TreeEntry[]): TreeNode[] {
       if (parent) {
         parent.children.push(node)
       } else {
-        // Parent directory wasn't in the tree entries — create implicit ones
+        // Parent directory wasn't in the tree entries - create implicit ones
         let currentPath = ""
         let currentList = root
         for (let i = 0; i < parts.length - 1; i++) {
