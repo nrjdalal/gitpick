@@ -1355,3 +1355,89 @@ describe("--quiet / --verbose interactions", () => {
     expect(stripped).not.toContain("duration:")
   }, 30000)
 })
+
+// =====================================================================
+// ENV VAR TOKENS
+// =====================================================================
+
+describe("env var token support", () => {
+  it("GITHUB_TOKEN is used for shorthand URLs", async () => {
+    const { output, exitCode } = await run(["nrjdalal/picksuite", "--dry-run"])
+    // Should work with or without token for public repos
+    expect(exitCode).toBe(0)
+    expect(parseLine(output)).toContain("nrjdalal/picksuite")
+  }, 30000)
+
+  it("GH_TOKEN fallback works", async () => {
+    const proc = Bun.spawn([...CLI, "nrjdalal/picksuite", "--dry-run"], {
+      stdout: "pipe",
+      stderr: "pipe",
+      env: { ...process.env, GITHUB_TOKEN: "", GH_TOKEN: "fake_gh_token" },
+    })
+    const stdout = await new Response(proc.stdout).text()
+    const exitCode = await proc.exited
+    expect(exitCode).toBe(0)
+    expect(parseLine(stdout)).toContain("nrjdalal/picksuite")
+  }, 30000)
+
+  it("URL token takes precedence over env var", async () => {
+    const proc = Bun.spawn(
+      [...CLI, "https://fake_url_token@github.com/nrjdalal/picksuite", "--dry-run"],
+      {
+        stdout: "pipe",
+        stderr: "pipe",
+        env: { ...process.env, GITHUB_TOKEN: "fake_env_token" },
+      },
+    )
+    const stdout = await new Response(proc.stdout).text()
+    const exitCode = await proc.exited
+    expect(exitCode).toBe(0)
+    expect(parseLine(stdout)).toContain("nrjdalal/picksuite")
+  }, 30000)
+})
+
+// =====================================================================
+// NON-TTY SPINNER
+// =====================================================================
+
+describe("non-TTY spinner suppression", () => {
+  it("no spinner frames in piped output", async () => {
+    const t = target()
+    const { output, exitCode } = await run(["clone", "nrjdalal/picksuite/tree/main/folder", t])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    // Bun.spawn captures stdout as pipe (non-TTY), so spinner should be suppressed
+    for (const frame of ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]) {
+      expect(stripped).not.toContain(frame)
+    }
+    // But success message should still appear
+    expect(stripped).toContain("Picked")
+  }, 30000)
+})
+
+// =====================================================================
+// SIGINT CLEANUP
+// =====================================================================
+
+describe("SIGINT temp dir cleanup", () => {
+  it("cleans up temp dir on SIGINT", async () => {
+    const { readdirSync } = await import("node:fs")
+    const { tmpdir } = await import("node:os")
+
+    // Snapshot temp dirs before
+    const before = new Set(readdirSync(tmpdir()).filter((d) => d.startsWith("picksuite-")))
+
+    const proc = Bun.spawn(
+      [...CLI, "clone", "nrjdalal/picksuite", "/tmp/gitpick-sigint-test", "-o"],
+      { stdout: "pipe", stderr: "pipe" },
+    )
+    // Give it a moment to start cloning and create temp dir
+    await new Promise((r) => setTimeout(r, 500))
+    proc.kill("SIGINT")
+    await proc.exited
+
+    // No new temp dirs should remain after SIGINT
+    const after = readdirSync(tmpdir()).filter((d) => d.startsWith("picksuite-") && !before.has(d))
+    expect(after).toHaveLength(0)
+  }, 30000)
+})
