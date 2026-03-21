@@ -65,7 +65,7 @@ export const cloneAction = async (
     await fs.promises.mkdir(targetPath, { recursive: true })
     await copyDir(sourcePath, targetPath)
   } else {
-    await fs.promises.mkdir(targetPath.split("/").slice(0, -1).join("/"), {
+    await fs.promises.mkdir(path.dirname(targetPath), {
       recursive: true,
     })
     await fs.promises.copyFile(sourcePath, targetPath)
