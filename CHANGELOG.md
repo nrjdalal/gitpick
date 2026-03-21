@@ -1,5 +1,12 @@
 # Changelog
 
+## v5.1.0 (2026-03-22)
+
+- Show symlinks in interactive picker (yellow with `->` target, matching dry-run tree)
+- Show "all selected" status when everything is selected
+- Scope interactive picker to subpath when using tree URLs (e.g. `owner/repo/tree/main/src -i`)
+- Re-render interactive picker on terminal resize
+
 ## v5.0.0 (2026-03-22)
 
 - **Interactive mode (`-i` / `--interactive`)** - browse any repo's file tree in your terminal and cherry-pick exactly the files and folders you want
