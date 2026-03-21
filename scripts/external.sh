@@ -19,17 +19,17 @@ bunx gitpick@latest https://github.com/sindresorhus/has-flag/blob/0c7d032214c51d
 bunx oxfmt@latest external/
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i "" "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js
-  sed -i "" "s|from 'environment'|from '../environment'|g" external/ansi-escapes/base.js
-  sed -i "" "s|from 'has-flag'|from '../has-flag'|g" external/supports-hyperlinks/index.js
-  sed -i "" "s|from 'supports-color'|from '../supports-color'|g" external/supports-hyperlinks/index.js
-  sed -i "" "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
-  sed -i "" "s|from 'yoctocolors'|from '../yoctocolors'|g" external/yocto-spinner/index.js
+  sed -i "" 's|from "ansi-escapes"|from "../ansi-escapes"|g' external/terminal-link/index.js
+  sed -i "" 's|from "environment"|from "../environment"|g' external/ansi-escapes/base.js
+  sed -i "" 's|from "has-flag"|from "../has-flag"|g' external/supports-hyperlinks/index.js
+  sed -i "" 's|from "supports-color"|from "../supports-color"|g' external/supports-hyperlinks/index.js
+  sed -i "" 's|from "supports-hyperlinks"|from "../supports-hyperlinks"|g' external/terminal-link/index.js
+  sed -i "" 's|from "yoctocolors"|from "../yoctocolors"|g' external/yocto-spinner/index.js
 else
-  sed -i "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js
-  sed -i "s|from 'environment'|from '../environment'|g" external/ansi-escapes/base.js
-  sed -i "s|from 'has-flag'|from '../has-flag'|g" external/supports-hyperlinks/index.js
-  sed -i "s|from 'supports-color'|from '../supports-color'|g" external/supports-hyperlinks/index.js
-  sed -i "s|from 'supports-hyperlinks'|from '../supports-hyperlinks'|g" external/terminal-link/index.js
-  sed -i "s|from 'yoctocolors'|from '../yoctocolors'|g" external/yocto-spinner/index.js
+  sed -i 's|from "ansi-escapes"|from "../ansi-escapes"|g' external/terminal-link/index.js
+  sed -i 's|from "environment"|from "../environment"|g' external/ansi-escapes/base.js
+  sed -i 's|from "has-flag"|from "../has-flag"|g' external/supports-hyperlinks/index.js
+  sed -i 's|from "supports-color"|from "../supports-color"|g' external/supports-hyperlinks/index.js
+  sed -i 's|from "supports-hyperlinks"|from "../supports-hyperlinks"|g' external/terminal-link/index.js
+  sed -i 's|from "yoctocolors"|from "../yoctocolors"|g' external/yocto-spinner/index.js
 fi
