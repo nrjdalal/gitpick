@@ -191,11 +191,8 @@ gitpick <url/shorthand> [target] [options]
 
 ## 🌍 Used By
 
-**Major projects:**
-[Storybook](https://github.com/storybookjs/storybook) · [TanStack Router](https://github.com/TanStack/router) · [ElectricSQL](https://github.com/electric-sql/electric) · [Alchemy](https://github.com/alchemy-run/alchemy) · [Porto](https://github.com/ithacaxyz/porto) · [oidc-spa](https://github.com/keycloakify/oidc-spa) · [Fidely UI](https://github.com/fidely-ui/fidely-ui)
-
-**Other adopters:**
-[hono-better-auth](https://github.com/LovelessCodes/hono-better-auth) · [vite-hono-ssr](https://github.com/Mirza-Glitch/vite-hono-ssr) · [tanstack-start-cf](https://github.com/depsimon/tanstack-start-cf) · [constructa-starter-min](https://github.com/instructa/constructa-starter-min) · [tanstack-starter](https://github.com/enesdir/tanstack-starter) · [react-shadcn-starter](https://github.com/aliadelelroby/react-shadcn-starter) · [open-store](https://github.com/bang0711/open-store)
+- **Major:** [Storybook](https://github.com/storybookjs/storybook), [TanStack Router](https://github.com/TanStack/router), [ElectricSQL](https://github.com/electric-sql/electric), [Alchemy](https://github.com/alchemy-run/alchemy), [Porto](https://github.com/ithacaxyz/porto), [oidc-spa](https://github.com/keycloakify/oidc-spa), [Fidely UI](https://github.com/fidely-ui/fidely-ui)
+- **Other:** [hono-better-auth](https://github.com/LovelessCodes/hono-better-auth), [vite-hono-ssr](https://github.com/Mirza-Glitch/vite-hono-ssr), [tanstack-start-cf](https://github.com/depsimon/tanstack-start-cf), [constructa-starter-min](https://github.com/instructa/constructa-starter-min), [tanstack-starter](https://github.com/enesdir/tanstack-starter), [react-shadcn-starter](https://github.com/aliadelelroby/react-shadcn-starter), [open-store](https://github.com/bang0711/open-store)
 
 ---
 
