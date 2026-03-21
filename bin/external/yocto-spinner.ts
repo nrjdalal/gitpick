@@ -52,6 +52,7 @@ export const spinner = (options: { text?: string; stream?: NodeJS.WriteStream } 
   }
 
   const render = () => {
+    if (!interactive) return
     const now = Date.now()
     if (currentFrame === -1 || now - lastFrameTime >= interval) {
       currentFrame = ++currentFrame % frames.length
@@ -59,13 +60,9 @@ export const spinner = (options: { text?: string; stream?: NodeJS.WriteStream } 
     }
     const frame = frames[currentFrame]
     const string = `${cyan(frame)} ${text}`
-    if (interactive) {
-      clear()
-      write(string)
-      lines = lineCount(string)
-    } else {
-      write(string + "\n")
-    }
+    clear()
+    write(string)
+    lines = lineCount(string)
   }
 
   return {

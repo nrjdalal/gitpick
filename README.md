@@ -133,6 +133,16 @@ npx gitpick https://<token>@gitlab.com/owner/repo
 npx gitpick https://<token>@bitbucket.org/owner/repo
 ```
 
+Or use environment variables (recommended for CI):
+
+```sh
+export GITHUB_TOKEN=ghp_xxxx    # or GH_TOKEN
+export GITLAB_TOKEN=glpat-xxxx
+export BITBUCKET_TOKEN=xxxx
+
+npx gitpick owner/private-repo  # token is picked up automatically
+```
+
 Create a GitHub token 👉 [here](https://github.com/settings/personal-access-tokens/new) with `repo -> contents: read-only` permission.
 
 ---
