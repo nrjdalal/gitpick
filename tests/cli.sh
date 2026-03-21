@@ -76,7 +76,7 @@ for i in "${!TEST_CASES[@]}"; do
       fi
 
       echo
-      tree .test-artifacts/cli/$TEST_NUMBER -a -I '.git' --noreport 2>/dev/null || find .test-artifacts/cli/$TEST_NUMBER -not -path '*/.*' | sort
+      node tests/tree.mjs .test-artifacts/cli/$TEST_NUMBER
       echo -e "\n✅ Test passed #$TEST_NUMBER: $TEST_CASE"
       PASSED_TESTS=$((PASSED_TESTS + 1))
       REPORT+="✅ Test case #$TEST_NUMBER passed: $TEST_CASE\n"

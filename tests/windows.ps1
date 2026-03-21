@@ -33,7 +33,7 @@ for ($i = 0; $i -lt $urls.Count; $i++) {
   }
 
   if (Test-Path $target) {
-    tree $target /F /A | Select-Object -Skip 3 | Select-Object -First 20 | ForEach-Object { Write-Host $_ }
+    node tests/tree.mjs $target
     Write-Host "V Test case #$num passed: $url"
     $passed++
   } else {
