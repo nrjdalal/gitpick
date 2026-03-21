@@ -193,6 +193,7 @@ const main = async () => {
           } else {
             process.stdout.write(`${green(displayPath(targetPath))}\n`)
           }
+          process.stdout.write("\n")
         } finally {
           await fs.promises.rm(tempTarget, { recursive: true, force: true })
         }
@@ -226,6 +227,7 @@ const main = async () => {
         } else {
           process.stdout.write(`${green(displayPath(targetPath))}\n`)
         }
+        process.stdout.write("\n")
       }
     }
 
