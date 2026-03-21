@@ -28,11 +28,12 @@ TOTAL=14
 
 for i in $(seq 1 $TOTAL); do
   if [ "$(ls -A ".test-artifacts/config/$i" 2>/dev/null)" ]; then
+    echo
     node tests/tree.mjs .test-artifacts/config/$i
-    echo "✅ Test case #$i"
+    echo -e "\n✅ Test case #$i"
     PASSED=$((PASSED + 1))
   else
-    echo "❌ Test case #$i"
+    echo -e "\n❌ Test case #$i"
     FAILED=$((FAILED + 1))
   fi
 done
