@@ -4,7 +4,7 @@
 
 **Clone exactly what you need aka straightforward project scaffolding!**
 
-📦 `Zero dependencies` / `Un/packed (<27/11kb)` / `Faster and more features` yet drop-in replacement for `degit`
+📦 `Zero dependencies` / `Un/packed (~19/8kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 [![Twitter](https://img.shields.io/twitter/follow/nrjdalal_dev?label=%40nrjdalal_dev)](https://twitter.com/nrjdalal_dev)
 [![npm](https://img.shields.io/npm/v/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
@@ -59,6 +59,7 @@ npx gitpick https://<token>@github.com/owner/repo
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔐 Seamlessly works with both public and private repositories using a PAT
+- 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
 
 ---
 
@@ -114,6 +115,48 @@ npx gitpick https://<token>@github.com/owner/repo
 
 ---
 
+## 📋 Config File
+
+Create a `.gitpick.json` or `.gitpick.jsonc` in your project to pick multiple files/folders in one command:
+
+```jsonc
+// .gitpick.jsonc
+[
+  // clone a repo without .git
+  "owner/repo",
+  "https://github.com/owner/repo",
+  // clone a folder aka tree
+  "owner/repo/tree/main/path/to/folder",
+  "https://github.com/owner/repo/tree/main/path/to/folder",
+  // clone a file aka blob
+  "owner/repo/blob/main/path/to/file",
+  "https://github.com/owner/repo/blob/main/path/to/file",
+  // clone a branch
+  "owner/repo -b canary",
+  "https://github.com/owner/repo -b canary",
+  "owner/repo/tree/canary",
+  "https://github.com/owner/repo/tree/canary",
+  // clone a commit SHA
+  "owner/repo -b cc8e93",
+  "https://github.com/owner/repo/commit/cc8e93",
+  // clone submodules
+  "owner/repo -r",
+  "https://github.com/owner/repo -r",
+  // clone a private repo
+  "https://<token>@github.com/owner/repo",
+]
+```
+
+Then just run:
+
+```sh
+npx gitpick
+```
+
+Each entry follows the same `<url> [target]` syntax as the CLI. All entries are cloned with `-o` (overwrite) by default.
+
+---
+
 ## 📦 Install Globally (Optional)
 
 ```sh
@@ -141,7 +184,6 @@ Contributions welcome — any help is appreciated!
 - Fork the repo and create a branch (use descriptive names, e.g. feat/<name> or fix/<name>).
 - Make your changes, add tests if applicable, and run the checks:
   - bun install
-  - bun run sync:external
   - bun test
 - Follow the existing code style and commit message conventions (use conventional commits: feat, fix, docs, chore).
 - Open a PR describing the change, motivation, and any migration notes; link related issues.

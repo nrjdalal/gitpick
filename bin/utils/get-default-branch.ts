@@ -1,4 +1,4 @@
-import spawn from "~/external/nano-spawn"
+import spawn from "@/external/nano-spawn"
 
 export const getDefaultBranch = async (url: string) => {
   const remotes = (await spawn("git", ["ls-remote", url])).stdout

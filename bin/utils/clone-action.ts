@@ -2,10 +2,9 @@ import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
 
+import spawn from "@/external/nano-spawn"
+import { spinner } from "@/external/yocto-spinner"
 import { copyDir } from "@/utils/copy-dir"
-import spawn from "~/external/nano-spawn"
-import yoctospinner from "~/external/yocto-spinner"
-import { green } from "~/external/yoctocolors"
 
 export const cloneAction = async (
   config: {
@@ -32,11 +31,11 @@ export const cloneAction = async (
     `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
   )
 
-  const spinner = yoctospinner()
+  const s = spinner()
   const start = performance.now()
 
   if (!options.watch) {
-    spinner.start(
+    s.start(
       `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}...`,
     )
   }
@@ -66,14 +65,14 @@ export const cloneAction = async (
     await fs.promises.mkdir(targetPath, { recursive: true })
     await copyDir(sourcePath, targetPath)
   } else {
-    await fs.promises.mkdir(targetPath.split("/").slice(0, -1).join("/"), {
+    await fs.promises.mkdir(path.dirname(targetPath), {
       recursive: true,
     })
     await fs.promises.copyFile(sourcePath, targetPath)
   }
 
   if (!options.watch) {
-    spinner.success(
+    s.success(
       `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${(
         (performance.now() - start) /
         1000

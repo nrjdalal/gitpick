@@ -3,12 +3,14 @@ import fs from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
+import { bold, cyan, green, red, yellow } from "@/external/yoctocolors"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
-import terminalLink from "~/external/terminal-link"
-import { bold, cyan, green, red, yellow } from "~/external/yoctocolors"
+import { useConfig } from "@/utils/use-config"
 import { name, version } from "~/package.json"
+
+const terminalLink = (text: string, url: string) => `\x1b]8;;${url}\x07${text}\x1b]8;;\x07`
 
 const helpMessage = `
 With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific directories or files from GitHub!
@@ -69,6 +71,9 @@ const main = async () => {
         console.log(`\n${name}@${version}`)
         process.exit(0)
       }
+
+      if (await useConfig()) process.exit(0)
+
       console.log(helpMessage)
       process.exit(0)
     }
@@ -97,7 +102,7 @@ const main = async () => {
     })
 
     if (config.type === "blob") {
-      const parts = config.target.split("/").filter((part) => part !== "")
+      const parts = config.target.split(/[/\\]/).filter((part) => part !== "")
       let lastPart = parts[parts.length - 1]
       if (lastPart !== "." && lastPart !== ".." && lastPart.includes(".")) {
         parts.pop()

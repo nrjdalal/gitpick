@@ -1,0 +1,38 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+
+      - name: Test CLI
+        run: bash tests/cli.sh
+
+      - name: Test Config
+        run: bash tests/config.sh
+
+      - name: Test Windows Paths
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\tests\windows.ps1

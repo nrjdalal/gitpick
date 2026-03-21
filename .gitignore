@@ -19,5 +19,4 @@ node_modules/
 dist/
 
 # custom
-external/
-test/
+.test-artifacts/
