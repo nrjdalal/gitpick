@@ -1,32 +1,30 @@
 $ErrorActionPreference = "Stop"
 
-$TEST_RUNNER = "node dist\index.mjs"
 $ARTIFACTS = ".test-artifacts\windows"
 
 if (Test-Path $ARTIFACTS) { Remove-Item -Recurse -Force $ARTIFACTS }
 New-Item -ItemType Directory -Force $ARTIFACTS | Out-Null
 
-$TEST_CASES = @(
-  @("nrjdalal/gitpick/blob/main/bin/index.ts", "$ARTIFACTS\1")
-  @("nrjdalal/gitpick", "$ARTIFACTS\2")
-  @("nrjdalal/gitpick/tree/main/bin", "$ARTIFACTS\3")
-  @("nrjdalal/gitpick/tree/master/bin -b main", "$ARTIFACTS\4")
-  @("nrjdalal/zerostarter/tree/main", "$ARTIFACTS\5")
+$urls = @(
+  "nrjdalal/gitpick/blob/main/bin/index.ts"
+  "nrjdalal/gitpick"
+  "nrjdalal/gitpick/tree/main/bin"
+  "nrjdalal/gitpick/tree/master/bin -b main"
+  "nrjdalal/zerostarter/tree/main"
 )
 
 $passed = 0
 $failed = 0
 
-for ($i = 0; $i -lt $TEST_CASES.Count; $i++) {
+for ($i = 0; $i -lt $urls.Count; $i++) {
   $num = $i + 1
-  $url = $TEST_CASES[$i][0]
-  $target = $TEST_CASES[$i][1]
+  $url = $urls[$i]
+  $target = "$ARTIFACTS\$num"
 
   Write-Host "`n------------------------- $num -------------------------"
-  Write-Host "Running: $TEST_RUNNER clone $url $target"
+  Write-Host "Running: node dist\index.mjs clone $url $target -o"
 
-  $cmd = "$TEST_RUNNER clone $url $target -o"
-  Invoke-Expression $cmd
+  node dist\index.mjs clone $url.Split(" ") $target -o
 
   if ($LASTEXITCODE -ne 0) {
     Write-Host "X Test case #$num failed: $url"
@@ -35,8 +33,7 @@ for ($i = 0; $i -lt $TEST_CASES.Count; $i++) {
   }
 
   if (Test-Path $target) {
-    $items = Get-ChildItem -Recurse -Name $target | Select-Object -First 20
-    foreach ($item in $items) { Write-Host "  $item" }
+    Get-ChildItem -Recurse -Name $target | Select-Object -First 20 | ForEach-Object { Write-Host "  $_" }
     Write-Host "V Test case #$num passed: $url"
     $passed++
   } else {
@@ -45,7 +42,7 @@ for ($i = 0; $i -lt $TEST_CASES.Count; $i++) {
   }
 }
 
-$total = $TEST_CASES.Count
+$total = $urls.Count
 Write-Host "`n---------------------- SUMMARY ----------------------"
 Write-Host "$passed/$total Windows path tests passed."
 
