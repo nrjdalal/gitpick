@@ -52,9 +52,12 @@ ${bold("Examples:")}
 const displayPath = (targetPath: string) => {
   const cwd = process.cwd()
   const home = os.homedir()
+  const sep = path.sep
   if (targetPath === cwd) return "."
-  if (targetPath.startsWith(cwd + "/")) return "./" + path.relative(cwd, targetPath)
-  if (targetPath.startsWith(home + "/")) return "~/" + path.relative(home, targetPath)
+  if (targetPath.startsWith(cwd + sep))
+    return "./" + path.relative(cwd, targetPath).replaceAll(sep, "/")
+  if (targetPath.startsWith(home + sep))
+    return "~/" + path.relative(home, targetPath).replaceAll(sep, "/")
   return targetPath
 }
 
