@@ -266,7 +266,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       // "." select-all row (virtual row at index 0, tree items shift by 1)
       const allSelected = tree.every((n) => n.selected)
       const dotCursor = cursor === 0
-      const dotCheckbox = allSelected ? green("[✔]") : dim("[ ]")
+      const dotCheckbox = allSelected ? green("●") : dim("○")
       let dotLine = `${dotCursor ? yellow(">") : " "} ${dotCheckbox} ${dim(".")}`
       if (dotCursor) {
         const pad = Math.max(0, cols - stripAnsi(dotLine).length)
@@ -279,7 +279,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         const item = visible[i]
         const idx = scrollOffset + i + 1 // +1 for the dot row
         const isCursor = idx === cursor
-        const checkbox = item.node.selected ? green("[✔]") : dim("[ ]")
+        const checkbox = item.node.selected ? green("●") : dim("○")
         const nameStr = item.node.type === "tree" ? cyan(item.node.name + "/") : item.node.name
         const expandIcon =
           item.node.type === "tree" ? (item.node.expanded ? dim("▾ ") : dim("▸ ")) : "  "
