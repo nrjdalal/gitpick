@@ -29,6 +29,23 @@ export async function configFromUrl(
   if (tokenMatch) {
     token = tokenMatch[1]
     url = url.replace(`${tokenMatch[1]}@`, "")
+  } else {
+    const hostTokens: Record<Host, string> = {
+      "github.com": process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "",
+      "gitlab.com": process.env.GITLAB_TOKEN || "",
+      "bitbucket.org": process.env.BITBUCKET_TOKEN || "",
+    }
+    // Detect host early to pick the right env var
+    for (const { prefix, host: h } of PREFIXES) {
+      if (url.startsWith(prefix)) {
+        token = hostTokens[h]
+        break
+      }
+    }
+    // Shorthand (no prefix) defaults to github.com
+    if (!token && !url.startsWith("https://") && !url.startsWith("git@")) {
+      token = hostTokens["github.com"]
+    }
   }
 
   let host: Host = "github.com"

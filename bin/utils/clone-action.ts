@@ -7,6 +7,20 @@ import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
 
+const activeTempDirs = new Set<string>()
+
+function cleanupAndExit() {
+  for (const dir of activeTempDirs) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true })
+    } catch {}
+  }
+  process.exit(1)
+}
+
+process.on("SIGINT", cleanupAndExit)
+process.on("SIGTERM", cleanupAndExit)
+
 const formatSize = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -54,6 +68,8 @@ export const cloneAction = async (
     os.tmpdir(),
     `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
   )
+
+  activeTempDirs.add(tempDir)
 
   const s = spinner()
   const start = performance.now()
@@ -142,6 +158,7 @@ export const cloneAction = async (
   }
 
   await fs.promises.rm(tempDir, { recursive: true, force: true })
+  activeTempDirs.delete(tempDir)
 
   return { files, duration, networkTime, copyTime, totalSize, cloneStrategy }
 }
