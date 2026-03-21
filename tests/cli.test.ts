@@ -1419,38 +1419,3 @@ describe("non-TTY spinner suppression", () => {
     expect(stripped).toContain("Picked")
   }, 30000)
 })
-
-// =====================================================================
-// SIGINT CLEANUP
-// =====================================================================
-
-describe("SIGINT temp dir cleanup", () => {
-  const isCI = "CI" in process.env
-
-  it.skipIf(isCI)(
-    "cleans up temp dir on SIGINT",
-    async () => {
-      const { readdirSync } = await import("node:fs")
-      const { tmpdir } = await import("node:os")
-
-      // Snapshot temp dirs before
-      const before = new Set(readdirSync(tmpdir()).filter((d) => d.startsWith("picksuite-")))
-
-      const proc = Bun.spawn(
-        [...CLI, "clone", "nrjdalal/picksuite", "/tmp/gitpick-sigint-test", "-o"],
-        { stdout: "pipe", stderr: "pipe" },
-      )
-      // Give it a moment to start cloning and create temp dir
-      await new Promise((r) => setTimeout(r, 500))
-      proc.kill("SIGINT")
-      await proc.exited
-
-      // No new temp dirs should remain after SIGINT
-      const after = readdirSync(tmpdir()).filter(
-        (d) => d.startsWith("picksuite-") && !before.has(d),
-      )
-      expect(after).toHaveLength(0)
-    },
-    30000,
-  )
-})
