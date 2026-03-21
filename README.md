@@ -122,16 +122,26 @@ Create a `.gitpick.json` or `.gitpick.jsonc` in your project to pick multiple fi
 ```jsonc
 // .gitpick.jsonc
 [
-  // blob pick
-  "owner/repo/blob/main/path/to/file target-dir",
-  // repository picks
-  "owner/repo target-dir",
-  "https://github.com/owner/repo target-dir",
-  // tree picks
-  "owner/repo/tree/main/src target-dir",
-  "https://github.com/owner/repo/tree/main/src target-dir",
-  // tree picks with branch override
-  "owner/repo/tree/master/src -b main target-dir",
+  // clone a repo without .git
+  "owner/repo",
+  "https://github.com/owner/repo",
+  // clone a folder aka tree
+  "owner/repo/tree/main/path/to/folder",
+  "https://github.com/owner/repo/tree/main/path/to/folder",
+  // clone a file aka blob
+  "owner/repo/blob/main/path/to/file",
+  "https://github.com/owner/repo/blob/main/path/to/file",
+  // clone a branch
+  "owner/repo -b canary",
+  "owner/repo/tree/canary",
+  // clone a commit SHA
+  "owner/repo -b cc8e93",
+  // clone submodules
+  "owner/repo -r",
+  // clone a private repo
+  "https://<token>@github.com/owner/repo",
+  // clone with custom target
+  "owner/repo/tree/main/src my-target",
 ]
 ```
 
