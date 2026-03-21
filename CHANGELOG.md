@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.19.0 (2026-03-22)
+
+- **Environment variable token support** — `GITHUB_TOKEN`/`GH_TOKEN`, `GITLAB_TOKEN`, `BITBUCKET_TOKEN` auto-detected for private repos without embedding tokens in URLs
+- **SIGINT/SIGTERM temp dir cleanup** — signal handlers clean up active temp directories on process kill
+- **Non-TTY spinner suppression** — spinner animation completely suppressed in CI/piped output
+- **`--verbose` now includes stats** — file count with size, network/copy/total time breakdown
+- Non-blocking update notifier — checks npm registry in background, shows notice on next run
+
 ## v4.18.0 (2026-03-22)
 
 - **Add `--quiet` / `-q` flag** — suppress all output except errors, ideal for CI pipelines and scripts
