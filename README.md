@@ -59,6 +59,7 @@ npx gitpick https://<token>@github.com/owner/repo
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔐 Seamlessly works with both public and private repositories using a PAT
+- 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
 
 ---
 
@@ -111,6 +112,29 @@ Use a [GitHub personal access token](https://docs.github.com/en/authentication/k
 ```sh
 npx gitpick https://<token>@github.com/owner/repo
 ```
+
+---
+
+## 📋 Config File
+
+Create a `.gitpick.json` or `.gitpick.jsonc` in your project to pick multiple files/folders in one command:
+
+```jsonc
+// .gitpick.jsonc
+[
+  "owner/repo/tree/main/src",
+  "owner/repo/blob/main/README.md docs",
+  "other/repo/tree/main/configs my-configs",
+]
+```
+
+Then just run:
+
+```sh
+npx gitpick
+```
+
+Each entry follows the same `<url> [target]` syntax as the CLI. All entries are cloned with `-o` (overwrite) by default.
 
 ---
 

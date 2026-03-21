@@ -6,6 +6,7 @@ import { parseArgs } from "node:util"
 import { cloneAction } from "@/utils/clone-action"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { githubConfigFromUrl } from "@/utils/transform-url"
+import { useConfig } from "@/utils/use-config"
 import terminalLink from "~/external/terminal-link"
 import { bold, cyan, green, red, yellow } from "~/external/yoctocolors"
 import { name, version } from "~/package.json"
@@ -69,6 +70,9 @@ const main = async () => {
         console.log(`\n${name}@${version}`)
         process.exit(0)
       }
+
+      if (await useConfig()) process.exit(0)
+
       console.log(helpMessage)
       process.exit(0)
     }

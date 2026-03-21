@@ -29,7 +29,8 @@ if [ "$#" -gt 0 ]; then
   exit 0
 fi
 
-rm -rf test/*
+rm -rf .test-artifacts/cli
+mkdir -p .test-artifacts/cli
 
 TEST_CASES=(
   'nrjdalal/gitpick/blob/main/bin/index.ts'
@@ -45,6 +46,7 @@ TEST_CASES=(
   'https://github.com/nrjdalal/gitpick/tree/master/bin -b main'
   'git@github.com:nrjdalal/gitpick.git/tree/master/bin -b main'
   'https://github.com/nrjdalal/gitpick.git/tree/master/bin -b main'
+  'nrjdalal/zerostarter/tree/main'
 )
 
 # Initialize report variables
@@ -62,21 +64,21 @@ for i in "${!TEST_CASES[@]}"; do
 
   echo ------------------------- $TEST_NUMBER -------------------------
   echo
-  echo "🚀 Running test case #$TEST_NUMBER CMD: $TEST_RUNNER clone $TEST_CASE test/$TEST_NUMBER"
+  echo "🚀 Running test case #$TEST_NUMBER CMD: $TEST_RUNNER clone $TEST_CASE .test-artifacts/cli/$TEST_NUMBER"
 
-  rm -rf test/$TEST_NUMBER
+  rm -rf .test-artifacts/cli/$TEST_NUMBER
 
-  if eval "$TEST_RUNNER clone $TEST_CASE test/$TEST_NUMBER"; then
-    if [ "$(ls -A test/$TEST_NUMBER)" ]; then
-      cd test/$TEST_NUMBER
+  if eval "$TEST_RUNNER clone $TEST_CASE .test-artifacts/cli/$TEST_NUMBER"; then
+    if [ "$(ls -A .test-artifacts/cli/$TEST_NUMBER)" ]; then
+      cd .test-artifacts/cli/$TEST_NUMBER
 
       if [ "$(ls -A | wc -l)" -gt 0 ]; then
-        cd ../..
+        cd ../../..
       else
         echo "❌ Cloning failed for test case #$TEST_NUMBER: $TEST_CASE"
         FAILED_TESTS=$((FAILED_TESTS + 1))
         REPORT+="❌ Test case #$TEST_NUMBER failed: $TEST_CASE\n"
-        cd ../..
+        cd ../../..
         continue
       fi
 

@@ -40,7 +40,8 @@
     "format:check": "oxfmt --check",
     "prepare": "bunx lefthook install",
     "sync:external": "bash scripts/external.sh",
-    "test": "bash scripts/test.sh"
+    "test": "bash tests/cli.sh",
+    "test:config": "bash tests/config.sh"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",

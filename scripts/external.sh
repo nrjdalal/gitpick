@@ -2,6 +2,7 @@
 
 # main dependencies
 bunx gitpick@latest https://github.com/sindresorhus/nano-spawn/tree/d3d724082c6bc679079e150b25b5b8242a2af2c4/source external/nano-spawn -f
+bunx gitpick@latest https://github.com/sindresorhus/strip-json-comments/blob/7355ba42e0ad6e5cd27cc984add85355df50fa34/index.js external/strip-json-comments -f
 bunx gitpick@latest https://github.com/sindresorhus/terminal-link/blob/1fa2892d27f388ea1cf9a2c934470fc94dda2115/index.js external/terminal-link -f
 bunx gitpick@latest https://github.com/sindresorhus/yocto-spinner/blob/72727da6da3c454140ae9ef809285a1260bd929a/index.js external/yocto-spinner -f
 bunx gitpick@latest https://github.com/sindresorhus/yoctocolors/blob/366d515357373a0d6c1494ca08d541f0f80ceb61/base.js external/yoctocolors -f
@@ -15,7 +16,7 @@ bunx gitpick@latest https://github.com/sindresorhus/ansi-escapes/blob/300a0dfab1
 bunx gitpick@latest https://github.com/sindresorhus/environment/blob/0e664a280bbbb4569458b25d175eb745a5cb4d29/index.js external/environment -f
 bunx gitpick@latest https://github.com/sindresorhus/has-flag/blob/0c7d032214c51d14b458364c9f6575ea9afa08b1/index.js external/has-flag -f
 
-bunx prettier@latest --write --ignore-unknown "external/**/*"
+bunx oxfmt@latest external/
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   sed -i "" "s|from 'ansi-escapes'|from '../ansi-escapes'|g" external/terminal-link/index.js

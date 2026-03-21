@@ -1,0 +1,22 @@
+// Example config, run tests using `bun run test:config`
+[
+  // blob pick
+  "nrjdalal/gitpick/blob/main/bin/index.ts",
+  // repository picks
+  "nrjdalal/gitpick",
+  "https://github.com/nrjdalal/gitpick",
+  "git@github.com:nrjdalal/gitpick.git",
+  "https://github.com/nrjdalal/gitpick.git",
+  // tree picks
+  "nrjdalal/gitpick/tree/main/bin",
+  "https://github.com/nrjdalal/gitpick/tree/main/bin",
+  "git@github.com:nrjdalal/gitpick.git/tree/main/bin",
+  "https://github.com/nrjdalal/gitpick.git/tree/main/bin",
+  // tree picks with branch override
+  "nrjdalal/gitpick/tree/master/bin -b main",
+  "https://github.com/nrjdalal/gitpick/tree/master/bin -b main",
+  "git@github.com:nrjdalal/gitpick.git/tree/master/bin -b main",
+  "https://github.com/nrjdalal/gitpick.git/tree/master/bin -b main",
+  // symlink support
+  "nrjdalal/zerostarter/tree/main",
+]
