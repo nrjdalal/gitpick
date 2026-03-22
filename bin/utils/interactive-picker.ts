@@ -336,7 +336,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
           : ""
       let statusLine: string
       if (allSelected) {
-        statusLine = `  all selected${scrollInfo}`
+        statusLine = `  all selected ${dim("•")} ${dim(formatSize(size))}${scrollInfo}`
       } else if (files + folders > 0) {
         const countParts: string[] = []
         if (folders > 0) countParts.push(cyan(`${folders} folder${folders !== 1 ? "s" : ""}`))
@@ -344,7 +344,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         const metaParts: string[] = [countParts.join(" "), dim(formatSize(size))]
         statusLine = `  ${metaParts.join(dim(" • "))}${scrollInfo}`
       } else {
-        statusLine = dim("  . to select all") + scrollInfo
+        statusLine = dim("  press . to select all") + scrollInfo
       }
       out += statusLine + "\n"
       out += "\n"
