@@ -336,6 +336,10 @@ export function interactivePicker(
         const idx = scrollOffset + i + 1 // +1 for the dot row
         const isCursor = idx === cursor
         const checkbox = item.node.selected ? green("●") : dim("○")
+        const sizeStr =
+          item.node.type === "blob" && item.node.size > 0
+            ? dim(` ${formatSize(item.node.size)}`)
+            : ""
         const nameStr =
           item.node.type === "tree"
             ? cyan(item.node.name + "/")
@@ -345,7 +349,7 @@ export function interactivePicker(
                 (item.node.linkTarget.endsWith("/")
                   ? cyan(item.node.linkTarget)
                   : item.node.linkTarget)
-              : item.node.name
+              : item.node.name + sizeStr
         const expandIcon =
           item.node.type === "tree" ? (item.node.expanded ? dim("▾ ") : dim("▸ ")) : "  "
         const pointer = isCursor ? yellow(">") : " "
@@ -440,9 +444,9 @@ export function interactivePicker(
         if (previewScrollOffset < 0) previewScrollOffset = 0
 
         let out = "\x1B[H\x1B[2J"
-        const nameStr =
-          node.type === "symlink" ? yellow(node.name) + dim(" -> ") + node.linkTarget : node.name
-        out += `\n  ${bold(nameStr)} ${dim(formatSize(node.size))}\n\n`
+        const pathStr =
+          node.type === "symlink" ? yellow(node.path) + dim(" -> ") + node.linkTarget : node.path
+        out += `\n  ${bold(pathStr)} ${dim(formatSize(node.size))}\n\n`
 
         const visibleCount = Math.min(viewportHeight, lines.length - previewScrollOffset)
         for (let i = 0; i < visibleCount; i++) {
