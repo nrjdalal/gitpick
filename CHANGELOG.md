@@ -1,5 +1,17 @@
 # Changelog
 
+## v5.4.0 (2026-03-22)
+
+- **Local directory interactive mode** - browse local directories with `gitpick -i`
+  - `gitpick -i` browses cwd
+  - `gitpick -i target` browses cwd, copies selected to target
+  - `gitpick ./path -i target` browses a specific path
+- Uses `git ls-files` to respect `.gitignore` when in a git repo
+- Falls back to manual walk (skipping `.git` only) outside git repos
+- Preserves symlinks when copying (uses `lstat` + `symlink`)
+- Warns on symlink copy failures instead of swallowing silently
+- Errors on target-inside-source and missing source with explicit target
+
 ## v5.3.0 (2026-03-22)
 
 - **File preview** - press enter on a file to view its content with line numbers and cursor navigation

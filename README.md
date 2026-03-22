@@ -11,7 +11,7 @@
 
 **Now with Interactive Mode.** Browse any repo right in your terminal. See every file, pick what you want, skip what you don't. Just `gitpick owner/repo -i` and you're in. No more guessing paths.
 
-📦 `Zero dependencies` / `Un/packed (~64/24kb)` / `Faster and more features` yet drop-in replacement for `degit`
+📦 `Zero dependencies` / `Un/packed (~67/25kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 > #### Just `copy-and-paste` any GitHub, GitLab or Bitbucket URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
 
