@@ -535,13 +535,7 @@ export function interactivePicker(
             const lang = detectLang(node.name)
             if (lang !== "plain") {
               try {
-                content = (await highlightText(text, lang))
-                  .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-                  .replace(/&lt;/g, "<")
-                  .replace(/&gt;/g, ">")
-                  .replace(/&amp;/g, "&")
-                  .replace(/&quot;/g, '"')
-                  .replace(/&#x27;/g, "'")
+                content = await highlightText(text, lang)
               } catch {
                 content = text
               }
