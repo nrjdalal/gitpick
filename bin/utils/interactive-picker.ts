@@ -452,8 +452,8 @@ export function interactivePicker(
         for (let i = 0; i < visibleCount; i++) {
           const lineIdx = previewScrollOffset + i
           const isCursorLine = lineIdx === previewCursor
-          const lineNum = dim(`${String(lineIdx + 1).padStart(lineNumWidth)}  `)
-          const lineContent = lines[lineIdx].slice(0, cols - lineNumWidth - 3)
+          const lineNum = dim(`  ${String(lineIdx + 1).padStart(lineNumWidth)}  `)
+          const lineContent = lines[lineIdx].slice(0, cols - lineNumWidth - 5)
           let line = `${lineNum}${lineContent}`
           if (isCursorLine) {
             const pad = Math.max(0, cols - stripAnsi(line).length)
