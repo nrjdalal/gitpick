@@ -74,6 +74,23 @@ export type TreeEntry = {
 
 const stripAnsi = (s: string) => s.replace(/\x1B\[\d+(?:;\d+)*m/g, "")
 
+function truncateAnsi(s: string, maxWidth: number): string {
+  let visible = 0
+  let i = 0
+  while (i < s.length && visible < maxWidth) {
+    if (s[i] === "\x1B" && s[i + 1] === "[") {
+      const end = s.indexOf("m", i)
+      if (end !== -1) {
+        i = end + 1
+        continue
+      }
+    }
+    visible++
+    i++
+  }
+  return s.slice(0, i) + "\x1B[0m"
+}
+
 type TreeNode = {
   name: string
   path: string
@@ -372,7 +389,12 @@ export function interactivePicker(
       resolve([])
       process.exit(0)
     }
-    const onResize = () => render()
+    let inPreview = false
+    let previewRenderer: (() => void) | null = null
+    const onResize = () => {
+      if (inPreview && previewRenderer) previewRenderer()
+      else render()
+    }
     process.on("exit", onExit)
     process.on("SIGINT", onSigint)
     stream.on("resize", onResize)
@@ -490,10 +512,12 @@ export function interactivePicker(
     }
 
     async function showPreview(node: TreeNode) {
-      const filePath = path.join(
-        basePath!,
-        node.type === "symlink" ? node.linkTarget.replace(/\/$/, "") : node.path,
-      )
+      // Remove stdin listener immediately to prevent race during async highlight
+      stdin.removeListener("data", onKey)
+
+      const resolvedPath =
+        node.type === "symlink" ? resolveSymlinkPath(node.path, node.linkTarget) : node.path
+      const filePath = path.join(basePath!, resolvedPath)
       let content: string
       try {
         const stat = fs.statSync(filePath)
@@ -552,11 +576,13 @@ export function interactivePicker(
           const lineIdx = previewScrollOffset + i
           const isCursorLine = lineIdx === previewCursor
           const lineNum = dim(`  ${String(lineIdx + 1).padStart(lineNumWidth)}  `)
-          const lineContent = lines[lineIdx].slice(0, cols - lineNumWidth - 5)
+          const lineContent = truncateAnsi(lines[lineIdx], cols - lineNumWidth - 5)
           let line = `${lineNum}${lineContent}`
           if (isCursorLine) {
-            const pad = Math.max(0, cols - stripAnsi(line).length)
-            line = `\x1B[48;5;236m${line}${" ".repeat(pad)}\x1B[49m`
+            // Strip trailing resets so bg extends fully
+            const cleaned = line.replace(/\x1B\[0m/g, "")
+            const pad = Math.max(0, cols - stripAnsi(cleaned).length)
+            line = `\x1B[48;5;236m${cleaned}${" ".repeat(pad)}\x1B[0m`
           }
           out += line + "\n"
         }
@@ -582,7 +608,21 @@ export function interactivePicker(
       function onPreviewKey(buf: Buffer) {
         const key = buf.toString()
 
+        // Ctrl-C in preview
+        if (key === "\x03") {
+          inPreview = false
+          previewRenderer = null
+          stdin.removeListener("data", onPreviewKey)
+          cleanup()
+          process.removeListener("exit", onExit)
+          process.removeListener("SIGINT", onSigint)
+          resolve([])
+          return
+        }
+
         if (key === "\x1B" || key === "q" || key === "Q" || key === "\r") {
+          inPreview = false
+          previewRenderer = null
           stdin.removeListener("data", onPreviewKey)
           stdin.on("data", onKey)
           render()
@@ -599,7 +639,8 @@ export function interactivePicker(
         renderPreview()
       }
 
-      stdin.removeListener("data", onKey)
+      inPreview = true
+      previewRenderer = renderPreview
       stdin.on("data", onPreviewKey)
       renderPreview()
     }
