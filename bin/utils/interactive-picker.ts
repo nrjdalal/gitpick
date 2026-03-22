@@ -495,7 +495,6 @@ export function interactivePicker(
         node.type === "symlink" ? node.linkTarget.replace(/\/$/, "") : node.path,
       )
       let content: string
-      let highlighted = false
       try {
         const stat = fs.statSync(filePath)
         if (stat.isDirectory()) {
@@ -513,7 +512,6 @@ export function interactivePicker(
             if (lang !== "plain") {
               try {
                 content = await highlightText(text, lang)
-                highlighted = true
               } catch {
                 content = text
               }
