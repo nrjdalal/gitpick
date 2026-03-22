@@ -361,7 +361,9 @@ const main = async () => {
             await fs.promises.rm(dest, { force: true })
             await fs.promises.symlink(linkTarget, dest)
             copiedFiles++
-          } catch {}
+          } catch (err: any) {
+            console.log(yellow(`  Warning: failed to copy symlink ${sel}: ${err.message}`))
+          }
         } else if (lstat.isDirectory()) {
           await fs.promises.mkdir(dest, { recursive: true })
           const files = await copyDir(src, dest)
