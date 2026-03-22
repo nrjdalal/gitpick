@@ -1,4 +1,7 @@
-import { cyan, dim, green, yellow } from "@/external/yoctocolors"
+import fs from "node:fs"
+import path from "node:path"
+
+import { bold, cyan, dim, green, yellow } from "@/external/yoctocolors"
 
 export type TreeEntry = {
   path: string
@@ -221,7 +224,11 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function interactivePicker(entries: TreeEntry[], label: string): Promise<string[]> {
+export function interactivePicker(
+  entries: TreeEntry[],
+  label: string,
+  basePath?: string,
+): Promise<string[]> {
   return new Promise((resolve) => {
     const tree = buildTree(entries)
     if (!tree.length) {
@@ -379,10 +386,106 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       }
       out += statusLine + "\n"
       out += "\n"
-      const instructions = dim("↑↓:navigate  enter:expand  space:select  c:confirm  q:quit")
+      const instructions = dim(
+        basePath
+          ? "↑↓:navigate  enter:expand/preview  space:select  c:confirm  q:quit"
+          : "↑↓:navigate  enter:expand  space:select  c:confirm  q:quit",
+      )
       out += `  ${instructions}\n`
 
       stream.write(out)
+    }
+
+    function showPreview(node: TreeNode) {
+      const filePath = path.join(
+        basePath!,
+        node.type === "symlink" ? node.linkTarget.replace(/\/$/, "") : node.path,
+      )
+      let content: string
+      try {
+        const stat = fs.statSync(filePath)
+        if (stat.isDirectory()) {
+          content = dim("(directory)")
+        } else if (stat.size > 512 * 1024) {
+          content = dim(`(file too large: ${formatSize(stat.size)})`)
+        } else {
+          const raw = fs.readFileSync(filePath)
+          // Check if binary
+          if (raw.includes(0)) {
+            content = dim(`(binary file: ${formatSize(stat.size)})`)
+          } else {
+            content = raw.toString("utf-8")
+          }
+        }
+      } catch {
+        content = dim("(unable to read file)")
+      }
+
+      let previewScrollOffset = 0
+      const lines = content.split("\n")
+
+      function renderPreview() {
+        const rows = stream.rows || 24
+        const cols = stream.columns || 80
+        const headerLines = 3
+        const footerLines = 3
+        const viewportHeight = Math.max(1, rows - headerLines - footerLines)
+
+        let out = "\x1B[H\x1B[2J"
+        const nameStr =
+          node.type === "symlink" ? yellow(node.name) + dim(" -> ") + node.linkTarget : node.name
+        out += `\n  ${bold(nameStr)} ${dim(formatSize(node.size))}\n\n`
+
+        const visible = lines.slice(previewScrollOffset, previewScrollOffset + viewportHeight)
+        for (let i = 0; i < viewportHeight; i++) {
+          if (i < visible.length) {
+            const lineNum = dim(`${String(previewScrollOffset + i + 1).padStart(4)} `)
+            out += `${lineNum}${visible[i].slice(0, cols - 5)}\n`
+          } else {
+            out += "\n"
+          }
+        }
+
+        out += "\n"
+        const scrollInfo =
+          lines.length > viewportHeight
+            ? dim(
+                `${previewScrollOffset + 1}-${Math.min(previewScrollOffset + viewportHeight, lines.length)}/${lines.length}`,
+              )
+            : ""
+        const previewInstructions = dim("↑↓:scroll  esc/q:back")
+        out += scrollInfo
+          ? `  ${scrollInfo}  ${previewInstructions}\n`
+          : `  ${previewInstructions}\n`
+
+        stream.write(out)
+      }
+
+      function onPreviewKey(buf: Buffer) {
+        const key = buf.toString()
+        const rows = stream.rows || 24
+        const viewportHeight = Math.max(1, rows - 6)
+
+        if (key === "\x1B" || key === "q" || key === "Q" || key === "\r") {
+          stdin.removeListener("data", onPreviewKey)
+          stdin.on("data", onKey)
+          render()
+          return
+        }
+
+        if (key === "\x1B[A" || key === "k") {
+          if (previewScrollOffset > 0) previewScrollOffset--
+        }
+        if (key === "\x1B[B" || key === "j") {
+          if (previewScrollOffset < lines.length - viewportHeight) previewScrollOffset++
+        }
+
+        renderPreview()
+      }
+
+      stdin.removeListener("data", onKey)
+      stdin.on("data", onPreviewKey)
+      renderPreview()
     }
 
     function onKey(buf: Buffer) {
@@ -440,11 +543,18 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         }
       }
 
-      // Enter → toggle expand/collapse directory (tree items)
+      // Enter → expand/collapse directory, or preview file
       if (key === "\r" && cursor > 0) {
         const item = items[cursor - 1]
         if (item && item.node.type === "tree") {
           item.node.expanded = !item.node.expanded
+        } else if (
+          item &&
+          basePath &&
+          (item.node.type === "blob" || item.node.type === "symlink")
+        ) {
+          showPreview(item.node)
+          return
         }
       }
 

@@ -274,6 +274,7 @@ const main = async () => {
       const selected = await interactivePicker(
         entries,
         `${config.owner}/${config.repository} ${cyan("repository:" + config.branch)} > ${green(config.target)}`,
+        walkRoot,
       )
 
       if (!selected.length) {
