@@ -178,10 +178,14 @@ const main = async () => {
         !url.startsWith("git@"))
 
     if (isLocalPath && options.interactive) {
-      // If url doesn't look like a real path, it's the target (e.g. `gitpick -i hello`)
+      // Single positional that doesn't exist — treat as target (e.g. `gitpick -i hello`)
+      // Only when no explicit target is given; with two args, a missing source is an error
       if (
         !fs.existsSync(path.resolve(url.startsWith("~/") ? url.replace("~", os.homedir()) : url))
       ) {
+        if (target) {
+          throw new Error(`Directory not found: ${url}`)
+        }
         target = url
         url = "."
       }
@@ -347,15 +351,19 @@ const main = async () => {
       for (const sel of selected) {
         const src = path.join(resolvedSource, sel)
         const dest = path.join(targetDir, sel)
-        const stat = await fs.promises.stat(src).catch(() => null)
-        if (!stat) continue
+        const lstat = await fs.promises.lstat(src).catch(() => null)
+        if (!lstat) continue
 
-        if (stat.isDirectory()) {
+        await fs.promises.mkdir(path.dirname(dest), { recursive: true })
+        if (lstat.isSymbolicLink()) {
+          const linkTarget = await fs.promises.readlink(src)
+          await fs.promises.symlink(linkTarget, dest).catch(() => {})
+          copiedFiles++
+        } else if (lstat.isDirectory()) {
           await fs.promises.mkdir(dest, { recursive: true })
           const files = await copyDir(src, dest)
           copiedFiles += files.length
         } else {
-          await fs.promises.mkdir(path.dirname(dest), { recursive: true })
           await fs.promises.copyFile(src, dest)
           copiedFiles++
         }
