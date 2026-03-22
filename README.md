@@ -158,7 +158,7 @@ npx gitpick https://github.com/owner/repo -i
 npx gitpick https://gitlab.com/owner/repo -i
 ```
 
-<img width="720" alt="Interactive Mode" src="https://github.com/user-attachments/assets/062e939e-b7c0-4678-ab7e-d392bac1d94a" />
+<img width="720" alt="Interactive Mode" src="https://github.com/user-attachments/assets/9d6f4db7-ed84-4783-b815-0267719b3a52" />
 
 Navigate with arrow keys, select with space, expand/collapse with enter, `.` to select all, `c` to confirm. Works with GitHub, GitLab, Bitbucket, public and private repos.
 
