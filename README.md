@@ -158,6 +158,8 @@ npx gitpick https://github.com/owner/repo -i
 npx gitpick https://gitlab.com/owner/repo -i
 ```
 
+<img width="720" alt="Interactive Mode" src="https://github.com/user-attachments/assets/062e939e-b7c0-4678-ab7e-d392bac1d94a" />
+
 **How it works:**
 
 1. GitPick fetches the repository
