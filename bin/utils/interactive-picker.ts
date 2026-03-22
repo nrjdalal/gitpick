@@ -1,7 +1,69 @@
 import fs from "node:fs"
 import path from "node:path"
 
+import { highlightText } from "@/external/speed-highlight"
 import { bold, cyan, dim, green, yellow } from "@/external/yoctocolors"
+
+const EXT_TO_LANG: Record<string, string> = {
+  ".js": "js",
+  ".mjs": "js",
+  ".cjs": "js",
+  ".jsx": "js",
+  ".ts": "ts",
+  ".mts": "ts",
+  ".cts": "ts",
+  ".tsx": "ts",
+  ".json": "json",
+  ".jsonc": "json",
+  ".md": "md",
+  ".mdx": "md",
+  ".css": "css",
+  ".scss": "css",
+  ".html": "html",
+  ".htm": "html",
+  ".svelte": "html",
+  ".vue": "html",
+  ".xml": "xml",
+  ".svg": "xml",
+  ".yaml": "yaml",
+  ".yml": "yaml",
+  ".toml": "toml",
+  ".py": "py",
+  ".rs": "rs",
+  ".go": "go",
+  ".c": "c",
+  ".h": "c",
+  ".cpp": "c",
+  ".hpp": "c",
+  ".java": "java",
+  ".sql": "sql",
+  ".sh": "bash",
+  ".bash": "bash",
+  ".zsh": "bash",
+  ".lua": "lua",
+  ".pl": "pl",
+  ".pm": "pl",
+  ".rb": "py", // ruby is close enough to py highlighting
+  ".diff": "diff",
+  ".patch": "diff",
+  ".ini": "ini",
+  ".cfg": "ini",
+  ".env": "ini",
+  ".dockerfile": "docker",
+  ".makefile": "make",
+  ".csv": "csv",
+  ".log": "log",
+}
+
+function detectLang(filename: string): string {
+  const ext = path.extname(filename).toLowerCase()
+  if (ext) return EXT_TO_LANG[ext] || "plain"
+  const base = path.basename(filename).toLowerCase()
+  if (base === "dockerfile") return "docker"
+  if (base === "makefile") return "make"
+  if (base === ".gitignore" || base === ".env") return "ini"
+  return "plain"
+}
 
 export type TreeEntry = {
   path: string
@@ -427,7 +489,7 @@ export function interactivePicker(
       stream.write(out)
     }
 
-    function showPreview(node: TreeNode) {
+    async function showPreview(node: TreeNode) {
       const filePath = path.join(
         basePath!,
         node.type === "symlink" ? node.linkTarget.replace(/\/$/, "") : node.path,
@@ -445,7 +507,17 @@ export function interactivePicker(
           if (raw.includes(0)) {
             content = dim(`(binary file: ${formatSize(stat.size)})`)
           } else {
-            content = raw.toString("utf-8")
+            const text = raw.toString("utf-8")
+            const lang = detectLang(node.name)
+            if (lang !== "plain") {
+              try {
+                content = await highlightText(text, lang)
+              } catch {
+                content = text
+              }
+            } else {
+              content = text
+            }
           }
         }
       } catch {
