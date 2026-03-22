@@ -357,8 +357,11 @@ const main = async () => {
         await fs.promises.mkdir(path.dirname(dest), { recursive: true })
         if (lstat.isSymbolicLink()) {
           const linkTarget = await fs.promises.readlink(src)
-          await fs.promises.symlink(linkTarget, dest).catch(() => {})
-          copiedFiles++
+          try {
+            await fs.promises.rm(dest, { force: true })
+            await fs.promises.symlink(linkTarget, dest)
+            copiedFiles++
+          } catch {}
         } else if (lstat.isDirectory()) {
           await fs.promises.mkdir(dest, { recursive: true })
           const files = await copyDir(src, dest)
