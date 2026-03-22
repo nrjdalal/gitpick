@@ -160,43 +160,7 @@ npx gitpick https://gitlab.com/owner/repo -i
 
 <img width="720" alt="Interactive Mode" src="https://github.com/user-attachments/assets/062e939e-b7c0-4678-ab7e-d392bac1d94a" />
 
-**How it works:**
-
-1. GitPick fetches the repository
-2. An interactive file tree appears in your terminal
-3. Navigate with arrow keys, select with space, expand/collapse folders with enter
-4. Press `c` to confirm - only your selected files get copied
-
-```
-  nrjdalal/gitpick repository:main > gitpick
-
-> ● .
-  ● ├── ▾ bin/
-  ● │   ├── ▸ external/
-  ● │   ├── ▸ utils/
-  ○ │   └──   index.ts
-  ○ ├── ▸ tests/
-  ○ ├──   package.json
-  ○ └──   README.md
-
-  2 folders 3 files • 12.4 KB
-
-  ↑↓:navigate  enter:expand  space:select  c:confirm  q:quit
-```
-
-**Controls:**
-
-| Key               | Action                     |
-| ----------------- | -------------------------- |
-| `↑` `↓` / `j` `k` | Navigate up/down           |
-| `←` `→` / `h` `l` | Collapse/expand folder     |
-| `Enter`           | Toggle expand/collapse     |
-| `Space`           | Toggle selection           |
-| `.` (first row)   | Select/deselect all        |
-| `c`               | Confirm and clone selected |
-| `q` / `Ctrl+C`    | Quit without cloning       |
-
-Works with GitHub, GitLab, Bitbucket, public and private repos.
+Navigate with arrow keys, select with space, expand/collapse with enter, `.` to select all, `c` to confirm. Works with GitHub, GitLab, Bitbucket, public and private repos.
 
 ---
 

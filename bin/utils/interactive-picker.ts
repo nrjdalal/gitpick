@@ -344,7 +344,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         const metaParts: string[] = [countParts.join(" "), dim(formatSize(size))]
         statusLine = `  ${metaParts.join(dim(" • "))}${scrollInfo}`
       } else {
-        statusLine = dim("  nothing selected") + scrollInfo
+        statusLine = dim("  . to select all") + scrollInfo
       }
       out += statusLine + "\n"
       out += "\n"
