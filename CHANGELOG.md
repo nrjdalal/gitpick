@@ -1,5 +1,14 @@
 # Changelog
 
+## v5.2.0 (2026-03-22)
+
+- Symlinks counted separately and shown in yellow in footer
+- Selecting a symlink also selects its target file/folder
+- Deselecting all children auto-deselects parent folder
+- Press `.` toggles select all from anywhere
+- Show "press . to select all" when nothing selected, "all selected" with size when everything selected
+- Add interactive mode screenshot to README
+
 ## v5.1.0 (2026-03-22)
 
 - Show symlinks in interactive picker (yellow with `->` target, matching dry-run tree)

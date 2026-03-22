@@ -430,11 +430,11 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         if (item) {
           const newValue = !item.node.selected
           setSelected(item.node, newValue)
-          // If symlink, also select/deselect the target
-          if (item.node.type === "symlink" && item.node.linkTarget) {
+          // If symlink selected, also select the target (but don't deselect it)
+          if (newValue && item.node.type === "symlink" && item.node.linkTarget) {
             const targetPath = item.node.linkTarget.replace(/\/$/, "")
             const targetNode = findNodeByPath(tree, targetPath)
-            if (targetNode) setSelected(targetNode, newValue)
+            if (targetNode) setSelected(targetNode, true)
           }
           updateParentSelection(tree)
         }
