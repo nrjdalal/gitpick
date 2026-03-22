@@ -336,10 +336,6 @@ export function interactivePicker(
         const idx = scrollOffset + i + 1 // +1 for the dot row
         const isCursor = idx === cursor
         const checkbox = item.node.selected ? green("●") : dim("○")
-        const sizeStr =
-          item.node.type === "blob" && item.node.size > 0
-            ? dim(` ${formatSize(item.node.size)}`)
-            : ""
         const nameStr =
           item.node.type === "tree"
             ? cyan(item.node.name + "/")
@@ -349,13 +345,18 @@ export function interactivePicker(
                 (item.node.linkTarget.endsWith("/")
                   ? cyan(item.node.linkTarget)
                   : item.node.linkTarget)
-              : item.node.name + sizeStr
+              : item.node.name
         const expandIcon =
           item.node.type === "tree" ? (item.node.expanded ? dim("▾ ") : dim("▸ ")) : "  "
         const pointer = isCursor ? yellow(">") : " "
-        let line = `${pointer} ${checkbox} ${dim(item.prefix)}${dim(item.connector)}${expandIcon}${nameStr}`
+        const leftPart = `${pointer} ${checkbox} ${dim(item.prefix)}${dim(item.connector)}${expandIcon}${nameStr}`
+        const sizeLabel =
+          item.node.type === "blob" && item.node.size > 0 ? dim(formatSize(item.node.size)) : ""
+        const leftLen = stripAnsi(leftPart).length
+        const sizeLen = stripAnsi(sizeLabel).length
+        const gap = Math.max(1, cols - leftLen - sizeLen - 1)
+        let line = sizeLabel ? `${leftPart}${" ".repeat(gap)}${sizeLabel} ` : leftPart
         if (isCursor) {
-          // Pad to full width, subtle dark gray background (ANSI 256 color 236)
           const pad = Math.max(0, cols - stripAnsi(line).length)
           line = `\x1B[48;5;236m${line}${" ".repeat(pad)}\x1B[49m`
         }
@@ -446,7 +447,7 @@ export function interactivePicker(
         let out = "\x1B[H\x1B[2J"
         const pathStr =
           node.type === "symlink" ? yellow(node.path) + dim(" -> ") + node.linkTarget : node.path
-        out += `\n  ${bold(pathStr)} ${dim(formatSize(node.size))}\n\n`
+        out += `\n  ${bold(pathStr)} ${dim("•")} ${dim(formatSize(node.size))}\n\n`
 
         const visibleCount = Math.min(viewportHeight, lines.length - previewScrollOffset)
         for (let i = 0; i < visibleCount; i++) {
@@ -560,11 +561,21 @@ export function interactivePicker(
         }
       }
 
-      // Enter → expand/collapse directory, or preview file
+      // Enter → expand/collapse directory, preview file, or jump to symlink target
       if (key === "\r" && cursor > 0) {
         const item = items[cursor - 1]
         if (item && item.node.type === "tree") {
           item.node.expanded = !item.node.expanded
+        } else if (item && item.node.type === "symlink" && item.node.linkTarget.endsWith("/")) {
+          // Symlink to folder - jump to target and expand it
+          const targetPath = item.node.linkTarget.replace(/\/$/, "")
+          const targetNode = findNodeByPath(tree, targetPath)
+          if (targetNode) {
+            targetNode.expanded = true
+            const updatedItems = flatten(tree)
+            const targetIdx = updatedItems.findIndex((fi) => fi.node === targetNode)
+            if (targetIdx >= 0) cursor = targetIdx + 1 // +1 for dot row
+          }
         } else if (
           item &&
           basePath &&
