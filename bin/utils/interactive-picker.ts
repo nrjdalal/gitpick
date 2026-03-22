@@ -101,6 +101,19 @@ function buildTree(entries: TreeEntry[]): TreeNode[] {
   }
   sortChildren(root)
 
+  // Calculate folder sizes from children
+  function calcSize(nodes: TreeNode[]): number {
+    let total = 0
+    for (const node of nodes) {
+      if (node.children.length) {
+        node.size = calcSize(node.children)
+      }
+      total += node.size
+    }
+    return total
+  }
+  calcSize(root)
+
   return root
 }
 
@@ -364,7 +377,7 @@ export function interactivePicker(
         const pointer = isCursor ? yellow(">") : " "
         const leftPart = `${pointer} ${checkbox} ${dim(item.prefix)}${dim(item.connector)}${expandIcon}${nameStr}`
         const sizeLabel =
-          item.node.type === "blob" && item.node.size > 0 ? dim(formatSize(item.node.size)) : ""
+          item.node.size > 0 && item.node.type !== "symlink" ? dim(formatSize(item.node.size)) : ""
         const leftLen = stripAnsi(leftPart).length
         const sizeLen = stripAnsi(sizeLabel).length
         const gap = Math.max(1, cols - leftLen - sizeLen - 1)
