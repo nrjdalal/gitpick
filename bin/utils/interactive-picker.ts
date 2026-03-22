@@ -136,6 +136,19 @@ function setSelected(node: TreeNode, value: boolean) {
   }
 }
 
+function resolveSymlinkPath(symlinkPath: string, linkTarget: string): string {
+  const symlinkDir = symlinkPath.includes("/") ? symlinkPath.split("/").slice(0, -1).join("/") : ""
+  const rawTarget = linkTarget.replace(/\/$/, "")
+  const resolved = symlinkDir ? `${symlinkDir}/${rawTarget}` : rawTarget
+  const parts = resolved.split("/")
+  const normalized: string[] = []
+  for (const p of parts) {
+    if (p === "..") normalized.pop()
+    else if (p !== ".") normalized.push(p)
+  }
+  return normalized.join("/")
+}
+
 function findNodeByPath(roots: TreeNode[], targetPath: string): TreeNode | null {
   for (const node of roots) {
     if (node.path === targetPath) return node
@@ -553,7 +566,7 @@ export function interactivePicker(
           setSelected(item.node, newValue)
           // If symlink selected, also select the target (but don't deselect it)
           if (newValue && item.node.type === "symlink" && item.node.linkTarget) {
-            const targetPath = item.node.linkTarget.replace(/\/$/, "")
+            const targetPath = resolveSymlinkPath(item.node.path, item.node.linkTarget)
             const targetNode = findNodeByPath(tree, targetPath)
             if (targetNode) setSelected(targetNode, true)
           }
@@ -567,8 +580,8 @@ export function interactivePicker(
         if (item && item.node.type === "tree") {
           item.node.expanded = !item.node.expanded
         } else if (item && item.node.type === "symlink" && item.node.linkTarget.endsWith("/")) {
-          // Symlink to folder - jump to target and expand it
-          const targetPath = item.node.linkTarget.replace(/\/$/, "")
+          // Symlink to folder - resolve relative path and jump to target
+          const targetPath = resolveSymlinkPath(item.node.path, item.node.linkTarget)
           const targetNode = findNodeByPath(tree, targetPath)
           if (targetNode) {
             targetNode.expanded = true
