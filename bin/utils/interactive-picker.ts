@@ -472,12 +472,10 @@ export function interactivePicker(
           lines.length > viewportHeight
             ? dim(
                 `${previewScrollOffset + 1}-${Math.min(previewScrollOffset + viewportHeight, lines.length)}/${lines.length}`,
-              )
+              ) + dim(" • ")
             : ""
         const previewInstructions = dim("↑↓:navigate  esc/q:back")
-        out += scrollInfo
-          ? `  ${scrollInfo}  ${previewInstructions}\n`
-          : `  ${previewInstructions}\n`
+        out += `  ${scrollInfo}${previewInstructions}\n`
 
         stream.write(out)
       }
