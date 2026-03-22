@@ -133,6 +133,18 @@ function setSelected(node: TreeNode, value: boolean) {
   }
 }
 
+function updateParentSelection(roots: TreeNode[]) {
+  function walk(nodes: TreeNode[]): void {
+    for (const node of nodes) {
+      if (node.children.length) {
+        walk(node.children)
+        node.selected = node.children.every((c) => c.selected)
+      }
+    }
+  }
+  walk(roots)
+}
+
 function collectSelected(nodes: TreeNode[]): string[] {
   const paths: string[] = []
 
@@ -398,6 +410,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         const item = items[cursor - 1]
         if (item) {
           setSelected(item.node, !item.node.selected)
+          updateParentSelection(tree)
         }
       }
 
