@@ -1,4 +1,7 @@
-import { cyan, dim, green, yellow } from "@/external/yoctocolors"
+import fs from "node:fs"
+import path from "node:path"
+
+import { bold, cyan, dim, green, yellow } from "@/external/yoctocolors"
 
 export type TreeEntry = {
   path: string
@@ -98,6 +101,19 @@ function buildTree(entries: TreeEntry[]): TreeNode[] {
   }
   sortChildren(root)
 
+  // Calculate folder sizes from children
+  function calcSize(nodes: TreeNode[]): number {
+    let total = 0
+    for (const node of nodes) {
+      if (node.children.length) {
+        node.size = calcSize(node.children)
+      }
+      total += node.size
+    }
+    return total
+  }
+  calcSize(root)
+
   return root
 }
 
@@ -131,6 +147,19 @@ function setSelected(node: TreeNode, value: boolean) {
   for (const child of node.children) {
     setSelected(child, value)
   }
+}
+
+function resolveSymlinkPath(symlinkPath: string, linkTarget: string): string {
+  const symlinkDir = symlinkPath.includes("/") ? symlinkPath.split("/").slice(0, -1).join("/") : ""
+  const rawTarget = linkTarget.replace(/\/$/, "")
+  const resolved = symlinkDir ? `${symlinkDir}/${rawTarget}` : rawTarget
+  const parts = resolved.split("/")
+  const normalized: string[] = []
+  for (const p of parts) {
+    if (p === "..") normalized.pop()
+    else if (p !== ".") normalized.push(p)
+  }
+  return normalized.join("/")
 }
 
 function findNodeByPath(roots: TreeNode[], targetPath: string): TreeNode | null {
@@ -221,7 +250,11 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function interactivePicker(entries: TreeEntry[], label: string): Promise<string[]> {
+export function interactivePicker(
+  entries: TreeEntry[],
+  label: string,
+  basePath?: string,
+): Promise<string[]> {
   return new Promise((resolve) => {
     const tree = buildTree(entries)
     if (!tree.length) {
@@ -342,9 +375,14 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         const expandIcon =
           item.node.type === "tree" ? (item.node.expanded ? dim("▾ ") : dim("▸ ")) : "  "
         const pointer = isCursor ? yellow(">") : " "
-        let line = `${pointer} ${checkbox} ${dim(item.prefix)}${dim(item.connector)}${expandIcon}${nameStr}`
+        const leftPart = `${pointer} ${checkbox} ${dim(item.prefix)}${dim(item.connector)}${expandIcon}${nameStr}`
+        const sizeLabel =
+          item.node.size > 0 && item.node.type !== "symlink" ? dim(formatSize(item.node.size)) : ""
+        const leftLen = stripAnsi(leftPart).length
+        const sizeLen = stripAnsi(sizeLabel).length
+        const gap = Math.max(1, cols - leftLen - sizeLen - 1)
+        let line = sizeLabel ? `${leftPart}${" ".repeat(gap)}${sizeLabel} ` : leftPart
         if (isCursor) {
-          // Pad to full width, subtle dark gray background (ANSI 256 color 236)
           const pad = Math.max(0, cols - stripAnsi(line).length)
           line = `\x1B[48;5;236m${line}${" ".repeat(pad)}\x1B[49m`
         }
@@ -379,10 +417,119 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       }
       out += statusLine + "\n"
       out += "\n"
-      const instructions = dim("↑↓:navigate  enter:expand  space:select  c:confirm  q:quit")
+      const instructions = dim(
+        basePath
+          ? "↑↓:navigate  enter:expand/preview  space:select  c:confirm  q:quit"
+          : "↑↓:navigate  enter:expand  space:select  c:confirm  q:quit",
+      )
       out += `  ${instructions}\n`
 
       stream.write(out)
+    }
+
+    function showPreview(node: TreeNode) {
+      const filePath = path.join(
+        basePath!,
+        node.type === "symlink" ? node.linkTarget.replace(/\/$/, "") : node.path,
+      )
+      let content: string
+      try {
+        const stat = fs.statSync(filePath)
+        if (stat.isDirectory()) {
+          content = dim("(directory)")
+        } else if (stat.size > 512 * 1024) {
+          content = dim(`(file too large: ${formatSize(stat.size)})`)
+        } else {
+          const raw = fs.readFileSync(filePath)
+          // Check if binary
+          if (raw.includes(0)) {
+            content = dim(`(binary file: ${formatSize(stat.size)})`)
+          } else {
+            content = raw.toString("utf-8")
+          }
+        }
+      } catch {
+        content = dim("(unable to read file)")
+      }
+
+      let previewCursor = 0
+      let previewScrollOffset = 0
+      const lines = content.split("\n")
+      const lineNumWidth = String(lines.length).length
+
+      function renderPreview() {
+        const rows = stream.rows || 24
+        const cols = stream.columns || 80
+        const headerLines = 3
+        const footerLines = 3
+        const viewportHeight = Math.max(1, rows - headerLines - footerLines)
+
+        // Adjust scroll to follow cursor
+        if (previewCursor < previewScrollOffset) previewScrollOffset = previewCursor
+        if (previewCursor >= previewScrollOffset + viewportHeight)
+          previewScrollOffset = previewCursor - viewportHeight + 1
+        if (previewScrollOffset < 0) previewScrollOffset = 0
+
+        let out = "\x1B[H\x1B[2J"
+        const pathStr =
+          node.type === "symlink" ? yellow(node.path) + dim(" -> ") + node.linkTarget : node.path
+        out += `\n  ${bold(pathStr)} ${dim("•")} ${dim(formatSize(node.size))}\n\n`
+
+        const visibleCount = Math.min(viewportHeight, lines.length - previewScrollOffset)
+        for (let i = 0; i < visibleCount; i++) {
+          const lineIdx = previewScrollOffset + i
+          const isCursorLine = lineIdx === previewCursor
+          const lineNum = dim(`  ${String(lineIdx + 1).padStart(lineNumWidth)}  `)
+          const lineContent = lines[lineIdx].slice(0, cols - lineNumWidth - 5)
+          let line = `${lineNum}${lineContent}`
+          if (isCursorLine) {
+            const pad = Math.max(0, cols - stripAnsi(line).length)
+            line = `\x1B[48;5;236m${line}${" ".repeat(pad)}\x1B[49m`
+          }
+          out += line + "\n"
+        }
+
+        // Pad remaining
+        for (let i = visibleCount; i < viewportHeight; i++) {
+          out += "\n"
+        }
+
+        out += "\n"
+        const scrollInfo =
+          lines.length > viewportHeight
+            ? dim(
+                `${previewScrollOffset + 1}-${Math.min(previewScrollOffset + viewportHeight, lines.length)}/${lines.length}`,
+              ) + dim(" • ")
+            : ""
+        const previewInstructions = dim("↑↓:navigate  esc/q:back")
+        out += `  ${scrollInfo}${previewInstructions}\n`
+
+        stream.write(out)
+      }
+
+      function onPreviewKey(buf: Buffer) {
+        const key = buf.toString()
+
+        if (key === "\x1B" || key === "q" || key === "Q" || key === "\r") {
+          stdin.removeListener("data", onPreviewKey)
+          stdin.on("data", onKey)
+          render()
+          return
+        }
+
+        if (key === "\x1B[A" || key === "k") {
+          if (previewCursor > 0) previewCursor--
+        }
+        if (key === "\x1B[B" || key === "j") {
+          if (previewCursor < lines.length - 1) previewCursor++
+        }
+
+        renderPreview()
+      }
+
+      stdin.removeListener("data", onKey)
+      stdin.on("data", onPreviewKey)
+      renderPreview()
     }
 
     function onKey(buf: Buffer) {
@@ -432,7 +579,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
           setSelected(item.node, newValue)
           // If symlink selected, also select the target (but don't deselect it)
           if (newValue && item.node.type === "symlink" && item.node.linkTarget) {
-            const targetPath = item.node.linkTarget.replace(/\/$/, "")
+            const targetPath = resolveSymlinkPath(item.node.path, item.node.linkTarget)
             const targetNode = findNodeByPath(tree, targetPath)
             if (targetNode) setSelected(targetNode, true)
           }
@@ -440,11 +587,35 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         }
       }
 
-      // Enter → toggle expand/collapse directory (tree items)
+      // Enter → expand/collapse directory, preview file, or jump to symlink target
       if (key === "\r" && cursor > 0) {
         const item = items[cursor - 1]
         if (item && item.node.type === "tree") {
           item.node.expanded = !item.node.expanded
+        } else if (item && item.node.type === "symlink" && item.node.linkTarget.endsWith("/")) {
+          // Symlink to folder - resolve relative path and jump to target
+          const targetPath = resolveSymlinkPath(item.node.path, item.node.linkTarget)
+          // Expand all ancestors so target is visible
+          const pathParts = targetPath.split("/")
+          for (let pi = 1; pi <= pathParts.length; pi++) {
+            const ancestorPath = pathParts.slice(0, pi).join("/")
+            const ancestor = findNodeByPath(tree, ancestorPath)
+            if (ancestor && ancestor.type === "tree") ancestor.expanded = true
+          }
+          const targetNode = findNodeByPath(tree, targetPath)
+          if (targetNode) {
+            if (targetNode.type === "tree") targetNode.expanded = true
+            const updatedItems = flatten(tree)
+            const targetIdx = updatedItems.findIndex((fi) => fi.node === targetNode)
+            if (targetIdx >= 0) cursor = targetIdx + 1 // +1 for dot row
+          }
+        } else if (
+          item &&
+          basePath &&
+          (item.node.type === "blob" || item.node.type === "symlink")
+        ) {
+          showPreview(item.node)
+          return
         }
       }
 
