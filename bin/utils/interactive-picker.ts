@@ -133,6 +133,17 @@ function setSelected(node: TreeNode, value: boolean) {
   }
 }
 
+function findNodeByPath(roots: TreeNode[], targetPath: string): TreeNode | null {
+  for (const node of roots) {
+    if (node.path === targetPath) return node
+    if (node.children.length) {
+      const found = findNodeByPath(node.children, targetPath)
+      if (found) return found
+    }
+  }
+  return null
+}
+
 function updateParentSelection(roots: TreeNode[]) {
   function walk(nodes: TreeNode[]): void {
     for (const node of nodes) {
@@ -175,15 +186,22 @@ function collectSelected(nodes: TreeNode[]): string[] {
   return paths
 }
 
-function countSelected(nodes: TreeNode[]): { files: number; folders: number; size: number } {
+function countSelected(nodes: TreeNode[]): {
+  files: number
+  folders: number
+  symlinks: number
+  size: number
+} {
   let files = 0
   let folders = 0
+  let symlinks = 0
   let size = 0
 
   function walk(nodeList: TreeNode[]) {
     for (const node of nodeList) {
       if (node.selected) {
         if (node.type === "tree") folders++
+        else if (node.type === "symlink") symlinks++
         else {
           files++
           size += node.size
@@ -194,7 +212,7 @@ function countSelected(nodes: TreeNode[]): { files: number; folders: number; siz
   }
 
   walk(nodes)
-  return { files, folders, size }
+  return { files, folders, symlinks, size }
 }
 
 const formatSize = (bytes: number) => {
@@ -286,7 +304,7 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       if (scrollOffset < 0) scrollOffset = 0
 
       const visible = items.slice(scrollOffset, scrollOffset + treeViewportHeight)
-      const { files, folders, size } = countSelected(tree)
+      const { files, folders, symlinks, size } = countSelected(tree)
 
       // Build output
       let out = "\x1B[H\x1B[2J" // cursor home + clear screen
@@ -349,10 +367,11 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       let statusLine: string
       if (allSelected) {
         statusLine = `  all selected ${dim("•")} ${dim(formatSize(size))}${scrollInfo}`
-      } else if (files + folders > 0) {
+      } else if (files + folders + symlinks > 0) {
         const countParts: string[] = []
         if (folders > 0) countParts.push(cyan(`${folders} folder${folders !== 1 ? "s" : ""}`))
         if (files > 0) countParts.push(`${files} file${files !== 1 ? "s" : ""}`)
+        if (symlinks > 0) countParts.push(yellow(`${symlinks} symlink${symlinks !== 1 ? "s" : ""}`))
         const metaParts: string[] = [countParts.join(" "), dim(formatSize(size))]
         statusLine = `  ${metaParts.join(dim(" • "))}${scrollInfo}`
       } else {
@@ -409,7 +428,14 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
       if (key === " " && cursor > 0) {
         const item = items[cursor - 1]
         if (item) {
-          setSelected(item.node, !item.node.selected)
+          const newValue = !item.node.selected
+          setSelected(item.node, newValue)
+          // If symlink, also select/deselect the target
+          if (item.node.type === "symlink" && item.node.linkTarget) {
+            const targetPath = item.node.linkTarget.replace(/\/$/, "")
+            const targetNode = findNodeByPath(tree, targetPath)
+            if (targetNode) setSelected(targetNode, newValue)
+          }
           updateParentSelection(tree)
         }
       }
