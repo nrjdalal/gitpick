@@ -134,10 +134,15 @@ const main = async () => {
         process.exit(0)
       }
 
-      if (await useConfig()) process.exit(0)
+      // `gitpick -i` with no args — browse cwd
+      if (values.interactive) {
+        positionals.push(".")
+      } else {
+        if (await useConfig()) process.exit(0)
 
-      console.log(helpMessage)
-      process.exit(0)
+        console.log(helpMessage)
+        process.exit(0)
+      }
     }
 
     if (positionals[0] === "clone") {
@@ -157,6 +162,156 @@ const main = async () => {
       overwrite: values.overwrite,
       recursive: values.recursive,
       watch: values.watch,
+    }
+
+    // Local directory interactive mode — detect local paths or
+    // non-URL-like positionals when -i is set (e.g. `gitpick -i target`)
+    const isLocalPath =
+      url === "." ||
+      url.startsWith("./") ||
+      url.startsWith("../") ||
+      url.startsWith("/") ||
+      url.startsWith("~/") ||
+      (options.interactive && !url.includes("/") && !url.includes(".") && !url.startsWith("http"))
+
+    if (isLocalPath && options.interactive) {
+      // If url doesn't look like a real path, it's the target (e.g. `gitpick -i hello`)
+      if (
+        !fs.existsSync(path.resolve(url.startsWith("~/") ? url.replace("~", os.homedir()) : url))
+      ) {
+        target = url
+        url = "."
+      }
+      if (!process.stdout.isTTY) {
+        throw new Error("Interactive mode requires a TTY")
+      }
+
+      const resolvedSource = path.resolve(
+        url.startsWith("~/") ? url.replace("~", os.homedir()) : url,
+      )
+
+      if (!fs.existsSync(resolvedSource)) {
+        throw new Error(`Directory not found: ${url}`)
+      }
+      if (!fs.statSync(resolvedSource).isDirectory()) {
+        throw new Error(`Not a directory: ${url}`)
+      }
+
+      const targetDir = target ? path.resolve(target) : null
+
+      const entries: TreeEntry[] = []
+      async function walkLocal(dir: string, rel: string) {
+        const items = await fs.promises.readdir(dir, { withFileTypes: true })
+        for (const item of items) {
+          if (item.name === ".git" || item.name === "node_modules") continue
+          const itemRel = rel ? `${rel}/${item.name}` : item.name
+          const itemPath = path.join(dir, item.name)
+          if (item.isSymbolicLink()) {
+            const linkTarget = await fs.promises.readlink(itemPath)
+            let resolvedIsDir = false
+            try {
+              resolvedIsDir = (await fs.promises.stat(itemPath)).isDirectory()
+            } catch {}
+            entries.push({
+              path: itemRel,
+              type: "symlink",
+              linkTarget: resolvedIsDir ? linkTarget + "/" : linkTarget,
+            })
+          } else if (item.isDirectory()) {
+            entries.push({ path: itemRel, type: "tree" })
+            await walkLocal(itemPath, itemRel)
+          } else {
+            const stat = await fs.promises.stat(itemPath)
+            entries.push({ path: itemRel, type: "blob", size: stat.size })
+          }
+        }
+      }
+      await walkLocal(resolvedSource, "")
+
+      if (!entries.length) {
+        console.log(yellow("\nDirectory is empty."))
+        process.exit(0)
+      }
+
+      const selected = await interactivePicker(
+        entries,
+        `${displayPath(resolvedSource)}`,
+        resolvedSource,
+      )
+
+      if (!selected.length) {
+        console.log("\nNo files selected.")
+        process.exit(0)
+      }
+
+      if (options.dryRun) {
+        console.log(
+          `\n${green("✔")} Would pick ${selected.length} path${selected.length !== 1 ? "s" : ""}:`,
+        )
+        for (const sel of selected) console.log(`  ${sel}`)
+        console.log()
+        process.exit(0)
+      }
+
+      if (!targetDir) {
+        // No target - just list selected paths
+        console.log(
+          `\n${green("✔")} Selected ${selected.length} path${selected.length !== 1 ? "s" : ""}:`,
+        )
+        for (const sel of selected) console.log(`  ${sel}`)
+        console.log()
+        process.exit(0)
+      }
+
+      if (path.resolve(resolvedSource) === path.resolve(targetDir)) {
+        throw new Error("Source and target directories are the same")
+      }
+
+      console.log(
+        `\n${green("✔")} Picking ${selected.length} selected path${selected.length !== 1 ? "s" : ""}...`,
+      )
+
+      options.overwrite = options.overwrite || options.force
+      if (fs.existsSync(targetDir) && !options.overwrite) {
+        if ((await fs.promises.readdir(targetDir)).length) {
+          console.log(
+            `${yellow(`\nWarning: The target directory exists at ${green(target!)} and is not empty. Use ${cyan("-f")} or ${cyan("-o")} to overwrite.`)}`,
+          )
+          process.exit(1)
+        }
+      }
+
+      await fs.promises.mkdir(targetDir, { recursive: true })
+
+      let copiedFiles = 0
+      for (const sel of selected) {
+        const src = path.join(resolvedSource, sel)
+        const dest = path.join(targetDir, sel)
+        const stat = await fs.promises.stat(src).catch(() => null)
+        if (!stat) continue
+
+        if (stat.isDirectory()) {
+          await fs.promises.mkdir(dest, { recursive: true })
+          const files = await copyDir(src, dest)
+          copiedFiles += files.length
+        } else {
+          await fs.promises.mkdir(path.dirname(dest), { recursive: true })
+          await fs.promises.copyFile(src, dest)
+          copiedFiles++
+        }
+      }
+
+      console.log(
+        green(
+          `✔ Copied ${copiedFiles} file${copiedFiles !== 1 ? "s" : ""} to ${displayPath(targetDir)}`,
+        ),
+      )
+      if (options.tree) {
+        process.stdout.write(`\n${bold(cyan(displayPath(targetDir)))}\n`)
+        await printTree(targetDir)
+        process.stdout.write("\n")
+      }
+      process.exit(0)
     }
 
     const silent = options.tree || options.quiet
