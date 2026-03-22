@@ -421,8 +421,10 @@ export function interactivePicker(
         content = dim("(unable to read file)")
       }
 
+      let previewCursor = 0
       let previewScrollOffset = 0
       const lines = content.split("\n")
+      const lineNumWidth = String(lines.length).length
 
       function renderPreview() {
         const rows = stream.rows || 24
@@ -431,19 +433,34 @@ export function interactivePicker(
         const footerLines = 3
         const viewportHeight = Math.max(1, rows - headerLines - footerLines)
 
+        // Adjust scroll to follow cursor
+        if (previewCursor < previewScrollOffset) previewScrollOffset = previewCursor
+        if (previewCursor >= previewScrollOffset + viewportHeight)
+          previewScrollOffset = previewCursor - viewportHeight + 1
+        if (previewScrollOffset < 0) previewScrollOffset = 0
+
         let out = "\x1B[H\x1B[2J"
         const nameStr =
           node.type === "symlink" ? yellow(node.name) + dim(" -> ") + node.linkTarget : node.name
         out += `\n  ${bold(nameStr)} ${dim(formatSize(node.size))}\n\n`
 
-        const visible = lines.slice(previewScrollOffset, previewScrollOffset + viewportHeight)
-        for (let i = 0; i < viewportHeight; i++) {
-          if (i < visible.length) {
-            const lineNum = dim(`${String(previewScrollOffset + i + 1).padStart(4)} `)
-            out += `${lineNum}${visible[i].slice(0, cols - 5)}\n`
-          } else {
-            out += "\n"
+        const visibleCount = Math.min(viewportHeight, lines.length - previewScrollOffset)
+        for (let i = 0; i < visibleCount; i++) {
+          const lineIdx = previewScrollOffset + i
+          const isCursorLine = lineIdx === previewCursor
+          const lineNum = dim(`${String(lineIdx + 1).padStart(lineNumWidth)}  `)
+          const lineContent = lines[lineIdx].slice(0, cols - lineNumWidth - 3)
+          let line = `${lineNum}${lineContent}`
+          if (isCursorLine) {
+            const pad = Math.max(0, cols - stripAnsi(line).length)
+            line = `\x1B[48;5;236m${line}${" ".repeat(pad)}\x1B[49m`
           }
+          out += line + "\n"
+        }
+
+        // Pad remaining
+        for (let i = visibleCount; i < viewportHeight; i++) {
+          out += "\n"
         }
 
         out += "\n"
@@ -453,7 +470,7 @@ export function interactivePicker(
                 `${previewScrollOffset + 1}-${Math.min(previewScrollOffset + viewportHeight, lines.length)}/${lines.length}`,
               )
             : ""
-        const previewInstructions = dim("↑↓:scroll  esc/q:back")
+        const previewInstructions = dim("↑↓:navigate  esc/q:back")
         out += scrollInfo
           ? `  ${scrollInfo}  ${previewInstructions}\n`
           : `  ${previewInstructions}\n`
@@ -463,8 +480,6 @@ export function interactivePicker(
 
       function onPreviewKey(buf: Buffer) {
         const key = buf.toString()
-        const rows = stream.rows || 24
-        const viewportHeight = Math.max(1, rows - 6)
 
         if (key === "\x1B" || key === "q" || key === "Q" || key === "\r") {
           stdin.removeListener("data", onPreviewKey)
@@ -474,10 +489,10 @@ export function interactivePicker(
         }
 
         if (key === "\x1B[A" || key === "k") {
-          if (previewScrollOffset > 0) previewScrollOffset--
+          if (previewCursor > 0) previewCursor--
         }
         if (key === "\x1B[B" || key === "j") {
-          if (previewScrollOffset < lines.length - viewportHeight) previewScrollOffset++
+          if (previewCursor < lines.length - 1) previewCursor++
         }
 
         renderPreview()
