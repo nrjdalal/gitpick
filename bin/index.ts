@@ -202,64 +202,87 @@ const main = async () => {
 
       const targetDir = target ? path.resolve(target) : null
 
-      const SKIP_DIRS = new Set([
-        ".git",
-        "node_modules",
-        ".next",
-        ".nuxt",
-        ".output",
-        ".vercel",
-        ".turbo",
-        "dist",
-        "build",
-        "out",
-        ".cache",
-        ".parcel-cache",
-        "coverage",
-        "target",
-        "vendor",
-        "__pycache__",
-        ".venv",
-        "venv",
-      ])
-
       const entries: TreeEntry[] = []
-      async function walkLocal(dir: string, rel: string) {
-        let items
-        try {
-          items = await fs.promises.readdir(dir, { withFileTypes: true })
-        } catch {
-          return // skip unreadable directories
+
+      // Try git ls-files first (respects .gitignore)
+      let usedGit = false
+      try {
+        const result = await spawn(
+          "git",
+          ["ls-files", "--cached", "--others", "--exclude-standard"],
+          {
+            cwd: resolvedSource,
+          },
+        )
+        const files = result.stdout.trim().split("\n").filter(Boolean)
+        for (const file of files) {
+          const parts = file.split("/")
+          // Add parent directories
+          for (let i = 1; i < parts.length; i++) {
+            const dirPath = parts.slice(0, i).join("/")
+            if (!entries.some((e) => e.path === dirPath)) {
+              entries.push({ path: dirPath, type: "tree" })
+            }
+          }
+          const filePath = path.join(resolvedSource, file)
+          try {
+            const stat = await fs.promises.lstat(filePath)
+            if (stat.isSymbolicLink()) {
+              const linkTarget = await fs.promises.readlink(filePath)
+              let resolvedIsDir = false
+              try {
+                resolvedIsDir = (await fs.promises.stat(filePath)).isDirectory()
+              } catch {}
+              entries.push({
+                path: file,
+                type: "symlink",
+                linkTarget: resolvedIsDir ? linkTarget + "/" : linkTarget,
+              })
+            } else {
+              entries.push({ path: file, type: "blob", size: stat.size })
+            }
+          } catch {}
         }
-        for (const item of items) {
-          if (SKIP_DIRS.has(item.name)) continue
-          const itemRel = rel ? `${rel}/${item.name}` : item.name
-          const itemPath = path.join(dir, item.name)
-          if (item.isSymbolicLink()) {
-            const linkTarget = await fs.promises.readlink(itemPath)
-            let resolvedIsDir = false
-            try {
-              resolvedIsDir = (await fs.promises.stat(itemPath)).isDirectory()
-            } catch {}
-            entries.push({
-              path: itemRel,
-              type: "symlink",
-              linkTarget: resolvedIsDir ? linkTarget + "/" : linkTarget,
-            })
-          } else if (item.isDirectory()) {
-            entries.push({ path: itemRel, type: "tree" })
-            await walkLocal(itemPath, itemRel)
-          } else {
-            try {
-              const stat = await fs.promises.stat(itemPath)
-              entries.push({ path: itemRel, type: "blob", size: stat.size })
-            } catch {
-              // skip unreadable files
+        usedGit = true
+      } catch {}
+
+      // Fallback: walk directory manually (skip .git only)
+      if (!usedGit) {
+        async function walkLocal(dir: string, rel: string) {
+          let items
+          try {
+            items = await fs.promises.readdir(dir, { withFileTypes: true })
+          } catch {
+            return
+          }
+          for (const item of items) {
+            if (item.name === ".git") continue
+            const itemRel = rel ? `${rel}/${item.name}` : item.name
+            const itemPath = path.join(dir, item.name)
+            if (item.isSymbolicLink()) {
+              const linkTarget = await fs.promises.readlink(itemPath)
+              let resolvedIsDir = false
+              try {
+                resolvedIsDir = (await fs.promises.stat(itemPath)).isDirectory()
+              } catch {}
+              entries.push({
+                path: itemRel,
+                type: "symlink",
+                linkTarget: resolvedIsDir ? linkTarget + "/" : linkTarget,
+              })
+            } else if (item.isDirectory()) {
+              entries.push({ path: itemRel, type: "tree" })
+              await walkLocal(itemPath, itemRel)
+            } else {
+              try {
+                const stat = await fs.promises.stat(itemPath)
+                entries.push({ path: itemRel, type: "blob", size: stat.size })
+              } catch {}
             }
           }
         }
+        await walkLocal(resolvedSource, "")
       }
-      await walkLocal(resolvedSource, "")
 
       if (!entries.length) {
         console.log(yellow("\nDirectory is empty."))
