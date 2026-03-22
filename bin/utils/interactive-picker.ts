@@ -582,9 +582,16 @@ export function interactivePicker(
         } else if (item && item.node.type === "symlink" && item.node.linkTarget.endsWith("/")) {
           // Symlink to folder - resolve relative path and jump to target
           const targetPath = resolveSymlinkPath(item.node.path, item.node.linkTarget)
+          // Expand all ancestors so target is visible
+          const pathParts = targetPath.split("/")
+          for (let pi = 1; pi <= pathParts.length; pi++) {
+            const ancestorPath = pathParts.slice(0, pi).join("/")
+            const ancestor = findNodeByPath(tree, ancestorPath)
+            if (ancestor && ancestor.type === "tree") ancestor.expanded = true
+          }
           const targetNode = findNodeByPath(tree, targetPath)
           if (targetNode) {
-            targetNode.expanded = true
+            if (targetNode.type === "tree") targetNode.expanded = true
             const updatedItems = flatten(tree)
             const targetIdx = updatedItems.findIndex((fi) => fi.node === targetNode)
             if (targetIdx >= 0) cursor = targetIdx + 1 // +1 for dot row
