@@ -1,5 +1,17 @@
 # Changelog
 
+## v5.3.0 (2026-03-22)
+
+- **File preview** - press enter on a file to view its content with line numbers and cursor navigation
+- **Syntax highlighting** - 38 languages via vendored `@speed-highlight/core` (zero runtime deps)
+- File sizes shown right-aligned in tree view (files and folders)
+- Full file path shown in preview header
+- Enter on symlink-to-folder jumps cursor to target and expands ancestors
+- Relative symlink paths resolved correctly for preview and selection
+- Ctrl-C works in preview mode
+- Terminal resize handled correctly in preview mode
+- ANSI-aware line truncation prevents color bleed
+
 ## v5.2.0 (2026-03-22)
 
 - Symlinks counted separately and shown in yellow in footer
