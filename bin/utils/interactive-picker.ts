@@ -387,8 +387,8 @@ export function interactivePicker(entries: TreeEntry[], label: string): Promise<
         if (cursor < totalRows - 1) cursor++
       }
 
-      // Space or Enter on dot row → toggle select all
-      if (cursor === 0 && (key === " " || key === "\r")) {
+      // Space or Enter on dot row, or . anywhere → toggle select all
+      if ((cursor === 0 && (key === " " || key === "\r")) || key === ".") {
         const allSelected = tree.every((n) => n.selected)
         for (const node of tree) setSelected(node, !allSelected)
       }
