@@ -172,7 +172,10 @@ const main = async () => {
       url.startsWith("../") ||
       url.startsWith("/") ||
       url.startsWith("~/") ||
-      (options.interactive && !url.includes("/") && !url.includes(".") && !url.startsWith("http"))
+      (options.interactive &&
+        !url.includes("/") &&
+        !url.startsWith("http") &&
+        !url.startsWith("git@"))
 
     if (isLocalPath && options.interactive) {
       // If url doesn't look like a real path, it's the target (e.g. `gitpick -i hello`)
@@ -199,11 +202,37 @@ const main = async () => {
 
       const targetDir = target ? path.resolve(target) : null
 
+      const SKIP_DIRS = new Set([
+        ".git",
+        "node_modules",
+        ".next",
+        ".nuxt",
+        ".output",
+        ".vercel",
+        ".turbo",
+        "dist",
+        "build",
+        "out",
+        ".cache",
+        ".parcel-cache",
+        "coverage",
+        "target",
+        "vendor",
+        "__pycache__",
+        ".venv",
+        "venv",
+      ])
+
       const entries: TreeEntry[] = []
       async function walkLocal(dir: string, rel: string) {
-        const items = await fs.promises.readdir(dir, { withFileTypes: true })
+        let items
+        try {
+          items = await fs.promises.readdir(dir, { withFileTypes: true })
+        } catch {
+          return // skip unreadable directories
+        }
         for (const item of items) {
-          if (item.name === ".git" || item.name === "node_modules") continue
+          if (SKIP_DIRS.has(item.name)) continue
           const itemRel = rel ? `${rel}/${item.name}` : item.name
           const itemPath = path.join(dir, item.name)
           if (item.isSymbolicLink()) {
@@ -221,8 +250,12 @@ const main = async () => {
             entries.push({ path: itemRel, type: "tree" })
             await walkLocal(itemPath, itemRel)
           } else {
-            const stat = await fs.promises.stat(itemPath)
-            entries.push({ path: itemRel, type: "blob", size: stat.size })
+            try {
+              const stat = await fs.promises.stat(itemPath)
+              entries.push({ path: itemRel, type: "blob", size: stat.size })
+            } catch {
+              // skip unreadable files
+            }
           }
         }
       }
@@ -263,8 +296,12 @@ const main = async () => {
         process.exit(0)
       }
 
-      if (path.resolve(resolvedSource) === path.resolve(targetDir)) {
+      const resolvedTarget = path.resolve(targetDir)
+      if (resolvedSource === resolvedTarget) {
         throw new Error("Source and target directories are the same")
+      }
+      if (resolvedTarget.startsWith(resolvedSource + path.sep)) {
+        throw new Error("Target directory is inside the source directory")
       }
 
       console.log(
