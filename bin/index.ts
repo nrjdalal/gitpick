@@ -392,7 +392,7 @@ const main = async () => {
 
     if (!silent) {
       console.log(
-        `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches,\ncommits and much more from GitHub, GitLab and Bitbucket!`,
+        `\nWith ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific files, folders, branches,\ncommits and much more from GitHub, GitLab, Bitbucket and Codeberg!`,
       )
     }
 
