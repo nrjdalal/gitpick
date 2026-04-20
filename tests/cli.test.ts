@@ -1033,6 +1033,34 @@ describe("CLI flags", () => {
     expect(exitCode).toBe(0)
     expect(parseLine(output)).toContain("nrjdalal/picksuite repository:main")
   }, 30000)
+
+  it("--help includes --init", async () => {
+    const { output, exitCode } = await run(["--help"])
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output)).toContain("--init")
+  })
+})
+
+describe("--init", () => {
+  it("initializes git repository for directory clone", async () => {
+    const t = target()
+    const { exitCode } = await run(["clone", "nrjdalal/picksuite/tree/main/folder", t, "--init"])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+  }, 30000)
+
+  it("initializes git repository in parent dir for blob clone", async () => {
+    const t = target()
+    const blobTarget = join(t, "renamed.txt")
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      blobTarget,
+      "--init",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+  }, 30000)
 })
 
 // =====================================================================

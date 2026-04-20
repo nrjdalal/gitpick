@@ -33,6 +33,7 @@ ${bold("Arguments:")}
 
 ${bold("Options:")}
   ${cyan("-b, --branch ")}      Branch/SHA to clone
+  ${cyan("    --init")}         Initialize target as a new git repository
   ${cyan("-i, --interactive")}  Browse and pick files/folders interactively
   ${cyan("-n, --dry-run")}      Show what would be cloned without cloning
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
@@ -106,6 +107,15 @@ const parse: typeof parseArgs = (config) => {
   }
 }
 
+const initGitRepo = async (targetPath: string, type: string, options: { init?: boolean }) => {
+  if (!options.init) return
+
+  const repoPath = type === "blob" ? path.dirname(targetPath) : targetPath
+  if (fs.existsSync(path.join(repoPath, ".git"))) return
+
+  await spawn("git", ["init"], { cwd: repoPath })
+}
+
 const main = async () => {
   scheduleUpdateCheck()
 
@@ -117,6 +127,7 @@ const main = async () => {
         "dry-run": { type: "boolean", short: "n" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
+        init: { type: "boolean" },
         interactive: { type: "boolean", short: "i" },
         quiet: { type: "boolean", short: "q" },
         tree: { type: "boolean" },
@@ -155,6 +166,7 @@ const main = async () => {
       branch: values.branch,
       dryRun: values["dry-run"],
       force: values.force,
+      init: values.init,
       interactive: values.interactive,
       quiet: values.quiet,
       tree: values.tree,
@@ -384,6 +396,7 @@ const main = async () => {
         await printTree(targetDir)
         process.stdout.write("\n")
       }
+      await initGitRepo(targetDir, "repository", options)
       process.exit(0)
     }
 
@@ -565,6 +578,7 @@ const main = async () => {
           `✔ Copied ${copiedFiles} file${copiedFiles !== 1 ? "s" : ""} to ${displayPath(targetPath)}`,
         ),
       )
+      await initGitRepo(targetPath, "repository", options)
       if (options.tree) {
         process.stdout.write(`\n${bold(cyan(displayPath(targetPath)))}\n`)
         await printTree(targetPath)
@@ -624,14 +638,17 @@ const main = async () => {
       if (!silent)
         console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
       await cloneAction(config, options, targetPath)
+      await initGitRepo(targetPath, config.type, options)
       if (options.tree) await renderTree(targetPath)
       const watchInterval = parseTimeString(options.watch)
       setInterval(async () => {
         await cloneAction(config, options, targetPath)
+        await initGitRepo(targetPath, config.type, options)
         if (options.tree) await renderTree(targetPath)
       }, watchInterval)
     } else {
       await cloneAction(config, options, targetPath)
+      await initGitRepo(targetPath, config.type, options)
       if (options.tree) await renderTree(targetPath)
       notifyUpdate(version, silent)
       process.exit(0)
