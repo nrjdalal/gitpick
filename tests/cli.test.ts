@@ -1061,6 +1061,40 @@ describe("--init", () => {
     expect(exitCode).toBe(0)
     expect(existsSync(join(t, ".git"))).toBe(true)
   }, 30000)
+
+  it("creates initial commit for directory clone", async () => {
+    const t = target()
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--init",
+      "--commit",
+      "Initial commit",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+    const proc = Bun.spawn(["git", "log", "--oneline"], { stdout: "pipe", cwd: t })
+    const log = await new Response(proc.stdout).text()
+    expect(log).toContain("Initial commit")
+  }, 30000)
+
+  it("creates initial commit in parent dir for blob clone (--commit implies --init)", async () => {
+    const t = target()
+    const blobTarget = join(t, "renamed.txt")
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      blobTarget,
+      "--commit",
+      "feat: initial scaffold",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+    const proc = Bun.spawn(["git", "log", "--oneline"], { stdout: "pipe", cwd: t })
+    const log = await new Response(proc.stdout).text()
+    expect(log).toContain("feat: initial scaffold")
+  }, 30000)
 })
 
 // =====================================================================

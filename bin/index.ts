@@ -34,6 +34,7 @@ ${bold("Arguments:")}
 ${bold("Options:")}
   ${cyan("-b, --branch ")}      Branch/SHA to clone
   ${cyan("    --init")}         Initialize target as a new git repository
+  ${cyan("-m, --commit <msg>")}  Stage all files and create initial git commit
   ${cyan("-i, --interactive")}  Browse and pick files/folders interactively
   ${cyan("-n, --dry-run")}      Show what would be cloned without cloning
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
@@ -107,13 +108,22 @@ const parse: typeof parseArgs = (config) => {
   }
 }
 
-const initGitRepo = async (targetPath: string, type: string, options: { init?: boolean }) => {
-  if (!options.init) return
+const initGitRepo = async (
+  targetPath: string,
+  type: string,
+  options: { init?: boolean; commit?: string },
+) => {
+  if (!options.init && !options.commit) return
 
   const repoPath = type === "blob" ? path.dirname(targetPath) : targetPath
-  if (fs.existsSync(path.join(repoPath, ".git"))) return
+  if (!fs.existsSync(path.join(repoPath, ".git"))) {
+    await spawn("git", ["init"], { cwd: repoPath })
+  }
 
-  await spawn("git", ["init"], { cwd: repoPath })
+  if (options.commit) {
+    await spawn("git", ["add", "."], { cwd: repoPath })
+    await spawn("git", ["commit", "-m", options.commit], { cwd: repoPath })
+  }
 }
 
 const main = async () => {
@@ -128,6 +138,7 @@ const main = async () => {
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
         init: { type: "boolean" },
+        commit: { type: "string", short: "m" },
         interactive: { type: "boolean", short: "i" },
         quiet: { type: "boolean", short: "q" },
         tree: { type: "boolean" },
@@ -167,6 +178,7 @@ const main = async () => {
       dryRun: values["dry-run"],
       force: values.force,
       init: values.init,
+      commit: values.commit,
       interactive: values.interactive,
       quiet: values.quiet,
       tree: values.tree,

@@ -89,6 +89,7 @@ npx gitpick owner/repo -i --dry-run
 - 🔐 Seamlessly works with both public and private repositories using a PAT
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
 - 🧱 Initialize cloned output as a new git repo with `--init`
+- 💾 Stage and create an initial git commit with `-m`/`--commit <msg>` (implies `--init`)
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
 - 🌳 View cloned file structure as a colored tree with `--tree`
 - 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
@@ -117,6 +118,7 @@ npx gitpick <url/shorthand>                         # default git behavior
 npx gitpick <url/shorthand> [target]                # with optional target
 npx gitpick <url/shorthand> -b [branch/SHA]         # branch or commit SHA
 npx gitpick <url/shorthand> --init                  # initialize as a new git repository
+npx gitpick <url/shorthand> --commit "Initial commit"  # init + stage + initial commit
 npx gitpick <url/shorthand> -o                      # overwrite if exists
 npx gitpick <url/shorthand> -r                      # clone submodules
 npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
@@ -135,6 +137,7 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 ```
 -b, --branch       Branch/SHA to clone
 -    --init        Initialize target as a new git repository
+-m, --commit <msg> Stage all files and create initial git commit
 -i, --interactive  Browse and pick files/folders interactively
 -n, --dry-run      Show what would be cloned without cloning
 -o, --overwrite    Skip overwrite prompt
