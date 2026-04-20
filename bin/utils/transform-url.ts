@@ -1,6 +1,6 @@
 import { getDefaultBranch } from "@/utils/get-default-branch"
 
-type Host = "github.com" | "gitlab.com" | "bitbucket.org"
+type Host = "github.com" | "gitlab.com" | "bitbucket.org" | "codeberg.org"
 
 const PREFIXES: { prefix: string; host: Host }[] = [
   { prefix: "git@github.com:", host: "github.com" },
@@ -10,6 +10,8 @@ const PREFIXES: { prefix: string; host: Host }[] = [
   { prefix: "https://gitlab.com/", host: "gitlab.com" },
   { prefix: "git@bitbucket.org:", host: "bitbucket.org" },
   { prefix: "https://bitbucket.org/", host: "bitbucket.org" },
+  { prefix: "git@codeberg.org:", host: "codeberg.org" },
+  { prefix: "https://codeberg.org/", host: "codeberg.org" },
 ]
 
 export async function configFromUrl(
@@ -22,7 +24,7 @@ export async function configFromUrl(
     target?: string | null
   },
 ) {
-  const tokenRegex = /^https:\/\/([^@]+)@(github\.com|gitlab\.com|bitbucket\.org)/
+  const tokenRegex = /^https:\/\/([^@]+)@(github\.com|gitlab\.com|bitbucket\.org|codeberg\.org)/
   const tokenMatch = url.match(tokenRegex)
 
   let token = ""
@@ -34,6 +36,7 @@ export async function configFromUrl(
       "github.com": process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "",
       "gitlab.com": process.env.GITLAB_TOKEN || "",
       "bitbucket.org": process.env.BITBUCKET_TOKEN || "",
+      "codeberg.org": process.env.CODEBERG_TOKEN || "",
     }
     // Detect host early to pick the right env var
     for (const { prefix, host: h } of PREFIXES) {
@@ -108,12 +111,23 @@ export async function configFromUrl(
       resolvedBranch = branch || (await getDefaultBranch(repoUrl))
       resolvedPath = ""
     }
-  } else {
+  } else if (host === "bitbucket.org") {
     // bitbucket.org — uses /src/branch/path for both files and dirs
     if (split[2] === "src") {
       type = "tree"
       resolvedBranch = branch || split[3]
       resolvedPath = split.slice(4).join("/")
+    } else {
+      type = "repository"
+      resolvedBranch = branch || (await getDefaultBranch(repoUrl))
+      resolvedPath = ""
+    }
+  } else {
+    // codeberg.org — uses /src/branch|tag|commit/<ref>/path for both files and dirs
+    if (split[2] === "src" && ["branch", "tag", "commit"].includes(split[3])) {
+      type = "tree"
+      resolvedBranch = branch || split[4]
+      resolvedPath = split.slice(5).join("/")
     } else {
       type = "repository"
       resolvedBranch = branch || (await getDefaultBranch(repoUrl))

@@ -19,7 +19,7 @@ import { name, version } from "~/package.json"
 const terminalLink = (text: string, url: string) => `\x1b]8;;${url}\x07${text}\x1b]8;;\x07`
 
 const helpMessage = `
-With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific directories or files from GitHub, GitLab and Bitbucket!
+With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)} clone specific directories or files from GitHub, GitLab, Bitbucket and Codeberg!
 
   $ gitpick ${yellow("<url>")} ${green("[target]")} ${cyan("[options]")}
 
@@ -28,7 +28,7 @@ ${bold("Hint:")}
   GitPick fallbacks to the default behavior of \`git clone\`
 
 ${bold("Arguments:")}
-  ${yellow("url")}                GitHub/GitLab/Bitbucket URL with path to file/folder/repository
+  ${yellow("url")}                GitHub/GitLab/Bitbucket/Codeberg URL with path to file/folder/repository
   ${green("target")}             Directory to clone into (optional)
 
 ${bold("Options:")}
@@ -54,7 +54,8 @@ ${bold("Examples:")}
   $ gitpick <url> --dry-run
   $ gitpick https://gitlab.com/owner/repo
   $ gitpick https://bitbucket.org/owner/repo
-  
+  $ gitpick https://codeberg.org/owner/repo
+
 🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
 
 const displayPath = (targetPath: string) => {

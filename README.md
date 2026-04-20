@@ -11,7 +11,7 @@
 
 📦 `Zero dependencies` / `Un/packed (~67/25kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
-> #### Just `copy-and-paste` any GitHub, GitLab or Bitbucket URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
+> #### Just `copy-and-paste` any GitHub, GitLab, Bitbucket or Codeberg URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
 
 Unlike other tools that force you to tweak URLs or follow strict formats to clone files, folders, branches or commits GitPick works seamlessly with any URL.
 
@@ -73,6 +73,9 @@ npx gitpick https://gitlab.com/owner/repo/-/tree/main/path/to/folder
 # clone from Bitbucket
 npx gitpick https://bitbucket.org/owner/repo
 npx gitpick https://bitbucket.org/owner/repo/src/main/path/to/folder
+# clone from Codeberg
+npx gitpick https://codeberg.org/owner/repo
+npx gitpick https://codeberg.org/owner/repo/src/branch/main/path/to/folder
 # dry run (preview without cloning)
 npx gitpick owner/repo --dry-run
 npx gitpick owner/repo -i --dry-run
@@ -82,7 +85,7 @@ npx gitpick owner/repo -i --dry-run
 
 ## ✨ Features
 
-- 🔍 Clone individual files or folders from GitHub, GitLab and Bitbucket
+- 🔍 Clone individual files or folders from GitHub, GitLab, Bitbucket and Codeberg
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
 - ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - **🔥 Interactive mode** - browse and cherry-pick files/folders with `-i` | `--interactive`
@@ -122,6 +125,7 @@ npx gitpick <url/shorthand> --dry-run               # preview without cloning
 npx gitpick https://<token>@github.com/owner/repo   # private repository
 npx gitpick https://gitlab.com/owner/repo           # GitLab
 npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
+npx gitpick https://codeberg.org/owner/repo         # Codeberg
 ```
 
 <img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
@@ -156,22 +160,24 @@ npx gitpick owner/repo -i
 npx gitpick owner/repo -i -b canary
 npx gitpick https://github.com/owner/repo -i
 npx gitpick https://gitlab.com/owner/repo -i
+npx gitpick https://codeberg.org/owner/repo -i
 ```
 
 <img width="720" alt="Interactive Mode" src="https://github.com/user-attachments/assets/9d6f4db7-ed84-4783-b815-0267719b3a52" />
 
-Navigate with arrow keys, select with space, expand/collapse with enter, `.` to select all, `c` to confirm. Works with GitHub, GitLab, Bitbucket, public and private repos.
+Navigate with arrow keys, select with space, expand/collapse with enter, `.` to select all, `c` to confirm. Works with GitHub, GitLab, Bitbucket, Codeberg, public and private repos.
 
 ---
 
 ## 🔐 Private Repos
 
-Use a personal access token with read-only contents permission. Works with GitHub, GitLab and Bitbucket:
+Use a personal access token with read-only contents permission. Works with GitHub, GitLab, Bitbucket and Codeberg:
 
 ```sh
 npx gitpick https://<token>@github.com/owner/repo
 npx gitpick https://<token>@gitlab.com/owner/repo
 npx gitpick https://<token>@bitbucket.org/owner/repo
+npx gitpick https://<token>@codeberg.org/owner/repo
 ```
 
 Or use environment variables (recommended for CI):
@@ -180,6 +186,7 @@ Or use environment variables (recommended for CI):
 export GITHUB_TOKEN=ghp_xxxx    # or GH_TOKEN
 export GITLAB_TOKEN=glpat-xxxx
 export BITBUCKET_TOKEN=xxxx
+export CODEBERG_TOKEN=xxxx
 
 npx gitpick owner/private-repo  # token is picked up automatically
 ```
@@ -223,6 +230,9 @@ Create a `.gitpick.json` or `.gitpick.jsonc` in your project to pick multiple fi
   // Bitbucket
   "https://bitbucket.org/owner/repo",
   "https://bitbucket.org/owner/repo/src/main/path/to/folder",
+  // Codeberg
+  "https://codeberg.org/owner/repo",
+  "https://codeberg.org/owner/repo/src/branch/main/path/to/folder",
 ]
 ```
 
