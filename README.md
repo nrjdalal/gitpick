@@ -118,7 +118,7 @@ npx gitpick <url/shorthand>                         # default git behavior
 npx gitpick <url/shorthand> [target]                # with optional target
 npx gitpick <url/shorthand> -b [branch/SHA]         # branch or commit SHA
 npx gitpick <url/shorthand> --init                  # initialize as a new git repository
-npx gitpick <url/shorthand> --commit "Initial commit"  # init + stage + initial commit
+npx gitpick <url/shorthand> --commit "init commit"  # init + stage + initial commit
 npx gitpick <url/shorthand> -o                      # overwrite if exists
 npx gitpick <url/shorthand> -r                      # clone submodules
 npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
