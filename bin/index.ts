@@ -116,6 +116,14 @@ const initGitRepo = async (
   if (!options.init && !options.commit) return
 
   const repoPath = type === "blob" ? path.dirname(targetPath) : targetPath
+
+  if (type === "blob" && repoPath === process.cwd()) {
+    console.log(
+      `\n✖ Skipping git init: Cannot initialize a git repository for a single file in the current working directory.`,
+    )
+    return
+  }
+
   if (!fs.existsSync(path.join(repoPath, ".git"))) {
     await spawn("git", ["init"], { cwd: repoPath })
   }
