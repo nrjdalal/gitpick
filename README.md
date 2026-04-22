@@ -136,7 +136,7 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 
 ```
 -b, --branch       Branch/SHA to clone
--    --init        Initialize target as a new git repository
+    --init         Initialize target as a new git repository
 -m, --commit <msg> Stage all files and create initial git commit
 -i, --interactive  Browse and pick files/folders interactively
 -n, --dry-run      Show what would be cloned without cloning

@@ -34,7 +34,7 @@ ${bold("Arguments:")}
 ${bold("Options:")}
   ${cyan("-b, --branch ")}      Branch/SHA to clone
   ${cyan("    --init")}         Initialize target as a new git repository
-  ${cyan("-m, --commit <msg>")}  Stage all files and create initial git commit
+  ${cyan("-m, --commit <msg>")} Stage all files and create initial git commit
   ${cyan("-i, --interactive")}  Browse and pick files/folders interactively
   ${cyan("-n, --dry-run")}      Show what would be cloned without cloning
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
