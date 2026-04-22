@@ -139,7 +139,18 @@ const main = async () => {
   scheduleUpdateCheck()
 
   try {
+    // parseArgs lacks optional strings. To stay zero-dependency, we inject
+    // a default "init awesomeness" when --commit is passed without a value.
+    const args = process.argv.slice(2).reduce((acc, arg, i, arr) => {
+      acc.push(arg)
+      if ((arg === "-m" || arg === "--commit") && (!arr[i + 1] || arr[i + 1].startsWith("-"))) {
+        acc.push("init awesomeness")
+      }
+      return acc
+    }, [] as string[])
+
     const { positionals, values } = parse({
+      args,
       allowPositionals: true,
       options: {
         branch: { type: "string", short: "b" },
