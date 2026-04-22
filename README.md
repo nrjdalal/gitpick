@@ -151,6 +151,8 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 -v, --version      display the version number
 ```
 
+> **Note on `--commit`:** When cloning a single file (`blob`) into an existing non-empty directory, the automated `git add .` command will stage and commit all unrelated files currently present in that directory alongside the cloned file.
+
 ---
 
 ## 🔥 Interactive Mode
