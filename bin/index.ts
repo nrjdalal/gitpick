@@ -33,6 +33,8 @@ ${bold("Arguments:")}
 
 ${bold("Options:")}
   ${cyan("-b, --branch ")}      Branch/SHA to clone
+  ${cyan("    --init")}         Initialize target as a new git repository
+  ${cyan("-m, --commit <msg>")} Stage all files and create initial git commit
   ${cyan("-i, --interactive")}  Browse and pick files/folders interactively
   ${cyan("-n, --dry-run")}      Show what would be cloned without cloning
   ${cyan("-o, --overwrite")}    Skip overwrite prompt
@@ -54,7 +56,7 @@ ${bold("Examples:")}
   $ gitpick <url> --dry-run
   $ gitpick https://gitlab.com/owner/repo
   $ gitpick https://bitbucket.org/owner/repo
-  
+
 🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
 
 const displayPath = (targetPath: string) => {
@@ -106,17 +108,57 @@ const parse: typeof parseArgs = (config) => {
   }
 }
 
+const initGitRepo = async (targetPath: string, options: { init?: boolean; commit?: string }) => {
+  if (!options.init && !options.commit) return
+
+  const isFile = fs.existsSync(targetPath) && fs.statSync(targetPath).isFile()
+  const repoPath = isFile ? path.dirname(targetPath) : targetPath
+
+  if (isFile && repoPath === process.cwd()) {
+    console.log(
+      `\n✖ Skipping git init: Cannot initialize a git repository for a single file in the current working directory.`,
+    )
+    return
+  }
+
+  if (!fs.existsSync(path.join(repoPath, ".git"))) {
+    await spawn("git", ["init"], { cwd: repoPath })
+  }
+
+  if (options.commit) {
+    await spawn("git", ["add", "."], { cwd: repoPath })
+    try {
+      await spawn("git", ["commit", "-m", options.commit], { cwd: repoPath })
+    } catch {
+      console.log(`\n✖ git commit failed — configure user.name / user.email`)
+    }
+  }
+}
+
 const main = async () => {
   scheduleUpdateCheck()
 
   try {
+    // parseArgs lacks optional strings. To stay zero-dependency, we inject
+    // a default "init awesomeness" when --commit is passed without a value.
+    const args = process.argv.slice(2).reduce((acc, arg, i, arr) => {
+      acc.push(arg)
+      if ((arg === "-m" || arg === "--commit") && (!arr[i + 1] || arr[i + 1].startsWith("-"))) {
+        acc.push("init awesomeness")
+      }
+      return acc
+    }, [] as string[])
+
     const { positionals, values } = parse({
+      args,
       allowPositionals: true,
       options: {
         branch: { type: "string", short: "b" },
         "dry-run": { type: "boolean", short: "n" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
+        init: { type: "boolean" },
+        commit: { type: "string", short: "m" },
         interactive: { type: "boolean", short: "i" },
         quiet: { type: "boolean", short: "q" },
         tree: { type: "boolean" },
@@ -155,6 +197,8 @@ const main = async () => {
       branch: values.branch,
       dryRun: values["dry-run"],
       force: values.force,
+      init: values.init,
+      commit: values.commit,
       interactive: values.interactive,
       quiet: values.quiet,
       tree: values.tree,
@@ -384,6 +428,7 @@ const main = async () => {
         await printTree(targetDir)
         process.stdout.write("\n")
       }
+      await initGitRepo(targetDir, options)
       process.exit(0)
     }
 
@@ -565,6 +610,7 @@ const main = async () => {
           `✔ Copied ${copiedFiles} file${copiedFiles !== 1 ? "s" : ""} to ${displayPath(targetPath)}`,
         ),
       )
+      await initGitRepo(targetPath, options)
       if (options.tree) {
         process.stdout.write(`\n${bold(cyan(displayPath(targetPath)))}\n`)
         await printTree(targetPath)
@@ -624,6 +670,7 @@ const main = async () => {
       if (!silent)
         console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
       await cloneAction(config, options, targetPath)
+      await initGitRepo(targetPath, options)
       if (options.tree) await renderTree(targetPath)
       const watchInterval = parseTimeString(options.watch)
       setInterval(async () => {
@@ -632,6 +679,7 @@ const main = async () => {
       }, watchInterval)
     } else {
       await cloneAction(config, options, targetPath)
+      await initGitRepo(targetPath, options)
       if (options.tree) await renderTree(targetPath)
       notifyUpdate(version, silent)
       process.exit(0)

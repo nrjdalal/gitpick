@@ -1033,6 +1033,126 @@ describe("CLI flags", () => {
     expect(exitCode).toBe(0)
     expect(parseLine(output)).toContain("nrjdalal/picksuite repository:main")
   }, 30000)
+
+  it("--help includes --init", async () => {
+    const { output, exitCode } = await run(["--help"])
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output)).toContain("--init")
+  })
+})
+
+describe("--init", () => {
+  it("initializes git repository for directory clone", async () => {
+    const t = target()
+    const { exitCode } = await run(["clone", "nrjdalal/picksuite/tree/main/folder", t, "--init"])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+  }, 30000)
+
+  it("initializes git repository in parent dir for blob clone", async () => {
+    const t = target()
+    const blobTarget = join(t, "renamed.txt")
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      blobTarget,
+      "--init",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+  }, 30000)
+
+  it("creates initial commit for directory clone", async () => {
+    const t = target()
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--init",
+      "--commit",
+      "Initial commit",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+    const proc = Bun.spawn(["git", "log", "--oneline"], { stdout: "pipe", cwd: t })
+    const log = await new Response(proc.stdout).text()
+    expect(log).toContain("Initial commit")
+  }, 30000)
+
+  it("creates initial commit in parent dir for blob clone (--commit implies --init)", async () => {
+    const t = target()
+    const blobTarget = join(t, "renamed.txt")
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      blobTarget,
+      "--commit",
+      "feat: initial scaffold",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+    const proc = Bun.spawn(["git", "log", "--oneline"], { stdout: "pipe", cwd: t })
+    const log = await new Response(proc.stdout).text()
+    expect(log).toContain("feat: initial scaffold")
+  }, 30000)
+
+  it("idempotency: calling --init when .git already exists should not error", async () => {
+    const t = target()
+    mkdirSync(join(t, ".git"), { recursive: true })
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--init",
+      "-o",
+    ])
+    expect(exitCode).toBe(0)
+  }, 30000)
+
+  it("--commit without git user config — confirms the error surface", async () => {
+    const t = target()
+    const proc = Bun.spawn(
+      [...CLI, "clone", "nrjdalal/picksuite/tree/main/folder", t, "--commit", "Init"],
+      {
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          GIT_AUTHOR_NAME: "",
+          GIT_COMMITTER_NAME: "",
+          GIT_AUTHOR_EMAIL: "",
+          GIT_COMMITTER_EMAIL: "",
+        },
+      },
+    )
+    const [stdout, stderr] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+    ])
+    await proc.exited
+    expect(stdout + stderr).toMatch(/user\.(name|email)/i)
+  }, 30000)
+})
+
+describe("watch mode", () => {
+  it("assert no crash on the second tick", async () => {
+    const t = target()
+    const proc = Bun.spawn(
+      [...CLI, "clone", "nrjdalal/picksuite/tree/main/folder", t, "-w", "1s"],
+      {
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
+
+    // Wait long enough for a second tick
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    proc.kill()
+    const stdout = await new Response(proc.stdout).text()
+
+    // Assert that it didn't crash before being killed
+    expect(stdout).not.toMatch(/error:/i)
+  }, 30000)
 })
 
 // =====================================================================

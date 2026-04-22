@@ -12,6 +12,8 @@ const PREFIXES: { prefix: string; host: Host }[] = [
   { prefix: "https://bitbucket.org/", host: "bitbucket.org" },
 ]
 
+export type CloneType = "raw" | "blob" | "tree" | "repository"
+
 export async function configFromUrl(
   url: string,
   {
@@ -64,7 +66,7 @@ export async function configFromUrl(
 
   const repoUrl = `https://${token ? token + "@" : token}${host}/${owner}/${repository}`
 
-  let type: string
+  let type: CloneType
   let resolvedBranch: string
   let resolvedPath: string
 
