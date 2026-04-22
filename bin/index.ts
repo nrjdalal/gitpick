@@ -108,16 +108,13 @@ const parse: typeof parseArgs = (config) => {
   }
 }
 
-const initGitRepo = async (
-  targetPath: string,
-  type: string,
-  options: { init?: boolean; commit?: string },
-) => {
+const initGitRepo = async (targetPath: string, options: { init?: boolean; commit?: string }) => {
   if (!options.init && !options.commit) return
 
-  const repoPath = type === "blob" ? path.dirname(targetPath) : targetPath
+  const isFile = fs.existsSync(targetPath) && fs.statSync(targetPath).isFile()
+  const repoPath = isFile ? path.dirname(targetPath) : targetPath
 
-  if (type === "blob" && repoPath === process.cwd()) {
+  if (isFile && repoPath === process.cwd()) {
     console.log(
       `\n✖ Skipping git init: Cannot initialize a git repository for a single file in the current working directory.`,
     )
@@ -420,7 +417,7 @@ const main = async () => {
         await printTree(targetDir)
         process.stdout.write("\n")
       }
-      await initGitRepo(targetDir, "repository", options)
+      await initGitRepo(targetDir, options)
       process.exit(0)
     }
 
@@ -602,7 +599,7 @@ const main = async () => {
           `✔ Copied ${copiedFiles} file${copiedFiles !== 1 ? "s" : ""} to ${displayPath(targetPath)}`,
         ),
       )
-      await initGitRepo(targetPath, "repository", options)
+      await initGitRepo(targetPath, options)
       if (options.tree) {
         process.stdout.write(`\n${bold(cyan(displayPath(targetPath)))}\n`)
         await printTree(targetPath)
@@ -662,7 +659,7 @@ const main = async () => {
       if (!silent)
         console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
       await cloneAction(config, options, targetPath)
-      await initGitRepo(targetPath, config.type, options)
+      await initGitRepo(targetPath, options)
       if (options.tree) await renderTree(targetPath)
       const watchInterval = parseTimeString(options.watch)
       setInterval(async () => {
@@ -671,7 +668,7 @@ const main = async () => {
       }, watchInterval)
     } else {
       await cloneAction(config, options, targetPath)
-      await initGitRepo(targetPath, config.type, options)
+      await initGitRepo(targetPath, options)
       if (options.tree) await renderTree(targetPath)
       notifyUpdate(version, silent)
       process.exit(0)
