@@ -56,7 +56,7 @@ ${bold("Examples:")}
   $ gitpick <url> --dry-run
   $ gitpick https://gitlab.com/owner/repo
   $ gitpick https://bitbucket.org/owner/repo
-  
+
 🚀 More awesome tools at ${cyan("https://github.com/nrjdalal")}`
 
 const displayPath = (targetPath: string) => {
@@ -122,7 +122,11 @@ const initGitRepo = async (
 
   if (options.commit) {
     await spawn("git", ["add", "."], { cwd: repoPath })
-    await spawn("git", ["commit", "-m", options.commit], { cwd: repoPath })
+    try {
+      await spawn("git", ["commit", "-m", options.commit], { cwd: repoPath })
+    } catch {
+      console.log(`\n✖ git commit failed — configure user.name / user.email`)
+    }
   }
 }
 
