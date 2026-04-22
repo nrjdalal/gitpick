@@ -655,7 +655,6 @@ const main = async () => {
       const watchInterval = parseTimeString(options.watch)
       setInterval(async () => {
         await cloneAction(config, options, targetPath)
-        await initGitRepo(targetPath, config.type, options)
         if (options.tree) await renderTree(targetPath)
       }, watchInterval)
     } else {
