@@ -530,6 +530,42 @@ describe("dry-run — URL parsing without cloning", () => {
       ),
     30000,
   )
+  it(
+    "codeberg raw/branch file",
+    () =>
+      dryRun(
+        ["https://codeberg.org/Codeberg/avatars/raw/branch/main/README.md"],
+        "Codeberg/avatars blob:main README.md > ./README.md",
+      ),
+    30000,
+  )
+  it(
+    "codeberg media/branch file",
+    () =>
+      dryRun(
+        ["https://codeberg.org/Codeberg/avatars/media/branch/main/README.md"],
+        "Codeberg/avatars blob:main README.md > ./README.md",
+      ),
+    30000,
+  )
+  it(
+    "codeberg git@ repo",
+    () =>
+      dryRun(
+        ["git@codeberg.org:Codeberg/avatars", "-b", "main"],
+        "Codeberg/avatars repository:main > avatars",
+      ),
+    30000,
+  )
+  it(
+    "codeberg git@ src path",
+    () =>
+      dryRun(
+        ["git@codeberg.org:Codeberg/avatars/src/branch/main/example"],
+        "Codeberg/avatars tree:main example > example",
+      ),
+    30000,
+  )
 })
 
 // =====================================================================

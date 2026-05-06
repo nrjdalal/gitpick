@@ -123,9 +123,13 @@ export async function configFromUrl(
       resolvedPath = ""
     }
   } else if (host === "codeberg.org") {
-    // codeberg.org — uses /src/branch|tag|commit/<ref>/path for both files and dirs
-    if (split[2] === "src" && ["branch", "tag", "commit"].includes(split[3])) {
-      type = "tree"
+    // codeberg.org — /src/<branch|tag|commit>/<ref>/path for files+dirs,
+    // /raw/... and /media/... for direct file (blob) links
+    if (
+      ["src", "raw", "media"].includes(split[2]) &&
+      ["branch", "tag", "commit"].includes(split[3])
+    ) {
+      type = split[2] === "src" ? "tree" : "blob"
       resolvedBranch = branch || split[4]
       resolvedPath = split.slice(5).join("/")
     } else {
