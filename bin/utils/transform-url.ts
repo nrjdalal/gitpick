@@ -122,7 +122,7 @@ export async function configFromUrl(
       resolvedBranch = branch || (await getDefaultBranch(repoUrl))
       resolvedPath = ""
     }
-  } else {
+  } else if (host === "codeberg.org") {
     // codeberg.org — uses /src/branch|tag|commit/<ref>/path for both files and dirs
     if (split[2] === "src" && ["branch", "tag", "commit"].includes(split[3])) {
       type = "tree"
@@ -133,6 +133,9 @@ export async function configFromUrl(
       resolvedBranch = branch || (await getDefaultBranch(repoUrl))
       resolvedPath = ""
     }
+  } else {
+    const _exhaustive: never = host
+    throw new Error(`Unsupported host: ${_exhaustive}`)
   }
 
   const resolvedTarget = target
