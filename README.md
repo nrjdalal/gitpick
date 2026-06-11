@@ -128,7 +128,7 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 npx gitpick https://codeberg.org/owner/repo         # Codeberg
 ```
 
-<img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
+<img width="900" alt="gitpick demo: dry-run, clone a folder + tree, clone a single file" src="https://raw.githubusercontent.com/nrjdalal/demo-kit/main/gitpick/demo.gif" />
 
 ---
 
@@ -163,7 +163,7 @@ npx gitpick https://gitlab.com/owner/repo -i
 npx gitpick https://codeberg.org/owner/repo -i
 ```
 
-<img width="720" alt="Interactive Mode" src="https://github.com/user-attachments/assets/9d6f4db7-ed84-4783-b815-0267719b3a52" />
+<img width="900" alt="gitpick interactive mode: browse and pick files/folders" src="https://raw.githubusercontent.com/nrjdalal/demo-kit/main/gitpick/demo-interactive.gif" />
 
 Navigate with arrow keys, select with space, expand/collapse with enter, `.` to select all, `c` to confirm. Works with GitHub, GitLab, Bitbucket, Codeberg, public and private repos.
 
