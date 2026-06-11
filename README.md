@@ -128,7 +128,7 @@ npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
 npx gitpick https://codeberg.org/owner/repo         # Codeberg
 ```
 
-<img width="900" alt="gitpick demo: dry-run, clone a folder + tree, clone a single file" src="https://raw.githubusercontent.com/nrjdalal/demo-kit/main/gitpick/demo.gif" />
+<img width="720" alt="Image" src="https://github.com/user-attachments/assets/ddbc41b4-bfc6-4287-bb85-eb949d723591" />
 
 ---
 
