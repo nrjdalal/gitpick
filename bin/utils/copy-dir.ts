@@ -21,6 +21,8 @@ export const copyDir = async (
       files.push(...(await copyDir(srcPath, destPath, base)))
     } else if (entry.isSymbolicLink()) {
       const link = await fs.promises.readlink(srcPath)
+      // remove any existing entry first so symlinks overwrite like copyFile does; symlink() throws EEXIST otherwise
+      await fs.promises.rm(destPath, { force: true, recursive: true })
       await fs.promises.symlink(link, destPath)
       files.push(path.relative(base, destPath))
     } else {
