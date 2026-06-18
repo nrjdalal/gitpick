@@ -26,6 +26,7 @@ With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)
 ${bold("Hint:")}
   [target] and [options] are optional and if not specified,
   GitPick fallbacks to the default behavior of \`git clone\`
+  A \`.gitpickignore\` at the source repo root excludes matching paths from the copy
 
 ${bold("Arguments:")}
   ${yellow("url")}                GitHub/GitLab/Bitbucket/Codeberg URL with path to file/folder/repository

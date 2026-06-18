@@ -39,7 +39,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "prepare": "bunx lefthook install",
-    "test": "tsdown && bun test tests/cli.test.ts"
+    "test": "tsdown && bun test tests/"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",

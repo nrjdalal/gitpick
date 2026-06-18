@@ -97,6 +97,7 @@ npx gitpick owner/repo -i --dry-run
 - 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
+- 🚫 `.gitpickignore` at the source repo root excludes matching paths from the copy (gitignore-style patterns)
 
 ---
 
