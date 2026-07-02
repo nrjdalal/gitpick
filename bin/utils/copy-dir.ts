@@ -3,10 +3,19 @@ import path from "node:path"
 
 import { type IgnoreMatcher, loadIgnore } from "@/utils/gitpick-ignore"
 
-type CopyContext = {
+export type CopyContext = {
   matcher: IgnoreMatcher | null
   srcRoot: string
 }
+
+// Anchor a `.gitpickignore` matcher at `root` so paths are excluded relative
+// to it. Callers that copy several picks under one root build this once and
+// thread it into each copyDir call (and their own top-level file handling) so
+// a single root-level ignore file governs every copy the same way.
+export const createCopyContext = (root: string): CopyContext => ({
+  matcher: loadIgnore(root),
+  srcRoot: root,
+})
 
 export const copyDir = async (
   src: string,
@@ -16,7 +25,7 @@ export const copyDir = async (
 ): Promise<string[]> => {
   const base = relativeTo ?? dest
   // On the top-level call, load `<src>/.gitpickignore` once and thread it down.
-  const context: CopyContext = ctx ?? { matcher: loadIgnore(src), srcRoot: src }
+  const context: CopyContext = ctx ?? createCopyContext(src)
   const entries = await fs.promises.readdir(src, { withFileTypes: true })
   await fs.promises.mkdir(dest, { recursive: true })
 

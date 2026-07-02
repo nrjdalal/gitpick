@@ -8,7 +8,7 @@ import spawn from "@/external/nano-spawn"
 import { spinner } from "@/external/yocto-spinner"
 import { bold, cyan, green, red, yellow } from "@/external/yoctocolors"
 import { cloneAction } from "@/utils/clone-action"
-import { copyDir } from "@/utils/copy-dir"
+import { copyDir, createCopyContext } from "@/utils/copy-dir"
 import { type TreeEntry, interactivePicker } from "@/utils/interactive-picker"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { configFromUrl } from "@/utils/transform-url"
@@ -26,7 +26,7 @@ With ${bold(`${terminalLink("GitPick", "https://github.com/nrjdalal/gitpick")}`)
 ${bold("Hint:")}
   [target] and [options] are optional and if not specified,
   GitPick fallbacks to the default behavior of \`git clone\`
-  A \`.gitpickignore\` at the source repo root excludes matching paths from the copy
+  A \`.gitpickignore\` at the root of the picked path excludes matching paths from the copy
 
 ${bold("Arguments:")}
   ${yellow("url")}                GitHub/GitLab/Bitbucket/Codeberg URL with path to file/folder/repository
@@ -349,12 +349,19 @@ const main = async () => {
 
       await fs.promises.mkdir(targetDir, { recursive: true })
 
+      // Anchor `.gitpickignore` at the picked root so it applies uniformly to
+      // every selection, matching the whole-tree copy path.
+      const ignoreCtx = createCopyContext(resolvedSource)
       let copiedFiles = 0
       for (const sel of selected) {
         const src = path.join(resolvedSource, sel)
         const dest = path.join(targetDir, sel)
         const lstat = await fs.promises.lstat(src).catch(() => null)
         if (!lstat) continue
+
+        const rel = path.relative(ignoreCtx.srcRoot, src)
+        if (rel === ".gitpickignore") continue
+        if (ignoreCtx.matcher?.ignores(rel, lstat.isDirectory())) continue
 
         await fs.promises.mkdir(path.dirname(dest), { recursive: true })
         if (lstat.isSymbolicLink()) {
@@ -368,7 +375,7 @@ const main = async () => {
           }
         } else if (lstat.isDirectory()) {
           await fs.promises.mkdir(dest, { recursive: true })
-          const files = await copyDir(src, dest)
+          const files = await copyDir(src, dest, undefined, ignoreCtx)
           copiedFiles += files.length
         } else {
           await fs.promises.copyFile(src, dest)
@@ -542,6 +549,9 @@ const main = async () => {
 
       await fs.promises.mkdir(targetPath, { recursive: true })
 
+      // Anchor `.gitpickignore` at the repo root so it applies uniformly to
+      // every selection, matching the whole-tree copy path.
+      const ignoreCtx = createCopyContext(walkRoot)
       let copiedFiles = 0
       for (const sel of selected) {
         const src = path.join(walkRoot, sel)
@@ -549,9 +559,13 @@ const main = async () => {
         const stat = await fs.promises.stat(src).catch(() => null)
         if (!stat) continue
 
+        const rel = path.relative(ignoreCtx.srcRoot, src)
+        if (rel === ".gitpickignore") continue
+        if (ignoreCtx.matcher?.ignores(rel, stat.isDirectory())) continue
+
         if (stat.isDirectory()) {
           await fs.promises.mkdir(dest, { recursive: true })
-          const files = await copyDir(src, dest)
+          const files = await copyDir(src, dest, undefined, ignoreCtx)
           copiedFiles += files.length
         } else {
           await fs.promises.mkdir(path.dirname(dest), { recursive: true })

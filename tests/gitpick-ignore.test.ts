@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { copyDir } from "../bin/utils/copy-dir"
+import { copyDir, createCopyContext } from "../bin/utils/copy-dir"
 import { parseIgnore } from "../bin/utils/gitpick-ignore"
 
 // --- matcher unit tests ---
@@ -114,5 +114,42 @@ describe("copyDir honours .gitpickignore", () => {
     await copyDir(src, dest)
     expect(existsSync(join(dest, "public", "icon.svg"))).toBe(false)
     expect(existsSync(join(dest, "public", "logo.svg"))).toBe(true)
+  })
+})
+
+// --- multi-select anchoring: a root .gitpickignore governs sub-path picks ---
+// Mirrors the interactive / config loops, which pick individual paths under a
+// shared root and copy each one. The matcher must be anchored at that root so
+// exclusions resolve the same way as a whole-tree copy.
+describe("createCopyContext anchors ignores at the picked root", () => {
+  let root: string
+  beforeAll(() => {
+    root = mkdtempSync(join(tmpdir(), "gitpick-anchor-test-"))
+    mkdirSync(join(root, "packages", "app", "dist"), { recursive: true })
+    writeFileSync(join(root, "packages", "app", "main.ts"), "code")
+    writeFileSync(join(root, "packages", "app", "dist", "bundle.js"), "built")
+    writeFileSync(join(root, "packages", "app", ".env"), "x")
+    writeFileSync(join(root, "secret.env"), "x")
+    writeFileSync(join(root, ".gitpickignore"), "packages/app/dist/\n*.env\n")
+  })
+  afterAll(() => {
+    rmSync(root, { recursive: true, force: true })
+  })
+
+  it("excludes sub-path contents matched by the root ignore when copying a subdir", async () => {
+    // Pick `packages/app` but keep the matcher anchored at the repo root.
+    const ctx = createCopyContext(root)
+    const src = join(root, "packages", "app")
+    const dest = join(root, "dest")
+    await copyDir(src, dest, undefined, ctx)
+    expect(existsSync(join(dest, "main.ts"))).toBe(true)
+    expect(existsSync(join(dest, "dist"))).toBe(false) // packages/app/dist/
+    expect(existsSync(join(dest, ".env"))).toBe(false) // *.env
+  })
+
+  it("root context matches a directly-selected top-level file (loops skip these)", () => {
+    const ctx = createCopyContext(root)
+    expect(ctx.matcher?.ignores("secret.env", false)).toBe(true)
+    expect(ctx.matcher?.ignores("packages", true)).toBe(false)
   })
 })
