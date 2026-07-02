@@ -549,8 +549,9 @@ const main = async () => {
 
       await fs.promises.mkdir(targetPath, { recursive: true })
 
-      // Anchor `.gitpickignore` at the repo root so it applies uniformly to
-      // every selection, matching the whole-tree copy path.
+      // Anchor `.gitpickignore` at the picked root (`walkRoot` = the repo root,
+      // or `config.path` when set) so it applies uniformly to every selection,
+      // matching the whole-tree copy path.
       const ignoreCtx = createCopyContext(walkRoot)
       let copiedFiles = 0
       for (const sel of selected) {
