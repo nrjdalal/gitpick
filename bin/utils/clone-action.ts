@@ -2,7 +2,7 @@ import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
 
-import spawn from "@/external/nano-spawn"
+import spawn, { activeChildren } from "@/external/nano-spawn"
 import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
@@ -13,6 +13,14 @@ import { tempName } from "@/utils/temp-name"
 const activeTempDirs = new Set<string>()
 
 function cleanupAndExit() {
+  // Kill any running git child first so it stops writing into the temp dir;
+  // otherwise a child that only-this-process was signalled (not the group) is
+  // orphaned and re-creates the dir we are about to remove.
+  for (const child of activeChildren) {
+    try {
+      child.kill("SIGKILL")
+    } catch {}
+  }
   for (const dir of activeTempDirs) {
     try {
       fs.rmSync(dir, { recursive: true, force: true })

@@ -1,5 +1,5 @@
 // Trimmed from nano-spawn by Sindre Sorhus (https://github.com/sindresorhus/nano-spawn)
-import { spawn as nodeSpawn, type SpawnOptions } from "node:child_process"
+import { type ChildProcess, spawn as nodeSpawn, type SpawnOptions } from "node:child_process"
 import { once } from "node:events"
 import fs from "node:fs/promises"
 import path from "node:path"
@@ -64,6 +64,9 @@ const escapeArgument = (arg: string) =>
 const getCommandPart = (part: string) =>
   /[^\w./-]/.test(part) ? `'${part.replaceAll("'", "'\\''")}'` : part
 
+// Live child processes, so a signal handler can terminate them on cleanup.
+export const activeChildren = new Set<ChildProcess>()
+
 export default async function spawn(
   file: string,
   args: string[] = [],
@@ -105,6 +108,14 @@ export default async function spawn(
   }
 
   const instance = nodeSpawn(file, args, spawnOpts)
+
+  // Track the live child so a SIGINT/SIGTERM handler can kill it before removing
+  // temp dirs - otherwise a direct signal to only this process (not the whole
+  // group) orphans the child, which keeps writing into a just-deleted temp dir.
+  activeChildren.add(instance)
+  const untrack = () => activeChildren.delete(instance)
+  instance.once("close", untrack)
+  instance.once("exit", untrack)
 
   let stdoutData = ""
   let stderrData = ""
