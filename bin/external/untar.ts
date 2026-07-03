@@ -26,7 +26,7 @@ const readOctal = (buf: Buffer, off: number, len: number) => {
   return s ? parseInt(s, 8) : 0
 }
 
-type Header = { name: string; size: number; type: string; linkname: string }
+type Header = { name: string; size: number; type: string; linkname: string; mode: number }
 
 // Returns null for an all-zero block (the archive's end marker).
 const parseHeader = (block: Buffer): Header | null => {
@@ -45,6 +45,7 @@ const parseHeader = (block: Buffer): Header | null => {
     size: readOctal(block, 124, 12),
     type: String.fromCharCode(block[156]),
     linkname: readString(block, 157, 100),
+    mode: readOctal(block, 100, 8),
   }
 }
 
@@ -100,7 +101,9 @@ export const extractTarGz = async (
       }
     } else if (header.type === "0" || header.type === "\0" || header.type === "") {
       await fs.promises.mkdir(path.dirname(outPath), { recursive: true })
-      await fs.promises.writeFile(outPath, data)
+      // Preserve the file mode (e.g. an executable 0755) like a checkout does,
+      // rather than defaulting to the umask; git archives store 0644/0755.
+      await fs.promises.writeFile(outPath, data, { mode: header.mode & 0o777 || 0o644 })
       files++
     } else {
       throw new Error(`untar: unsupported entry type '${header.type}' for ${rel}`)

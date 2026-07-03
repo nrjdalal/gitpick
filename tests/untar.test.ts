@@ -1,5 +1,13 @@
 import { describe, expect, it } from "bun:test"
-import { existsSync, lstatSync, mkdtempSync, readFileSync, readlinkSync, rmSync } from "node:fs"
+import {
+  existsSync,
+  lstatSync,
+  mkdtempSync,
+  readFileSync,
+  readlinkSync,
+  rmSync,
+  statSync,
+} from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Readable } from "node:stream"
@@ -9,9 +17,10 @@ import { extractTarGz } from "../bin/external/untar"
 
 // --- a minimal tar builder (no system tar, no network) ---
 
-function header(name: string, size: number, type: string, linkname = ""): Buffer {
+function header(name: string, size: number, type: string, linkname = "", mode = 0o644): Buffer {
   const h = Buffer.alloc(512)
   h.write(name, 0, "utf8")
+  h.write(mode.toString(8).padStart(7, "0") + "\0", 100, "ascii")
   h.write(size.toString(8).padStart(11, "0") + "\0", 124, "ascii")
   h.write(type, 156, "ascii")
   if (linkname) h.write(linkname, 157, "utf8")
@@ -23,12 +32,12 @@ function header(name: string, size: number, type: string, linkname = ""): Buffer
   return h
 }
 
-function entry(name: string, content = "", type = "0", linkname = ""): Buffer {
-  if (type === "5" || type === "2") return header(name, 0, type, linkname)
+function entry(name: string, content = "", type = "0", linkname = "", mode = 0o644): Buffer {
+  if (type === "5" || type === "2") return header(name, 0, type, linkname, mode)
   const data = Buffer.from(content)
   const padded = Buffer.alloc(Math.ceil(data.length / 512) * 512)
   data.copy(padded)
-  return Buffer.concat([header(name, data.length, type), padded])
+  return Buffer.concat([header(name, data.length, type, "", mode), padded])
 }
 
 // A pax 'x' extended header carrying a "path=<long>" record for the next entry.
@@ -118,6 +127,17 @@ describe("extractTarGz", () => {
     )
     const rel = long.split("/").slice(1).join("/")
     expect(readFileSync(join(dir, rel), "utf8")).toBe("long-content")
+    rmSync(dir, { recursive: true, force: true })
+  })
+
+  it("preserves the executable bit from the tar mode", async () => {
+    const { dir } = await extract(
+      entry("repo-main/", "", "5"),
+      entry("repo-main/run.sh", "#!/bin/sh\necho hi\n", "0", "", 0o755),
+      entry("repo-main/plain.txt", "data", "0", "", 0o644),
+    )
+    expect(statSync(join(dir, "run.sh")).mode & 0o111).not.toBe(0) // some exec bit
+    expect(statSync(join(dir, "plain.txt")).mode & 0o111).toBe(0) // no exec bit
     rmSync(dir, { recursive: true, force: true })
   })
 
