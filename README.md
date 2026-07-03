@@ -87,19 +87,19 @@ npx gitpick owner/repo -i --dry-run
 
 - 🔍 Clone individual files or folders from GitHub, GitLab, Bitbucket and Codeberg
 - 🧠 Use shorthands `TanStack/router` or full URL's `https://github.com/TanStack/router`
-- ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - **🔥 Interactive mode** - browse and cherry-pick files/folders with `-i` | `--interactive`
+- ⚙️ Auto-detects branches and target directory (if not specified) like `git clone`
 - 🔐 Seamlessly works with both public and private repositories using a PAT
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
+- 🚫 `.gitpickignore` at the root of the picked path excludes matching paths from the copy (gitignore-style patterns)
 - 🧱 Initialize the cloned output as a fresh git repo with `--init`
-- 💾 Create an initial commit with `--commit "<msg>"` (or `--auto-commit`, which uses `chore: gitpick'ed`) — implies `--init`
+- 💾 Commit with `--commit "<msg>"` (or `--auto-commit`, which uses `chore: gitpick'ed`) - implies `--init`
+- 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
 - 🌳 View cloned file structure as a colored tree with `--tree`
 - 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
-- 🔁 Sync changes remotely with `--watch` using intervals (e.g., `15s`, `1m`, `1h`)
-- 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 - 📋 Config file support (`.gitpick.json` / `.gitpick.jsonc`) for multi-path picks
-- 🚫 `.gitpickignore` at the root of the picked path excludes matching paths from the copy (gitignore-style patterns)
+- 🔇 Silent mode with `--quiet` for CI pipelines, debug mode with `--verbose`
 
 ---
 
@@ -126,8 +126,8 @@ npx gitpick <url/shorthand> -r                      # clone submodules
 npx gitpick <url/shorthand> --dry-run               # preview without cloning
 npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
 npx gitpick <url/shorthand> --init                  # initialize as a new git repository
-npx gitpick <url/shorthand> --auto-commit           # init + commit with message "chore: gitpick'ed"
-npx gitpick <url/shorthand> --commit "gitpick'ed"   # init + commit with a message
+npx gitpick <url/shorthand> --auto-commit           # Commit with message "chore: gitpick'ed"
+npx gitpick <url/shorthand> --commit "gitpick'ed"   # Commit with a message
 npx gitpick https://<token>@github.com/owner/repo   # private repository
 npx gitpick https://gitlab.com/owner/repo           # GitLab
 npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
@@ -150,8 +150,8 @@ npx gitpick https://codeberg.org/owner/repo         # Codeberg
 -w, --watch [time]  Watch the repository and sync every [time]
                     (e.g. 1h, 30m, 15s)
     --init          Initialize the cloned output as a new git repository
-    --auto-commit   Create an initial commit with message "chore: gitpick'ed" (implies --init)
-    --commit <msg>  Create an initial commit with <msg> (implies --init)
+    --auto-commit   Commit with message "chore: gitpick'ed" (implies --init)
+    --commit <msg>  Commit with <msg> (implies --init)
     --tree          List copied files as a tree
     --verbose       Show detailed clone information
 -h, --help          display help for command
@@ -299,4 +299,4 @@ Thank you for helping improve GitPick!
 
 ## 📄 License
 
-MIT – [LICENSE](LICENSE)
+MIT - [LICENSE](LICENSE)

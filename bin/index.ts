@@ -45,8 +45,8 @@ ${bold("Options:")}
   ${cyan("-w, --watch [time]")}  Watch the repository and sync every [time]
                       (e.g. 1h, 30m, 15s)
   ${cyan("    --init")}          Initialize the cloned output as a new git repository
-  ${cyan("    --auto-commit")}   Create an initial commit with message "chore: gitpick'ed" (implies --init)
-  ${cyan("    --commit <msg>")}  Create an initial commit with <msg> (implies --init)
+  ${cyan("    --auto-commit")}   Commit with message "chore: gitpick'ed" (implies --init)
+  ${cyan("    --commit <msg>")}  Commit with <msg> (implies --init)
   ${cyan("    --tree")}          List copied files as a tree
   ${cyan("    --verbose")}       Show detailed clone information
   ${cyan("-h, --help")}          display help for command
@@ -116,7 +116,7 @@ const parse: typeof parseArgs = (config) => {
 
 // Copy each picked path from `srcRoot` into `destRoot`, honoring the ignore
 // matcher, and return the exact copied file paths (relative to destRoot) so a
-// subsequent commit stages only what was cloned — never a pre-existing target
+// subsequent commit stages only what was cloned - never a pre-existing target
 // directory's own files. `preserveSymlinks` keeps symlinks as-is (local picks);
 // otherwise they're followed (remote picks).
 const copySelected = async (
@@ -198,7 +198,7 @@ const main = async () => {
         process.exit(0)
       }
 
-      // `gitpick -i` with no args — browse cwd
+      // `gitpick -i` with no args - browse cwd
       if (values.interactive) {
         positionals.push(".")
       } else {
@@ -231,7 +231,7 @@ const main = async () => {
       watch: values.watch,
     }
 
-    // Local directory interactive mode — detect local paths or
+    // Local directory interactive mode - detect local paths or
     // non-URL-like positionals when -i is set (e.g. `gitpick -i target`)
     const isLocalPath =
       url === "." ||
@@ -245,7 +245,7 @@ const main = async () => {
         !url.startsWith("git@"))
 
     if (isLocalPath && options.interactive) {
-      // Single positional that doesn't exist — treat as target (e.g. `gitpick -i hello`)
+      // Single positional that doesn't exist - treat as target (e.g. `gitpick -i hello`)
       // Only when no explicit target is given; with two args, a missing source is an error
       if (
         !fs.existsSync(path.resolve(url.startsWith("~/") ? url.replace("~", os.homedir()) : url))
@@ -648,7 +648,7 @@ const main = async () => {
       if (!silent)
         console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
       const { files } = await cloneAction(config, options, targetPath)
-      // Initialize/commit once, on the first tick only — later ticks just resync.
+      // Initialize/commit once, on the first tick only - later ticks just resync.
       await initGitRepo(targetPath, options, files)
       if (options.tree) await renderTree(targetPath)
       const watchInterval = parseTimeString(options.watch)
