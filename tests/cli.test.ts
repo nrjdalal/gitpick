@@ -94,6 +94,28 @@ const TREE_REPO_DEV = [
   "└── symlink.txt -> file.txt",
 ].join("\n")
 
+// feat/nested slash branch = main + a distinctive root file
+const TREE_REPO_NESTED = [
+  "├── file.txt",
+  "├── folder",
+  "│   ├── deep",
+  "│   │   └── file.txt",
+  "│   └── nested.txt",
+  "├── on-nested.txt",
+  "├── README.md",
+  "├── symdir -> folder",
+  "└── symlink.txt -> file.txt",
+].join("\n")
+
+// `ignore` branch after `.gitpickignore` (folder/deep/ + *.md) is applied
+const TREE_IGNORE = [
+  "├── file.txt",
+  "├── folder",
+  "│   └── nested.txt",
+  "├── symdir -> folder",
+  "└── symlink.txt -> file.txt",
+].join("\n")
+
 const TREE_FOLDER = ["├── deep", "│   └── file.txt", "└── nested.txt"].join("\n")
 const TREE_FOLDER_DEEP = "└── file.txt"
 const TREE_BLOB_FILE = "└── file.txt"
@@ -942,6 +964,59 @@ describe("branch — gitpick <url> -b [branch/SHA]", () => {
       ),
     30000,
   )
+})
+
+describe("slash branch — gitpick <url>/tree/<branch-with-slash>/<path>", () => {
+  // picksuite has `feat/nested` but no `feat` branch, so a successful clone
+  // proves the branch/path split was re-anchored against the real refs.
+  it("resolves a slash branch and its sub-path", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/feat/nested/folder",
+      t,
+      "--verbose",
+    ])
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output)).toContain("@ feat/nested")
+    expect(getTree(t)).toBe(TREE_FOLDER)
+  }, 30000)
+  it("resolves a slash branch with no sub-path (whole repo)", async () => {
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/feat/nested",
+      t,
+      "--verbose",
+    ])
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output)).toContain("@ feat/nested")
+    expect(getTree(t)).toBe(TREE_REPO_NESTED)
+  }, 30000)
+})
+
+describe("tag — gitpick <url>/tree/<tag>", () => {
+  it(
+    "clones a tag ref",
+    () =>
+      cloneAndExpect(
+        ["nrjdalal/picksuite/tree/v1.0"],
+        "nrjdalal/picksuite tree:v1.0",
+        TREE_REPO_MAIN,
+      ),
+    30000,
+  )
+})
+
+describe("gitpickignore — source .gitpickignore excludes paths from the copy", () => {
+  it("excludes matched paths and never copies .gitpickignore itself", async () => {
+    const t = target()
+    // picksuite `ignore` branch carries `.gitpickignore` (folder/deep/ + *.md)
+    const { exitCode } = await run(["clone", "nrjdalal/picksuite/tree/ignore", t])
+    expect(exitCode).toBe(0)
+    expect(getTree(t)).toBe(TREE_IGNORE)
+    expect(existsSync(join(t, ".gitpickignore"))).toBe(false)
+  }, 30000)
 })
 
 describe("overwrite — gitpick <url> -o / -f", () => {

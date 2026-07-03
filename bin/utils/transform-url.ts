@@ -148,6 +148,16 @@ export async function configFromUrl(
       ? "."
       : resolvedPath.split("/").pop() || repository
 
+  // For tree/blob URLs the branch is guessed as the first segment after
+  // tree/blob, but a branch can contain slashes. Keep the raw `<ref>/<path>`
+  // segments so the clone step can re-anchor a slash branch against the real
+  // ref list. Skipped when `-b` is explicit (the branch is already known) or
+  // for repository/raw types (unambiguous).
+  const refSegments =
+    !branch && (type === "tree" || type === "blob")
+      ? [resolvedBranch, ...(resolvedPath ? resolvedPath.split("/") : [])]
+      : undefined
+
   return {
     token,
     host,
@@ -157,5 +167,6 @@ export async function configFromUrl(
     branch: resolvedBranch,
     path: resolvedPath,
     target: resolvedTarget,
+    refSegments,
   }
 }
