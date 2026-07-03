@@ -27,10 +27,15 @@ export const rawBlobUrl = (config: BlobConfig): string | null => {
       return `https://raw.githubusercontent.com/${repo}/${ref}/${file}`
     case "gitlab.com":
       return `https://gitlab.com/${repo}/-/raw/${ref}/${file}`
-    case "bitbucket.org":
-      return `https://bitbucket.org/${repo}/raw/${ref}/${file}`
     case "codeberg.org":
-      return `https://codeberg.org/${repo}/raw/branch/${ref}/${file}`
+      // Gitea/Forgejo auto-resolves /raw/{ref}/ to the branch, tag, or commit
+      // form via a 303 that fetch follows, so a tag or commit ref works too -
+      // not just a branch.
+      return `https://codeberg.org/${repo}/raw/${ref}/${file}`
+    // bitbucket.org is intentionally absent: transform-url types every
+    // bitbucket /src/ path (file or dir) as a tree, so a bitbucket single file
+    // never reaches this fast path and uses the clone path instead. Add a case
+    // here only once transform-url can tell a bitbucket file from a folder.
     default:
       return null
   }
