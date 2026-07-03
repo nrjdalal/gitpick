@@ -49,17 +49,20 @@ const parseHeader = (block: Buffer): Header | null => {
   }
 }
 
-// Parse pax "<length> key=value\n" records into a map.
+// Parse pax "<length> key=value\n" records into a map. `length` is the record's
+// total size in BYTES, so walk the raw Buffer by byte offset and decode each
+// record's slice on its own - a char-indexed string would misalign every record
+// after one with a multibyte (non-ASCII) value.
 const parsePax = (data: Buffer): Record<string, string> => {
   const out: Record<string, string> = {}
-  const text = data.toString("utf8")
   let i = 0
-  while (i < text.length) {
-    const sp = text.indexOf(" ", i)
-    if (sp < 0) break
-    const len = Number.parseInt(text.slice(i, sp), 10)
-    if (!Number.isFinite(len) || len <= 0) break
-    const record = text.slice(sp + 1, i + len - 1) // drop the trailing "\n"
+  while (i < data.length) {
+    let sp = i
+    while (sp < data.length && data[sp] !== 0x20) sp++ // 0x20 = " "
+    if (sp >= data.length) break
+    const len = Number.parseInt(data.toString("ascii", i, sp), 10)
+    if (!Number.isFinite(len) || len <= 0 || i + len > data.length) break
+    const record = data.toString("utf8", sp + 1, i + len - 1) // drop the trailing "\n"
     const eq = record.indexOf("=")
     if (eq > 0) out[record.slice(0, eq)] = record.slice(eq + 1)
     i += len

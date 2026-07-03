@@ -55,6 +55,24 @@ function paxPath(longPath: string): Buffer {
   return Buffer.concat([header("pax_ext", data.length, "x"), padded])
 }
 
+// One pax record "<byteLen> key=value\n" (length is a byte count), and a pax 'x'
+// header wrapping one or more of them - for exercising multi-record parsing.
+function paxRec(key: string, value: string): Buffer {
+  const body = Buffer.from(`${key}=${value}\n`, "utf8")
+  let total = body.length
+  while (Buffer.byteLength(`${total} `) + body.length !== total) {
+    total = Buffer.byteLength(`${total} `) + body.length
+  }
+  return Buffer.concat([Buffer.from(`${total} `, "ascii"), body])
+}
+
+function paxRecords(...records: Buffer[]): Buffer {
+  const data = Buffer.concat(records)
+  const padded = Buffer.alloc(Math.ceil(data.length / 512) * 512)
+  data.copy(padded)
+  return Buffer.concat([header("pax_ext", data.length, "x"), padded])
+}
+
 async function extract(...parts: Buffer[]) {
   const tar = Buffer.concat([...parts, Buffer.alloc(1024)]) // two zero end blocks
   const gz = gzipSync(tar)
@@ -127,6 +145,21 @@ describe("extractTarGz", () => {
     )
     const rel = long.split("/").slice(1).join("/")
     expect(readFileSync(join(dir, rel), "utf8")).toBe("long-content")
+    rmSync(dir, { recursive: true, force: true })
+  })
+
+  it("parses a multi-record pax header past a multibyte value", async () => {
+    // record 1 carries a multibyte value (byte-length != char-length); record 2
+    // is the real path override. A char-indexed parser reads record 2 from the
+    // wrong offset and drops the override, landing the entry at its ustar name.
+    const longPath = "repo-main/deeply/nested/pax-target.txt"
+    const { dir } = await extract(
+      entry("repo-main/", "", "5"),
+      paxRecords(paxRec("comment", "☃".repeat(20)), paxRec("path", longPath)),
+      entry("repo-main/ignored-ustar-name", "hit"),
+    )
+    const rel = longPath.split("/").slice(1).join("/") // strip repo-main/
+    expect(readFileSync(join(dir, rel), "utf8")).toBe("hit")
     rmSync(dir, { recursive: true, force: true })
   })
 
