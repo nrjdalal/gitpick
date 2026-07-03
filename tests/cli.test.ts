@@ -283,6 +283,17 @@ describe("dry-run — URL parsing without cloning", () => {
       ),
     30000,
   )
+  // An all-separator target ("/", "//", "\\") used to throw a TypeError building
+  // the blob target; it must fall through to <sep>/<source basename> instead.
+  it(
+    "all-separator blob target does not crash",
+    () =>
+      dryRun(
+        ["nrjdalal/picksuite/blob/main/file.txt", "/"],
+        "nrjdalal/picksuite blob:main file.txt > /file.txt",
+      ),
+    30000,
+  )
 
   // branch
   it(
