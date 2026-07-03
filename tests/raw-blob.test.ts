@@ -3,17 +3,20 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync }
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { fetchRawBlob, rawBlobUrl } from "../bin/utils/raw-blob"
+import { type BlobConfig, fetchRawBlob, rawBlobUrl } from "../bin/utils/raw-blob"
 
-// A valid GitHub blob config; override single fields per case.
-const cfg = (over: Record<string, unknown> = {}) => ({
-  host: "github.com",
-  owner: "nrjdalal",
-  repository: "picksuite",
-  branch: "main",
-  path: "file.txt",
-  ...over,
-})
+// A valid GitHub blob config; override single fields per case. Cast to
+// BlobConfig so a case can still exercise an unknown host (e.g. git.example.com)
+// even though `host` is now typed to the Host union.
+const cfg = (over: Record<string, string> = {}): BlobConfig =>
+  ({
+    host: "github.com",
+    owner: "nrjdalal",
+    repository: "picksuite",
+    branch: "main",
+    path: "file.txt",
+    ...over,
+  }) as BlobConfig
 
 const tmp = () => mkdtempSync(join(tmpdir(), "gp-raw-"))
 

@@ -11,6 +11,7 @@ import { elapsedSeconds } from "@/utils/elapsed"
 import { fetchRawBlob } from "@/utils/raw-blob"
 import { cloneShallowOrFull, reanchorIfPathMissing } from "@/utils/resolve-ref"
 import { tempName } from "@/utils/temp-name"
+import type { Host } from "@/utils/transform-url"
 
 const formatSize = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`
@@ -37,7 +38,7 @@ export type CloneResult = {
 export const cloneAction = async (
   config: {
     token: string
-    host: string
+    host: Host
     owner: string
     repository: string
     branch: string

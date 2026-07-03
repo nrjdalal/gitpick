@@ -1,6 +1,6 @@
 import { getDefaultBranch } from "@/utils/get-default-branch"
 
-type Host = "github.com" | "gitlab.com" | "bitbucket.org" | "codeberg.org"
+export type Host = "github.com" | "gitlab.com" | "bitbucket.org" | "codeberg.org"
 
 const PREFIXES: { prefix: string; host: Host }[] = [
   { prefix: "git@github.com:", host: "github.com" },

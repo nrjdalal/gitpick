@@ -6,9 +6,13 @@ import { pipeline } from "node:stream/promises"
 import { activeTempPaths } from "@/utils/cleanup"
 import { elapsedSeconds } from "@/utils/elapsed"
 import { tempName } from "@/utils/temp-name"
+import type { Host } from "@/utils/transform-url"
 
-type BlobConfig = {
-  host: string
+// `host` is the canonical Host union (not a bare string) so the switch in
+// rawBlobUrl is checked against the same host set transform-url parses - renaming
+// or removing a host there surfaces here at author time.
+export type BlobConfig = {
+  host: Host
   owner: string
   repository: string
   branch: string
