@@ -6,7 +6,7 @@ import spawn from "@/external/nano-spawn"
 import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
-import { resolveAndCheckout } from "@/utils/resolve-ref"
+import { reanchorIfPathMissing, resolveAndCheckout } from "@/utils/resolve-ref"
 
 const activeTempDirs = new Set<string>()
 
@@ -104,6 +104,10 @@ export const cloneAction = async (
     // into branch + path; re-anchor against the real refs before checkout.
     await resolveAndCheckout(tempDir, config)
   }
+
+  // A tag can shadow a longer branch on the successful path; re-anchor if the
+  // optimistically-guessed sub-path is absent (no-op when it exists).
+  await reanchorIfPathMissing(repoUrl, tempDir, config, options.recursive)
 
   const networkTime = Number(((performance.now() - networkStart) / 1000).toFixed(2))
 

@@ -993,6 +993,21 @@ describe("slash branch — gitpick <url>/tree/<branch-with-slash>/<path>", () =>
     expect(stripAnsi(output)).toContain("@ feat/nested")
     expect(getTree(t)).toBe(TREE_REPO_NESTED)
   }, 30000)
+  it("re-anchors when a tag shadows a longer branch", async () => {
+    // picksuite has tag `release` AND branch `release/1.0`. `--branch release`
+    // optimistically matches the tag, whose tree lacks `1.0/folder`; the missing
+    // sub-path triggers a re-anchor to branch `release/1.0`.
+    const t = target()
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/release/1.0/folder",
+      t,
+      "--verbose",
+    ])
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output)).toContain("@ release/1.0")
+    expect(getTree(t)).toBe(TREE_FOLDER)
+  }, 30000)
 })
 
 describe("tag — gitpick <url>/tree/<tag>", () => {
