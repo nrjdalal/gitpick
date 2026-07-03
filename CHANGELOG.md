@@ -1,5 +1,30 @@
 # Changelog
 
+## v6.0.0 (2026-07-03)
+
+- **Turn a clone into a git repo** - `--init`, `--auto-commit`, `--commit <msg>`
+  - `--init` initializes the cloned output as a new git repository (idempotent; for a blob, inits the parent dir)
+  - `--auto-commit` inits and commits with message `chore: gitpick'ed`
+  - `--commit "<msg>"` inits and commits with your own message
+  - staging is scoped to exactly what was cloned (the interactive paths stage the exact copied files), so unrelated contents of a pre-existing target are never swept into the commit
+  - `git add --force` so a `.gitignore` that rode along in the clone can't abort staging; huge picks use a NUL pathspec file (with an argv fallback on git < 2.25)
+  - refuses to initialize the current working directory; a failed init/commit is surfaced but never undoes the successful clone
+
+## v5.5.1 (2026-07-03)
+
+- **Slash-containing branch names** in `tree`/`blob` URLs now resolve correctly
+  - `owner/repo/tree/feat/my-branch/src` picks branch `feat/my-branch` instead of failing with `Error: git checkout feat`
+  - works across GitHub, GitLab, Bitbucket and Codeberg
+  - the common single-segment pick stays network-free (only re-resolves against the ref list when the optimistic guess fails)
+  - handles the tag-shadow case (a tag whose name prefixes a slash branch)
+
+## v5.5.0 (2026-07-03)
+
+- **`.gitpickignore`** - exclude paths from the copy with gitignore-style patterns
+  - drop it at the root of the picked path; supports `*`, `**`, `?`, trailing `/` (dir-only), and `!` to re-include
+  - the `.gitpickignore` file itself is never copied to the destination
+- Overwrite existing symlinks instead of throwing `EEXIST` when re-picking into a populated directory
+
 ## v5.4.0 (2026-03-22)
 
 - **Local directory interactive mode** - browse local directories with `gitpick -i`
@@ -57,23 +82,23 @@
 
 ## v4.19.0 (2026-03-22)
 
-- **Environment variable token support** — `GITHUB_TOKEN`/`GH_TOKEN`, `GITLAB_TOKEN`, `BITBUCKET_TOKEN` auto-detected for private repos without embedding tokens in URLs
-- **SIGINT/SIGTERM temp dir cleanup** — signal handlers clean up active temp directories on process kill
-- **Non-TTY spinner suppression** — spinner animation completely suppressed in CI/piped output
-- **`--verbose` now includes stats** — file count with size, network/copy/total time breakdown
-- Non-blocking update notifier — checks npm registry in background, shows notice on next run
+- **Environment variable token support** - `GITHUB_TOKEN`/`GH_TOKEN`, `GITLAB_TOKEN`, `BITBUCKET_TOKEN` auto-detected for private repos without embedding tokens in URLs
+- **SIGINT/SIGTERM temp dir cleanup** - signal handlers clean up active temp directories on process kill
+- **Non-TTY spinner suppression** - spinner animation completely suppressed in CI/piped output
+- **`--verbose` now includes stats** - file count with size, network/copy/total time breakdown
+- Non-blocking update notifier - checks npm registry in background, shows notice on next run
 
 ## v4.18.0 (2026-03-22)
 
-- **Add `--quiet` / `-q` flag** — suppress all output except errors, ideal for CI pipelines and scripts
-- **Add `--verbose` flag** — show detailed clone info: strategy (shallow/full), source URL, target path, file count, duration
+- **Add `--quiet` / `-q` flag** - suppress all output except errors, ideal for CI pipelines and scripts
+- **Add `--verbose` flag** - show detailed clone info: strategy (shallow/full), source URL, target path, file count, duration
 - Update banner to two lines for readability
 - Add `dim` color formatter
 - Reorder README features list
 
 ## v4.17.0 (2026-03-22)
 
-- **Add `--tree` flag** — display cloned file structure as a colored tree (like the `tree` command)
+- **Add `--tree` flag** - display cloned file structure as a colored tree (like the `tree` command)
   - Bold cyan for root directory, cyan for subdirs, yellow for symlinks, cyan/white for symlink targets
   - Smart path header: `./` for cwd-relative, `~/` for home-relative, absolute otherwise
   - Works with `--dry-run` (clones to temp dir, prints tree, cleans up)
@@ -95,9 +120,9 @@
 
 ## v4.16.0 (2026-03-21)
 
-- **Multi-host support** — clone from GitLab and Bitbucket in addition to GitHub
+- **Multi-host support** - clone from GitLab and Bitbucket in addition to GitHub
 - Add `--dry-run` / `-n` flag to preview what would be cloned without cloning
-- Add `/commit/` URL support — `owner/repo/commit/SHA` correctly extracts the commit SHA
+- Add `/commit/` URL support - `owner/repo/commit/SHA` correctly extracts the commit SHA
 - Add `refs/remotes` and `refs/tags` support for raw URLs (in addition to `refs/heads`)
 - Preserve shorthand raw URL parsing (`owner/repo/refs/heads/branch/file`)
 - Migrate test suite from bash scripts to bun:test (106 tests across dry-run, clone, config, integrity)
@@ -107,7 +132,7 @@
 ## v4.15.0 (2026-03-21)
 
 - **34KB → 19KB (43% smaller), zero dependencies**
-- Add `.gitpick.json` / `.gitpick.jsonc` config file support — pick multiple files, folders, branches in one command
+- Add `.gitpick.json` / `.gitpick.jsonc` config file support - pick multiple files, folders, branches in one command
 - Internalize all external dependencies (terminal-link, yocto-spinner, yoctocolors, nano-spawn, strip-json-comments)
 - Add symlink support in `copyDir`
 - Fix Windows blob/tree path handling (split on both `/` and `\`, use `path.dirname`)
@@ -118,7 +143,7 @@
 
 ## v4.14.0 (2026-03-21)
 
-- Add symlink support — `copyDir` now preserves symlinks instead of failing or following them
+- Add symlink support - `copyDir` now preserves symlinks instead of failing or following them
 - Migrate from prettier to oxfmt/oxlint
 - Migrate from simple-git-hooks to lefthook
 - Clean up release workflow
@@ -151,12 +176,12 @@
 
 - Update dependencies
 
-## v4.11.0 – v4.11.3 (2025-05-07 – 2025-06-02)
+## v4.11.0 - v4.11.3 (2025-05-07 - 2025-06-02)
 
 - Dependency updates
 - Documentation improvements
 
-## v4.10.0 – v4.10.2 (2025-04-06 – 2025-04-30)
+## v4.10.0 - v4.10.2 (2025-04-06 - 2025-04-30)
 
 - Internal improvements
 - Dependency updates
@@ -166,47 +191,47 @@
 - Update external dependencies
 - Documentation improvements
 
-## v4.8.0 – v4.8.1 (2025-04-04)
+## v4.8.0 - v4.8.1 (2025-04-04)
 
 - CLI and documentation improvements
 
-## v4.7.0 – v4.7.1 (2025-04-04)
+## v4.7.0 - v4.7.1 (2025-04-04)
 
 - CLI improvements
 - Clone action refinements
 
-## v4.6.0 – v4.6.1 (2025-04-04)
+## v4.6.0 - v4.6.1 (2025-04-04)
 
 - Refactor clone action, URL transform, and time parsing utilities
 - CI workflow updates
 
-## v4.5.0 – v4.5.3 (2025-04-03)
+## v4.5.0 - v4.5.3 (2025-04-03)
 
 - External dependency management improvements
 - CLI refinements
 
-## v4.4.0 – v4.4.3 (2025-04-03)
+## v4.4.0 - v4.4.3 (2025-04-03)
 
 - Clone action improvements
 
-## v4.3.0 – v4.3.2 (2025-04-03)
+## v4.3.0 - v4.3.2 (2025-04-03)
 
 - Extend commit clone capability
 - External dependency updates
 
-## v4.2.0 – v4.2.1 (2025-04-03)
+## v4.2.0 - v4.2.1 (2025-04-03)
 
 - Major internal refactor
 - Test infrastructure improvements
 
-## v4.1.0 – v4.1.1 (2025-04-02)
+## v4.1.0 - v4.1.1 (2025-04-02)
 
 - Dependency updates
 - CI improvements
 
 ## v4.0.0 (2025-04-02)
 
-- Major rewrite — new architecture with external vendored dependencies
+- Major rewrite - new architecture with external vendored dependencies
 - Zero runtime dependencies
 - Faster cloning with shallow clone + sparse checkout
 - Support for shorthands (`owner/repo`), full URLs, and SSH URLs
@@ -215,7 +240,7 @@
 - Private repo support via PAT tokens
 - Windows long path support
 
-## v3.17.0 – v3.26.0 (2025-03-29 – 2025-03-30)
+## v3.17.0 - v3.26.0 (2025-03-29 - 2025-03-30)
 
 - Fix Win32 long paths support (#6)
 - Logging improvements
