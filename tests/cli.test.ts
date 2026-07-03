@@ -803,6 +803,22 @@ describe("transport — single-file fast path", () => {
     expect(out).not.toContain("depth=")
     expect((content ?? "").length).toBeGreaterThan(0)
   }, 30000)
+
+  // A branch shadowed by a LONGER tag (picksuite: branch `shadow` + tag
+  // `shadow/extra`) is the one case where the raw endpoint resolves the ref
+  // differently than the clone path: the host greedily resolves the longer ref
+  // (the tag), matching how the blob URL was generated, so blob/shadow/extra/...
+  // fast-paths to the tag's file rather than erroring on branch `shadow`. git
+  // forbids a branch `shadow` next to a branch `shadow/extra`, so only a tag can
+  // shadow a branch like this. This pins the fast path's behavior.
+  it("resolves a branch shadowed by a longer tag via the raw endpoint", async () => {
+    const { out, content } = await pickFile(
+      ["nrjdalal/picksuite/blob/shadow/extra/file.txt"],
+      "t-shadow.txt",
+    )
+    expect(out).toContain("raw (single GET)")
+    expect(content?.trim()).toBe("root file")
+  }, 30000)
 })
 
 describe("no prefix — gitpick <url> (without clone keyword)", () => {
