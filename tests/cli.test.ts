@@ -283,6 +283,17 @@ describe("dry-run — URL parsing without cloning", () => {
       ),
     30000,
   )
+  // An all-separator target ("/", "//", "\\") used to throw a TypeError building
+  // the blob target; it must fall through to <sep>/<source basename> instead.
+  it(
+    "all-separator blob target does not crash",
+    () =>
+      dryRun(
+        ["nrjdalal/picksuite/blob/main/file.txt", "/"],
+        "nrjdalal/picksuite blob:main file.txt > /file.txt",
+      ),
+    30000,
+  )
 
   // branch
   it(
@@ -735,6 +746,92 @@ describe("default — gitpick <url/shorthand>", () => {
   )
 })
 
+describe("transport — single-file fast path", () => {
+  async function strategy(args: string[]) {
+    const t = target()
+    if (existsSync(t)) rmSync(t, { recursive: true, force: true })
+    const { output, exitCode } = await run(["clone", ...args, t, "--verbose", "-o"])
+    expect(exitCode).toBe(0)
+    return stripAnsi(output)
+  }
+
+  // Pick a single file to `<name>` (a file path) and return the verbose log plus
+  // the written bytes, so a case can assert BOTH the strategy and the content
+  // from one network round-trip.
+  async function pickFile(args: string[], name: string) {
+    const t = join(ARTIFACTS, "cli", name)
+    rmSync(t, { recursive: true, force: true })
+    const { output, exitCode } = await run(["clone", ...args, t, "--verbose", "-o"])
+    expect(exitCode).toBe(0)
+    return { out: stripAnsi(output), content: existsSync(t) ? readFileSync(t, "utf8") : null }
+  }
+
+  // A blob pick should be one raw-endpoint GET, not a whole-tree clone. If the
+  // fast path silently broke, blobs would still work via the clone fallback and
+  // the correctness tests above would stay green - this pins the fast path.
+  it("blob pick uses a raw GET", async () => {
+    expect(await strategy(["nrjdalal/picksuite/blob/main/file.txt"])).toContain("raw (single GET)")
+  }, 30000)
+  // A folder pick must not be routed through the raw path.
+  it("tree pick still uses a shallow clone", async () => {
+    expect(await strategy(["nrjdalal/picksuite/tree/main/folder"])).toContain("shallow (depth=1)")
+  }, 30000)
+
+  // Fast path returns byte-correct content, not merely a fast strategy label.
+  it("github blob → raw with correct content", async () => {
+    const { out, content } = await pickFile(["nrjdalal/picksuite/blob/main/file.txt"], "t-gh.txt")
+    expect(out).toContain("raw (single GET)")
+    expect(content?.trim()).toBe("root file")
+  }, 30000)
+
+  it("gitlab blob → raw with content", async () => {
+    const { out, content } = await pickFile(
+      ["https://gitlab.com/pages/plain-html/-/blob/main/README.md"],
+      "t-gl.md",
+    )
+    expect(out).toContain("raw (single GET)")
+    expect((content ?? "").length).toBeGreaterThan(0)
+  }, 30000)
+
+  it("codeberg branch blob → raw with content", async () => {
+    const { out, content } = await pickFile(
+      ["https://codeberg.org/Codeberg/avatars/raw/branch/main/README.md"],
+      "t-cb.md",
+    )
+    expect(out).toContain("raw (single GET)")
+    expect((content ?? "").length).toBeGreaterThan(0)
+  }, 30000)
+
+  // Regression guard for a review finding: the old codeberg URL hardcoded
+  // /raw/branch/{ref}, which 404s for a tag and silently fell back to a clone.
+  // The kind-less /raw/{ref}/ (a 303 fetch follows) must fast-path a tag too.
+  it("codeberg tag blob → raw, not a clone fallback", async () => {
+    const { out, content } = await pickFile(
+      ["https://codeberg.org/Codeberg/avatars/raw/tag/v1.0.0/README.md"],
+      "t-cb-tag.md",
+    )
+    expect(out).toContain("raw (single GET)")
+    expect(out).not.toContain("depth=")
+    expect((content ?? "").length).toBeGreaterThan(0)
+  }, 30000)
+
+  // A branch shadowed by a LONGER tag (picksuite: branch `shadow` + tag
+  // `shadow/extra`) is the one case where the raw endpoint resolves the ref
+  // differently than the clone path: the host greedily resolves the longer ref
+  // (the tag), matching how the blob URL was generated, so blob/shadow/extra/...
+  // fast-paths to the tag's file rather than erroring on branch `shadow`. git
+  // forbids a branch `shadow` next to a branch `shadow/extra`, so only a tag can
+  // shadow a branch like this. This pins the fast path's behavior.
+  it("resolves a branch shadowed by a longer tag via the raw endpoint", async () => {
+    const { out, content } = await pickFile(
+      ["nrjdalal/picksuite/blob/shadow/extra/file.txt"],
+      "t-shadow.txt",
+    )
+    expect(out).toContain("raw (single GET)")
+    expect(content?.trim()).toBe("root file")
+  }, 30000)
+})
+
 describe("no prefix — gitpick <url> (without clone keyword)", () => {
   async function noPrefixClone(args: string[], expectedOutput: string, expectedTree: string) {
     const t = target()
@@ -872,6 +969,17 @@ describe("target — gitpick <url> [target]", () => {
       ),
     30000,
   )
+
+  // A POSIX-absolute target for a blob must land at that absolute path, not at
+  // a cwd-relative copy of it (the leading "/" used to be dropped on rebuild).
+  it("blob → absolute target", async () => {
+    const abs = resolve(ARTIFACTS, "cli", "abs-blob.txt")
+    if (existsSync(abs)) rmSync(abs)
+    const { exitCode } = await run(["clone", "nrjdalal/picksuite/blob/main/file.txt", abs, "-o"])
+    expect(exitCode).toBe(0)
+    expect(existsSync(abs)).toBe(true)
+    expect(readFileSync(abs, "utf8").trim()).toBe("root file")
+  }, 30000)
 })
 
 describe("branch — gitpick <url> -b [branch/SHA]", () => {
@@ -1643,12 +1751,19 @@ describe("SIGINT temp dir cleanup", () => {
         proc.kill("SIGINT")
         await proc.exited
 
-        const after = readdirSync(tmpdir()).filter(
-          (d) => d.startsWith("picksuite-") && !before.has(d),
-        )
+        // gitpick's SIGINT handler removes the temp dir, but the aborting git
+        // child races with it - it can briefly re-touch the dir before it dies,
+        // so poll for the dir to settle to gone rather than reading exactly once
+        // (that single read is what made this flaky on CI runners).
+        let after: string[] = []
+        for (let i = 0; i < 50; i++) {
+          after = readdirSync(tmpdir()).filter((d) => d.startsWith("picksuite-") && !before.has(d))
+          if (after.length === 0) break
+          await new Promise((r) => setTimeout(r, 100))
+        }
         expect(after).toHaveLength(0)
       } else {
-        // Clone finished before we could catch the temp dir — still valid, just skip assertion
+        // Clone finished before we could catch the temp dir - still valid, just skip assertion
         await proc.exited
       }
     },
