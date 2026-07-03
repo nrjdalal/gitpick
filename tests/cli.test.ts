@@ -746,11 +746,14 @@ describe("default — gitpick <url/shorthand>", () => {
   )
 })
 
-describe("transport — single-file fast path", () => {
+describe("transport — fast path (opt-in via --fast)", () => {
+  // The fast paths (raw GET, tarball) are opt-in; these helpers pass --fast so
+  // the cases below exercise them. Default (no --fast) behavior is pinned by the
+  // "defaults to a clone" cases at the end of this block.
   async function strategy(args: string[]) {
     const t = target()
     if (existsSync(t)) rmSync(t, { recursive: true, force: true })
-    const { output, exitCode } = await run(["clone", ...args, t, "--verbose", "-o"])
+    const { output, exitCode } = await run(["clone", ...args, t, "--verbose", "-o", "--fast"])
     expect(exitCode).toBe(0)
     return stripAnsi(output)
   }
@@ -761,7 +764,7 @@ describe("transport — single-file fast path", () => {
   async function pickFile(args: string[], name: string) {
     const t = join(ARTIFACTS, "cli", name)
     rmSync(t, { recursive: true, force: true })
-    const { output, exitCode } = await run(["clone", ...args, t, "--verbose", "-o"])
+    const { output, exitCode } = await run(["clone", ...args, t, "--verbose", "-o", "--fast"])
     expect(exitCode).toBe(0)
     return { out: stripAnsi(output), content: existsSync(t) ? readFileSync(t, "utf8") : null }
   }
@@ -786,6 +789,53 @@ describe("transport — single-file fast path", () => {
     const out = await strategy(["nrjdalal/picksuite", "-r"])
     expect(out).not.toContain("tarball")
     expect(out).toMatch(/shallow|full/)
+  }, 30000)
+
+  // Fast paths are OPT-IN: without --fast, every pick uses the git clone path,
+  // so behavior is byte-for-byte the pre-fast-path default (enterprise-safe).
+  it("blob pick defaults to a clone without --fast", async () => {
+    const t = target()
+    if (existsSync(t)) rmSync(t, { recursive: true, force: true })
+    const { output } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      t,
+      "--verbose",
+      "-o",
+    ])
+    const out = stripAnsi(output)
+    expect(out).not.toContain("raw (single GET)")
+    expect(out).toMatch(/shallow|full/)
+  }, 30000)
+
+  it("tree pick defaults to a clone without --fast", async () => {
+    const t = target()
+    if (existsSync(t)) rmSync(t, { recursive: true, force: true })
+    const { output } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--verbose",
+      "-o",
+    ])
+    const out = stripAnsi(output)
+    expect(out).not.toContain("tarball")
+    expect(out).toMatch(/shallow|full/)
+  }, 30000)
+
+  it("GITPICK_FAST=1 opts into the fast path without the flag", async () => {
+    const t = target()
+    if (existsSync(t)) rmSync(t, { recursive: true, force: true })
+    const proc = Bun.spawn(
+      [...CLI, "clone", "nrjdalal/picksuite/tree/main/folder", t, "--verbose", "-o"],
+      { stdout: "pipe", stderr: "pipe", env: { ...process.env, GITPICK_FAST: "1" } },
+    )
+    const [stdout, stderr] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+    ])
+    await proc.exited
+    expect(stripAnsi(stdout + stderr)).toContain("tarball (stream)")
   }, 30000)
 
   // Fast path returns byte-correct content, not merely a fast strategy label.
@@ -1572,6 +1622,7 @@ describe("--verbose output", () => {
       "nrjdalal/picksuite/tree/main/folder",
       t,
       "--verbose",
+      "--fast",
     ])
     expect(exitCode).toBe(0)
     const stripped = stripAnsi(output)
@@ -1597,6 +1648,7 @@ describe("--verbose output", () => {
       "8af536b",
       t,
       "--verbose",
+      "--fast",
     ])
     expect(exitCode).toBe(0)
     const stripped = stripAnsi(output)

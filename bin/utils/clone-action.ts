@@ -49,6 +49,7 @@ export const cloneAction = async (
     refSegments?: string[]
   },
   options: {
+    fast?: boolean
     recursive?: boolean
     watch?: string
     quiet?: boolean
@@ -106,11 +107,12 @@ export const cloneAction = async (
     return { files, duration, networkTime, copyTime, totalSize, cloneStrategy }
   }
 
-  // Fast path: a single-file (blob/raw) pick needs one raw-endpoint GET, not a
-  // whole-tree shallow clone. Any miss (unsupported host, a private repo the raw
-  // host won't serve, a slash-branch the optimistic ref guessed wrong, a 4xx/5xx)
-  // returns null and falls through to the clone path, so correctness is unchanged.
-  if (config.type === "blob" || config.type === "raw") {
+  // Fast path (opt-in via --fast / GITPICK_FAST): a single-file (blob/raw) pick
+  // needs one raw-endpoint GET, not a whole-tree shallow clone. Any miss
+  // (unsupported host, a private repo the raw host won't serve, a slash-branch
+  // the optimistic ref guessed wrong, a 4xx/5xx) returns null and falls through
+  // to the clone path, so correctness is unchanged.
+  if (options.fast && (config.type === "blob" || config.type === "raw")) {
     const raw = await fetchRawBlob(config, targetPath)
     if (raw) {
       return report([path.basename(targetPath)], raw.size, raw.networkTime, raw.copyTime, "raw")
@@ -123,14 +125,16 @@ export const cloneAction = async (
 
   const networkStart = performance.now()
 
-  // Tarball fast path for folder/repo picks: download + extract the archive
-  // instead of git clone (~2x faster, no git process). Skipped for --recursive
-  // (archives carry no submodules). Any miss - a non-2xx, an unsupported entry,
-  // or a sub-path the archive didn't contain (a slash-branch the optimistic
-  // guess got wrong) - falls back to the clone path, which re-anchors the ref and
-  // handles the rest, so behaviour is unchanged on the fallback.
+  // Tarball fast path for folder/repo picks (opt-in via --fast / GITPICK_FAST):
+  // download + extract the archive instead of git clone (~2x faster, no git
+  // process). Skipped for --recursive (archives carry no submodules). Any miss -
+  // a non-2xx, an unsupported entry, or a sub-path the archive didn't contain (a
+  // slash-branch the optimistic guess got wrong) - falls back to the clone path,
+  // which re-anchors the ref and handles the rest, so behaviour is unchanged on
+  // the fallback.
   let cloneStrategy: string
-  const canTarball = !options.recursive && (config.type === "tree" || config.type === "repository")
+  const canTarball =
+    options.fast && !options.recursive && (config.type === "tree" || config.type === "repository")
   if (
     canTarball &&
     (await fetchTarball(config, tempDir)) &&
