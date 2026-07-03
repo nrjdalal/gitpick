@@ -41,10 +41,13 @@ export const archiveUrl = (config: TarballConfig): string | null => {
 // back to the clone path. v1 sends no auth, so private repos 404 here and fall
 // back, same seam as the raw fetch.
 //
-// Caveat: host archives honor .gitattributes `export-ignore` (omit paths) and
-// `export-subst` (keyword expansion), which a clone does not. For the rare repo
-// using those, a tarball pick reflects the archive - the same as degit/giget and
-// any archive-based tool - rather than a full checkout.
+// Two caveats where a tarball pick differs from a clone (both consistent with
+// degit/giget and gitpick's raw-file fast path, since all serve archive/raw
+// bytes rather than a git checkout):
+//   - host archives honor .gitattributes `export-ignore` (omit paths) and
+//     `export-subst` (keyword expansion), which a clone does not;
+//   - the archive stores blobs verbatim (LF), so on Windows with core.autocrlf
+//     a tarball pick does not CRLF-normalize the way a checkout would.
 export const fetchTarball = async (config: TarballConfig, destDir: string): Promise<boolean> => {
   const url = archiveUrl(config)
   if (!url) return false
