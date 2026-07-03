@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.0.1 (2026-07-03)
+
+- Docs/`--help` polish: reword the `--auto-commit`/`--commit` descriptions to "Commit with ...", reorder the README features by relevance, and use plain hyphens (no em-dashes)
+
 ## v6.0.0 (2026-07-03)
 
 - **Turn a clone into a git repo** - `--init`, `--auto-commit`, `--commit <msg>`
