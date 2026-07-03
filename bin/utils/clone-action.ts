@@ -7,6 +7,7 @@ import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
 import { cloneShallowOrFull, reanchorIfPathMissing } from "@/utils/resolve-ref"
+import { tempName } from "@/utils/temp-name"
 
 const activeTempDirs = new Set<string>()
 
@@ -66,10 +67,7 @@ export const cloneAction = async (
 
   const repoUrl = `https://${config.token ? config.token + "@" : config.token}${config.host}/${config.owner}/${config.repository}.git`
   const displayUrl = `https://${config.host}/${config.owner}/${config.repository}.git`
-  const tempDir = path.resolve(
-    os.tmpdir(),
-    `${config.repository}-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
-  )
+  const tempDir = path.resolve(os.tmpdir(), tempName(`${config.repository}-`))
 
   activeTempDirs.add(tempDir)
 

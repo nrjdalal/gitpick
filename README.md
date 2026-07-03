@@ -91,6 +91,8 @@ npx gitpick owner/repo -i --dry-run
 - **🔥 Interactive mode** - browse and cherry-pick files/folders with `-i` | `--interactive`
 - 🔐 Seamlessly works with both public and private repositories using a PAT
 - 📦 Can easily clone all submodules with `-r` | `--recursive`
+- 🧱 Initialize the cloned output as a fresh git repo with `--init`
+- 💾 Create an initial commit with `--commit "<msg>"` (or `--auto-commit`, which uses `chore: gitpick'ed`) — implies `--init`
 - 🔎 Preview what would be cloned with `--dry-run` before cloning
 - 🌳 View cloned file structure as a colored tree with `--tree`
 - 🗑️ Overwrite or replace existing files without a prompt using `-o` | `--overwrite`
@@ -121,8 +123,11 @@ npx gitpick <url/shorthand> [target]                # with optional target
 npx gitpick <url/shorthand> -b [branch/SHA]         # branch or commit SHA
 npx gitpick <url/shorthand> -o                      # overwrite if exists
 npx gitpick <url/shorthand> -r                      # clone submodules
-npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
 npx gitpick <url/shorthand> --dry-run               # preview without cloning
+npx gitpick <url/shorthand> -w 30s                  # sync every 30 seconds
+npx gitpick <url/shorthand> --init                  # initialize as a new git repository
+npx gitpick <url/shorthand> --auto-commit           # init + commit with message "chore: gitpick'ed"
+npx gitpick <url/shorthand> --commit "gitpick'ed"   # init + commit with a message
 npx gitpick https://<token>@github.com/owner/repo   # private repository
 npx gitpick https://gitlab.com/owner/repo           # GitLab
 npx gitpick https://bitbucket.org/owner/repo        # Bitbucket
@@ -136,18 +141,21 @@ npx gitpick https://codeberg.org/owner/repo         # Codeberg
 ## 🔧 Options
 
 ```
--b, --branch       Branch/SHA to clone
--i, --interactive  Browse and pick files/folders interactively
--n, --dry-run      Show what would be cloned without cloning
--o, --overwrite    Skip overwrite prompt
--r, --recursive    Clone submodules
--w, --watch [time] Watch the repository and sync every [time]
-                   (e.g. 1h, 30m, 15s)
-    --tree         List copied files as a tree
--q, --quiet        Suppress all output except errors
-    --verbose      Show detailed clone information
--h, --help         display help for command
--v, --version      display the version number
+-i, --interactive   Browse and pick files/folders interactively
+-b, --branch        Branch/SHA to clone
+-o, --overwrite     Skip overwrite prompt
+-r, --recursive     Clone submodules
+-q, --quiet         Suppress all output except errors
+-n, --dry-run       Show what would be cloned without cloning
+-w, --watch [time]  Watch the repository and sync every [time]
+                    (e.g. 1h, 30m, 15s)
+    --init          Initialize the cloned output as a new git repository
+    --auto-commit   Create an initial commit with message "chore: gitpick'ed" (implies --init)
+    --commit <msg>  Create an initial commit with <msg> (implies --init)
+    --tree          List copied files as a tree
+    --verbose       Show detailed clone information
+-h, --help          display help for command
+-v, --version       display the version number
 ```
 
 ---
