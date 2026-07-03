@@ -132,7 +132,7 @@ export const cloneAction = async (
   // slash-branch the optimistic guess got wrong) - falls back to the clone path,
   // which re-anchors the ref and handles the rest, so behaviour is unchanged on
   // the fallback.
-  let cloneStrategy: string
+  let cloneStrategy: "tarball" | "shallow" | "full"
   const canTarball =
     options.fast && !options.recursive && (config.type === "tree" || config.type === "repository")
   if (
