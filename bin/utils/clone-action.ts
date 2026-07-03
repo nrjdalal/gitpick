@@ -8,6 +8,7 @@ import { cyan, dim } from "@/external/yoctocolors"
 import { activeTempPaths } from "@/utils/cleanup"
 import { copyDir } from "@/utils/copy-dir"
 import { elapsedSeconds } from "@/utils/elapsed"
+import { fetchTarball } from "@/utils/fetch-tarball"
 import { fetchRawBlob } from "@/utils/raw-blob"
 import { cloneShallowOrFull, reanchorIfPathMissing } from "@/utils/resolve-ref"
 import { tempName } from "@/utils/temp-name"
@@ -22,6 +23,7 @@ const formatSize = (bytes: number) => {
 // Human-readable label per clone strategy, shown under --verbose.
 const strategyLabel: Record<string, string> = {
   raw: "raw (single GET)",
+  tarball: "tarball (stream)",
   shallow: "shallow (depth=1)",
   full: "full (depth=full)",
 }
@@ -121,17 +123,35 @@ export const cloneAction = async (
 
   const networkStart = performance.now()
 
-  let cloneStrategy = await cloneShallowOrFull(repoUrl, tempDir, config, options.recursive)
-  // A tag can shadow a longer branch on the successful path; re-anchor if the
-  // optimistically-guessed sub-path is absent (no-op when it exists).
-  const reStrategy = await reanchorIfPathMissing(
-    repoUrl,
-    tempDir,
-    config,
-    options.recursive,
-    cloneStrategy,
-  )
-  if (reStrategy) cloneStrategy = reStrategy
+  // Tarball fast path for folder/repo picks: download + extract the archive
+  // instead of git clone (~2x faster, no git process). Skipped for --recursive
+  // (archives carry no submodules). Any miss - a non-2xx, an unsupported entry,
+  // or a sub-path the archive didn't contain (a slash-branch the optimistic
+  // guess got wrong) - falls back to the clone path, which re-anchors the ref and
+  // handles the rest, so behaviour is unchanged on the fallback.
+  let cloneStrategy: string
+  const canTarball = !options.recursive && (config.type === "tree" || config.type === "repository")
+  if (
+    canTarball &&
+    (await fetchTarball(config, tempDir)) &&
+    fs.existsSync(path.join(tempDir, config.path))
+  ) {
+    cloneStrategy = "tarball"
+  } else {
+    // Discard any partial extraction before handing the temp dir to git.
+    await fs.promises.rm(tempDir, { recursive: true, force: true })
+    cloneStrategy = await cloneShallowOrFull(repoUrl, tempDir, config, options.recursive)
+    // A tag can shadow a longer branch on the successful path; re-anchor if the
+    // optimistically-guessed sub-path is absent (no-op when it exists).
+    const reStrategy = await reanchorIfPathMissing(
+      repoUrl,
+      tempDir,
+      config,
+      options.recursive,
+      cloneStrategy,
+    )
+    if (reStrategy) cloneStrategy = reStrategy
+  }
 
   const networkTime = elapsedSeconds(networkStart)
 
