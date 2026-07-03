@@ -3,6 +3,9 @@ import path from "node:path"
 import { Readable } from "node:stream"
 import { pipeline } from "node:stream/promises"
 
+import { activeTempPaths } from "@/utils/cleanup"
+import { tempName } from "@/utils/temp-name"
+
 type BlobConfig = {
   host: string
   owner: string
@@ -76,13 +79,16 @@ export const fetchRawBlob = async (
   if (!res.ok || !res.body) return null
   const networkTime = Number(((performance.now() - networkStart) / 1000).toFixed(2))
 
-  // Stream the body to a sibling temp file and rename on success: the body is
-  // never fully buffered in memory, and a failed transfer never leaves a partial
-  // file at the target (preserving the "miss -> fall back" contract). The temp
-  // sits next to the target so the rename stays on one filesystem (atomic), and
-  // rename replaces an existing target, so an overwrite is atomic too.
+  // Stream the body to a sibling temp file, then rename it onto the target: the
+  // body is never fully buffered in memory, and a failed transfer never leaves a
+  // partial file at the target (preserving the "miss -> fall back" contract). The
+  // temp sits next to the target so the rename stays on one filesystem (atomic)
+  // and replaces an existing target, so overwrites are atomic too. Its name is
+  // collision-resistant (concurrent --watch ticks share a target) and it is
+  // registered for signal cleanup so an interrupt mid-stream leaves nothing.
   const copyStart = performance.now()
-  const tmpPath = `${targetPath}.gitpick-${process.pid}.part`
+  const tmpPath = `${targetPath}.${tempName("gitpick-")}.part`
+  activeTempPaths.add(tmpPath)
   try {
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true })
     await pipeline(
@@ -93,6 +99,8 @@ export const fetchRawBlob = async (
   } catch {
     await fs.promises.rm(tmpPath, { force: true })
     return null
+  } finally {
+    activeTempPaths.delete(tmpPath)
   }
   const copyTime = Number(((performance.now() - copyStart) / 1000).toFixed(2))
 

@@ -219,4 +219,19 @@ describe("fetchRawBlob — fetch handling", () => {
     expect(readdirSync(dir).filter((f) => f.includes(".part"))).toHaveLength(0)
     rmSync(dir, { recursive: true, force: true })
   })
+
+  // Concurrent picks to the same target (e.g. overlapping --watch ticks) must
+  // not share a temp file: with a constant temp name they truncate each other
+  // and one rename hits ENOENT. Unique per-call temp names keep both clean.
+  it("two concurrent fetches to the same target do not collide on the temp file", async () => {
+    globalThis.fetch = mock(async () => new Response("data")) as unknown as typeof fetch
+    const dir = tmp()
+    const target = join(dir, "out.txt")
+    const [a, b] = await Promise.all([fetchRawBlob(cfg(), target), fetchRawBlob(cfg(), target)])
+    expect(a).not.toBeNull()
+    expect(b).not.toBeNull()
+    expect(readFileSync(target, "utf8")).toBe("data")
+    expect(readdirSync(dir).filter((f) => f.includes(".part"))).toHaveLength(0)
+    rmSync(dir, { recursive: true, force: true })
+  })
 })
