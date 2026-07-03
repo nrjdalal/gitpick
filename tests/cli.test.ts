@@ -744,6 +744,17 @@ describe("transport — single-file fast path", () => {
     return stripAnsi(output)
   }
 
+  // Pick a single file to `<name>` (a file path) and return the verbose log plus
+  // the written bytes, so a case can assert BOTH the strategy and the content
+  // from one network round-trip.
+  async function pickFile(args: string[], name: string) {
+    const t = join(ARTIFACTS, "cli", name)
+    rmSync(t, { recursive: true, force: true })
+    const { output, exitCode } = await run(["clone", ...args, t, "--verbose", "-o"])
+    expect(exitCode).toBe(0)
+    return { out: stripAnsi(output), content: existsSync(t) ? readFileSync(t, "utf8") : null }
+  }
+
   // A blob pick should be one raw-endpoint GET, not a whole-tree clone. If the
   // fast path silently broke, blobs would still work via the clone fallback and
   // the correctness tests above would stay green - this pins the fast path.
@@ -753,6 +764,44 @@ describe("transport — single-file fast path", () => {
   // A folder pick must not be routed through the raw path.
   it("tree pick still uses a shallow clone", async () => {
     expect(await strategy(["nrjdalal/picksuite/tree/main/folder"])).toContain("shallow (depth=1)")
+  }, 30000)
+
+  // Fast path returns byte-correct content, not merely a fast strategy label.
+  it("github blob → raw with correct content", async () => {
+    const { out, content } = await pickFile(["nrjdalal/picksuite/blob/main/file.txt"], "t-gh.txt")
+    expect(out).toContain("raw (single GET)")
+    expect(content?.trim()).toBe("root file")
+  }, 30000)
+
+  it("gitlab blob → raw with content", async () => {
+    const { out, content } = await pickFile(
+      ["https://gitlab.com/pages/plain-html/-/blob/main/README.md"],
+      "t-gl.md",
+    )
+    expect(out).toContain("raw (single GET)")
+    expect((content ?? "").length).toBeGreaterThan(0)
+  }, 30000)
+
+  it("codeberg branch blob → raw with content", async () => {
+    const { out, content } = await pickFile(
+      ["https://codeberg.org/Codeberg/avatars/raw/branch/main/README.md"],
+      "t-cb.md",
+    )
+    expect(out).toContain("raw (single GET)")
+    expect((content ?? "").length).toBeGreaterThan(0)
+  }, 30000)
+
+  // Regression guard for a review finding: the old codeberg URL hardcoded
+  // /raw/branch/{ref}, which 404s for a tag and silently fell back to a clone.
+  // The kind-less /raw/{ref}/ (a 303 fetch follows) must fast-path a tag too.
+  it("codeberg tag blob → raw, not a clone fallback", async () => {
+    const { out, content } = await pickFile(
+      ["https://codeberg.org/Codeberg/avatars/raw/tag/v1.0.0/README.md"],
+      "t-cb-tag.md",
+    )
+    expect(out).toContain("raw (single GET)")
+    expect(out).not.toContain("depth=")
+    expect((content ?? "").length).toBeGreaterThan(0)
   }, 30000)
 })
 
