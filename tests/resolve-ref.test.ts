@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { resolveRefFromClone } from "../bin/utils/resolve-ref"
+import { resolveRefFromClone, resolveRefFromRemote } from "../bin/utils/resolve-ref"
 import { configFromUrl } from "../bin/utils/transform-url"
 
 // --- resolveRefFromClone against a real repo with slash branches ---
@@ -130,4 +130,28 @@ describe("configFromUrl exposes refSegments for tree/blob URLs", () => {
     expect(c.type).toBe("repository")
     expect(c.refSegments).toBeUndefined()
   })
+})
+
+// --- resolveRefFromRemote against the real picksuite remote (ls-remote) ---
+
+describe("resolveRefFromRemote (picksuite)", () => {
+  const URL = "https://github.com/nrjdalal/picksuite"
+
+  it("prefers branch release/1.0 over the shadowing tag release", async () => {
+    expect(await resolveRefFromRemote(URL, ["release", "1.0", "folder"])).toEqual({
+      branch: "release/1.0",
+      path: "folder",
+    })
+  }, 30000)
+
+  it("resolves the slash branch feat/nested", async () => {
+    expect(await resolveRefFromRemote(URL, ["feat", "nested"])).toEqual({
+      branch: "feat/nested",
+      path: "",
+    })
+  }, 30000)
+
+  it("returns null for a commit SHA that is not a ref", async () => {
+    expect(await resolveRefFromRemote(URL, ["8af536b", "folder"])).toBeNull()
+  }, 30000)
 })
