@@ -27,6 +27,16 @@ async function run(args: string[], cwd?: string) {
     stdout: "pipe",
     stderr: "pipe",
     cwd,
+    // Give `--commit` a git identity so it works on a bare CI runner (which has
+    // no global user.name/user.email). The missing-identity test spawns its own
+    // process with these cleared, so it's unaffected.
+    env: {
+      ...process.env,
+      GIT_AUTHOR_NAME: "gitpick test",
+      GIT_AUTHOR_EMAIL: "test@gitpick.dev",
+      GIT_COMMITTER_NAME: "gitpick test",
+      GIT_COMMITTER_EMAIL: "test@gitpick.dev",
+    },
   })
   const [stdout, stderr] = await Promise.all([
     new Response(proc.stdout).text(),
