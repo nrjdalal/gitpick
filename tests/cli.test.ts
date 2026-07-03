@@ -1724,12 +1724,19 @@ describe("SIGINT temp dir cleanup", () => {
         proc.kill("SIGINT")
         await proc.exited
 
-        const after = readdirSync(tmpdir()).filter(
-          (d) => d.startsWith("picksuite-") && !before.has(d),
-        )
+        // gitpick's SIGINT handler removes the temp dir, but the aborting git
+        // child races with it - it can briefly re-touch the dir before it dies,
+        // so poll for the dir to settle to gone rather than reading exactly once
+        // (that single read is what made this flaky on CI runners).
+        let after: string[] = []
+        for (let i = 0; i < 50; i++) {
+          after = readdirSync(tmpdir()).filter((d) => d.startsWith("picksuite-") && !before.has(d))
+          if (after.length === 0) break
+          await new Promise((r) => setTimeout(r, 100))
+        }
         expect(after).toHaveLength(0)
       } else {
-        // Clone finished before we could catch the temp dir — still valid, just skip assertion
+        // Clone finished before we could catch the temp dir - still valid, just skip assertion
         await proc.exited
       }
     },
