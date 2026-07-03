@@ -11,7 +11,7 @@ const cfg = (over: Record<string, string> = {}): TarballConfig =>
     ...over,
   }) as TarballConfig
 
-describe("archiveUrl — per host", () => {
+describe("archiveUrl per host", () => {
   it("github → codeload tar.gz", () => {
     expect(archiveUrl(cfg())).toBe("https://codeload.github.com/nrjdalal/picksuite/tar.gz/main")
   })
@@ -57,7 +57,7 @@ describe("archiveUrl — per host", () => {
   })
 })
 
-describe("fetchTarball — short-circuit", () => {
+describe("fetchTarball short-circuit", () => {
   it("returns false for an unknown host without fetching", async () => {
     const spy = mock(() => Promise.reject(new Error("should not fetch")))
     const real = globalThis.fetch

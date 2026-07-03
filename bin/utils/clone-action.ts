@@ -123,6 +123,10 @@ export const cloneAction = async (
   const tempDir = path.resolve(os.tmpdir(), tempName(`${config.repository}-`))
   activeTempPaths.add(tempDir)
 
+  // `network:` spans the whole fetch-into-tempDir step: for the tarball path that
+  // is download + extraction, for the clone path it is clone + checkout. Both put
+  // the CPU/disk of materializing the tree here (not in `copy:`, which times only
+  // the final copyDir into the target), so the two strategies stay comparable.
   const networkStart = performance.now()
 
   // Tarball fast path for folder/repo picks (opt-in via --fast / GITPICK_FAST):

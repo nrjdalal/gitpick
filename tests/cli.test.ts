@@ -746,7 +746,7 @@ describe("default — gitpick <url/shorthand>", () => {
   )
 })
 
-describe("transport — fast path (opt-in via --fast)", () => {
+describe("transport fast path (opt-in via --fast)", () => {
   // The fast paths (raw GET, tarball) are opt-in; these helpers pass --fast so
   // the cases below exercise them. Default (no --fast) behavior is pinned by the
   // "defaults to a clone" cases at the end of this block.
