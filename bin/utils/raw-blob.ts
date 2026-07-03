@@ -63,7 +63,6 @@ export const fetchRawBlob = async (
   config: BlobConfig,
   targetPath: string,
 ): Promise<{ size: number; networkTime: number; copyTime: number } | null> => {
-  if (typeof fetch !== "function") return null
   const url = rawBlobUrl(config)
   if (!url) return null
 
