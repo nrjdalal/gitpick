@@ -1008,6 +1008,15 @@ describe("slash branch — gitpick <url>/tree/<branch-with-slash>/<path>", () =>
     expect(stripAnsi(output)).toContain("@ release/1.0")
     expect(getTree(t)).toBe(TREE_FOLDER)
   }, 30000)
+  it("does not hijack a real-branch sub-path miss into a shadowing tag", async () => {
+    // branch `shadow` exists AND tag `shadow/extra` exists, but `extra` is not on
+    // branch `shadow`. `--branch shadow` checks out the real branch (not detached),
+    // so the missing sub-path must stay a clean not-found — never the tag's tree.
+    const t = target()
+    const { exitCode } = await run(["clone", "nrjdalal/picksuite/tree/shadow/extra", t])
+    expect(exitCode).not.toBe(0)
+    expect(getTree(t)).toBe("")
+  }, 30000)
 })
 
 describe("tag — gitpick <url>/tree/<tag>", () => {

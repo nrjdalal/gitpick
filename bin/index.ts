@@ -11,7 +11,7 @@ import { cloneAction } from "@/utils/clone-action"
 import { copyDir, createCopyContext } from "@/utils/copy-dir"
 import { type TreeEntry, interactivePicker } from "@/utils/interactive-picker"
 import { parseTimeString } from "@/utils/parse-time-string"
-import { reanchorIfPathMissing, resolveAndCheckout } from "@/utils/resolve-ref"
+import { cloneShallowOrFull, reanchorIfPathMissing } from "@/utils/resolve-ref"
 import { configFromUrl } from "@/utils/transform-url"
 import { notifyUpdate, scheduleUpdateCheck } from "@/utils/update-notifier"
 import { useConfig } from "@/utils/use-config"
@@ -448,33 +448,10 @@ const main = async () => {
       const s = spinner()
       s.start(`Fetching ${config.owner}/${config.repository}...`)
 
-      try {
-        await spawn("git", [
-          "clone",
-          repoUrl,
-          tempDir,
-          "--branch",
-          config.branch,
-          "--depth",
-          "1",
-          "--single-branch",
-          ...(options.recursive ? ["--recursive"] : []),
-        ])
-      } catch {
-        await spawn("git", [
-          "clone",
-          repoUrl,
-          tempDir,
-          ...(options.recursive ? ["--recursive"] : []),
-        ])
-        // The shallow `--branch` clone can fail because a slash branch was split
-        // into branch + path; re-anchor against the real refs before checkout.
-        await resolveAndCheckout(tempDir, config)
-      }
-
+      const strategy = await cloneShallowOrFull(repoUrl, tempDir, config, options.recursive)
       // A tag can shadow a longer branch on the successful path; re-anchor if the
       // optimistically-guessed sub-path is absent (no-op when it exists).
-      await reanchorIfPathMissing(repoUrl, tempDir, config, options.recursive)
+      await reanchorIfPathMissing(repoUrl, tempDir, config, options.recursive, strategy)
 
       // Walk local tree to build entries (scoped to config.path if set)
       const walkRoot = config.path ? path.join(tempDir, config.path) : tempDir
