@@ -18,6 +18,13 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+// Human-readable label per clone strategy, shown under --verbose.
+const strategyLabel: Record<string, string> = {
+  raw: "raw (single GET)",
+  shallow: "shallow (depth=1)",
+  full: "full (depth=full)",
+}
+
 export type CloneResult = {
   files: string[]
   duration: number
@@ -84,11 +91,7 @@ export const cloneAction = async (
     }
 
     if (verbose) {
-      console.log(
-        dim(
-          `  clone:    ${cloneStrategy}${cloneStrategy === "raw" ? " (single GET)" : ` (depth=${cloneStrategy === "shallow" ? "1" : "full"})`}`,
-        ),
-      )
+      console.log(dim(`  clone:    ${strategyLabel[cloneStrategy] ?? cloneStrategy}`))
       console.log(dim(`  from:     ${displayUrl} @ ${cyan(config.branch)}`))
       console.log(dim(`  to:       ${targetPath}`))
       console.log(dim(`  files:    ${files.length} (${formatSize(totalSize)})`))
