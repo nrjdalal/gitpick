@@ -45,9 +45,14 @@ export const rawBlobUrl = (config: BlobConfig): string | null => {
 // of cloning the whole tree. Returns the written size and timings on success, or
 // null on any miss so the caller falls back to the clone path.
 //
-// v1 is a public-repo fast path: no auth header is sent, so a private repo (or
-// any self-hosted host) simply 404s here and falls back to the clone path, which
-// carries the token in the clone URL. Authenticated raw fetch is a follow-up.
+// v1 is a public-repo fast path: no auth header is sent. A private or otherwise
+// unresolvable file returns a non-2xx from every wired host (GitHub/Codeberg
+// 404, GitLab 302->403), which `!res.ok` catches, falling back to the clone
+// path (which carries the token in the clone URL). That fallback safety rests on
+// each host in `rawBlobUrl` returning a non-2xx for a missing/forbidden raw
+// request - confirm that before adding a host, since a host that answered with a
+// 200 login/error page would write it verbatim. Authenticated raw fetch is a
+// follow-up.
 export const fetchRawBlob = async (
   config: BlobConfig,
   targetPath: string,
