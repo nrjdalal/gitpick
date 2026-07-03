@@ -130,16 +130,21 @@ describe("extractTarGz", () => {
     rmSync(dir, { recursive: true, force: true })
   })
 
-  it("preserves the executable bit from the tar mode", async () => {
-    const { dir } = await extract(
-      entry("repo-main/", "", "5"),
-      entry("repo-main/run.sh", "#!/bin/sh\necho hi\n", "0", "", 0o755),
-      entry("repo-main/plain.txt", "data", "0", "", 0o644),
-    )
-    expect(statSync(join(dir, "run.sh")).mode & 0o111).not.toBe(0) // some exec bit
-    expect(statSync(join(dir, "plain.txt")).mode & 0o111).toBe(0) // no exec bit
-    rmSync(dir, { recursive: true, force: true })
-  })
+  // The Unix exec bit does not exist on Windows (writeFile's mode is a no-op
+  // there), so this guarantee is POSIX-only.
+  it.skipIf(process.platform === "win32")(
+    "preserves the executable bit from the tar mode",
+    async () => {
+      const { dir } = await extract(
+        entry("repo-main/", "", "5"),
+        entry("repo-main/run.sh", "#!/bin/sh\necho hi\n", "0", "", 0o755),
+        entry("repo-main/plain.txt", "data", "0", "", 0o644),
+      )
+      expect(statSync(join(dir, "run.sh")).mode & 0o111).not.toBe(0) // some exec bit
+      expect(statSync(join(dir, "plain.txt")).mode & 0o111).toBe(0) // no exec bit
+      rmSync(dir, { recursive: true, force: true })
+    },
+  )
 
   it("throws on an unsupported entry type so the caller can fall back", async () => {
     // typeflag '1' = hardlink, which the untar does not handle
