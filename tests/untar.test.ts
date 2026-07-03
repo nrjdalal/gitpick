@@ -222,6 +222,25 @@ describe("extractTarGz", () => {
     rmSync(dir, { recursive: true, force: true })
   })
 
+  it("throws when the archive ends without an end-of-archive marker", async () => {
+    // complete entries but no trailing zero blocks - a tar cut on an entry
+    // boundary would otherwise return success with later entries silently dropped.
+    const gz = gzipSync(
+      Buffer.concat([entry("repo-main/", "", "5"), entry("repo-main/a.txt", "hi")]),
+    )
+    const dir = mkdtempSync(join(tmpdir(), "untar-"))
+    await expect(extractTarGz(Readable.from(gz), dir)).rejects.toThrow(/truncated/)
+    rmSync(dir, { recursive: true, force: true })
+  })
+
+  it("refuses a path-traversal entry (tar-slip)", async () => {
+    // a git archive can't encode this, but the extractor must not write outside
+    // destDir for a crafted archive - it throws so the caller falls back to clone.
+    await expect(
+      extract(entry("repo-main/", "", "5"), entry("repo-main/../escape.txt", "pwned")),
+    ).rejects.toThrow(/unsafe path/)
+  })
+
   it("rejects (does not hang) when the source stream errors mid-download", async () => {
     // `.pipe()` won't forward a source error to gunzip; without the explicit
     // forward this would hang the async iterator instead of rejecting. The 5s

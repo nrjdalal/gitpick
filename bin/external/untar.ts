@@ -88,6 +88,12 @@ export const extractTarGz = async (
 
     const rel = name.split("/").slice(strip).join("/")
     if (!rel) return // the stripped top-level dir itself
+    // Reject path traversal (tar-slip): a git-generated host archive can't encode
+    // a `..` or absolute component, but refuse to write outside destDir if a
+    // crafted/compromised archive tries to - the caller then falls back to clone.
+    if (path.isAbsolute(rel) || rel.split("/").some((seg) => seg === "..")) {
+      throw new Error(`untar: refusing unsafe path '${rel}'`)
+    }
     const outPath = path.join(destDir, rel)
 
     if (header.type === "5") {
@@ -142,6 +148,7 @@ export const extractTarGz = async (
 
   let header: Header | null = null
   let need = BLOCK // bytes required for the next step: a header, then its data
+  let sawEnd = false // an end-of-archive zero block was reached
 
   // `.pipe()` does not forward a source 'error' to its destination, so a
   // mid-download HTTP-body failure would leave the `for await` hanging (gunzip
@@ -156,7 +163,10 @@ export const extractTarGz = async (
     while (pending >= need) {
       if (header === null) {
         const h = parseHeader(take(BLOCK))
-        if (!h) continue // end-of-archive zero block
+        if (!h) {
+          sawEnd = true // end-of-archive zero block
+          continue
+        }
         const padded = Math.ceil(h.size / BLOCK) * BLOCK
         if (padded === 0) {
           await consume(h, Buffer.alloc(0)) // dir/symlink/empty file: no data section
@@ -173,13 +183,13 @@ export const extractTarGz = async (
     }
   }
 
-  // A valid gzip can still wrap a truncated tar (a final header whose declared
-  // data never fully arrived). Ending mid-entry means the last file is missing -
-  // throw so the caller falls back to a clone instead of reporting a partial
-  // success. (A clean archive ends on a header/zero-block boundary, so `header`
-  // is null here.)
-  if (header !== null) {
-    throw new Error("untar: truncated archive (incomplete final entry)")
+  // A valid gzip can still wrap a truncated tar. Ending mid-entry (`header` set)
+  // means the last file's data never arrived; ending without the end-of-archive
+  // zero block (`!sawEnd`) means the stream was cut on an entry boundary and any
+  // following entries were dropped. Either way, throw so the caller falls back to
+  // a clone instead of reporting a partial success.
+  if (header !== null || !sawEnd) {
+    throw new Error("untar: truncated archive (incomplete or missing end marker)")
   }
 
   return { files, symlinks }
