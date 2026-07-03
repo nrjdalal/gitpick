@@ -3,6 +3,8 @@ import path from "node:path"
 
 import spawn from "@/external/nano-spawn"
 
+type RefConfig = { branch: string; path: string; refSegments?: string[] }
+
 // A GitHub-style `tree`/`blob` URL can't tell where a slash-containing branch
 // ends and the sub-path begins — `tree/feat/marketing/src` could be branch
 // `feat` + path `marketing/src` or branch `feat/marketing` + path `src`. Given
@@ -84,15 +86,23 @@ export const resolveRefFromRemote = async (
   return pickLongestRef(await remoteRefs(repoUrl), segments)
 }
 
-// Run in the full-clone fallback (after `git clone` without `--single-branch`):
-// rewrite `config.branch`/`config.path` to the longest ref the URL's segments
-// actually match, then check it out. When there is nothing to disambiguate it
-// degrades to a plain `git checkout <branch>`, preserving SHA/single-segment
-// behavior.
-export const resolveAndCheckout = async (
-  repoDir: string,
-  config: { branch: string; path: string; refSegments?: string[] },
-): Promise<void> => {
+// True when HEAD is not on a branch — i.e. `--branch`/`checkout` landed on a tag
+// or a commit rather than a branch.
+const isDetachedHead = async (repoDir: string): Promise<boolean> => {
+  try {
+    await spawn("git", ["symbolic-ref", "-q", "HEAD"], { cwd: repoDir })
+    return false
+  } catch {
+    return true
+  }
+}
+
+// Resolve `config.branch`/`config.path` against a repo's full ref list, then
+// check it out. Used in the full-clone fallback: it rewrites the branch/path to
+// the longest ref the URL's segments actually match. With nothing to
+// disambiguate it degrades to a plain `git checkout <branch>`, preserving
+// SHA/single-segment behavior.
+export const resolveAndCheckout = async (repoDir: string, config: RefConfig): Promise<void> => {
   if (config.refSegments?.length) {
     const resolved = await resolveRefFromClone(repoDir, config.refSegments)
     if (resolved) {
@@ -103,29 +113,16 @@ export const resolveAndCheckout = async (
   await spawn("git", ["checkout", config.branch], { cwd: repoDir })
 }
 
-// The optimistic `--branch` guess also matches tags, so a tag can shadow a
-// longer branch (e.g. tag `release` vs branch `release/1.0`): the shallow clone
-// *succeeds* on the tag and the sub-path is never re-anchored. Detect that after
-// a successful clone — the tell is that the guessed sub-path is absent — and
-// re-resolve against the full ref list via a cheap `ls-remote` (no full clone),
-// re-cloning the correct ref shallowly. The common case (sub-path present) never
-// reaches the network, so it stays free.
-export const reanchorIfPathMissing = async (
+// Clone `config.branch` cheaply (shallow, single-branch). If that fails — the
+// usual cause is a slash branch that got split into branch + path, so the guess
+// isn't a real ref — fall back to a full clone and re-anchor against the real
+// refs. Returns which strategy actually ran so callers can report it.
+export const cloneShallowOrFull = async (
   repoUrl: string,
   tempDir: string,
-  config: { branch: string; path: string; refSegments?: string[] },
+  config: RefConfig,
   recursive?: boolean,
-): Promise<void> => {
-  if (!config.refSegments || config.refSegments.length <= 1) return
-  if (fs.existsSync(path.join(tempDir, config.path))) return
-
-  const resolved = await resolveRefFromRemote(repoUrl, config.refSegments)
-  if (!resolved || resolved.branch === config.branch) return
-
-  config.branch = resolved.branch
-  config.path = resolved.path
-
-  await fs.promises.rm(tempDir, { recursive: true, force: true })
+): Promise<"shallow" | "full"> => {
   const recurse = recursive ? ["--recursive"] : []
   try {
     await spawn("git", [
@@ -139,8 +136,45 @@ export const reanchorIfPathMissing = async (
       "--single-branch",
       ...recurse,
     ])
+    return "shallow"
   } catch {
     await spawn("git", ["clone", repoUrl, tempDir, ...recurse])
     await resolveAndCheckout(tempDir, config)
+    return "full"
   }
+}
+
+// The optimistic `--branch` guess also matches tags, so a tag can shadow a
+// longer branch (e.g. tag `release` vs branch `release/1.0`): the shallow clone
+// *succeeds* on the tag and the sub-path is never re-anchored. Detect that and
+// re-resolve against the full ref list via a cheap `ls-remote` (no full clone),
+// re-cloning the correct ref. Returns the re-clone strategy, or null when no
+// re-anchor happened. Deliberately conservative to avoid mis-firing:
+//   - skips after a full clone (it already saw every ref and resolved longest),
+//   - skips when the sub-path is present (never touches the network — the common
+//     case),
+//   - skips when HEAD is on a real branch: `--branch <seg>` matched an actual
+//     branch, so the user asked for a sub-path of it and a missing sub-path is a
+//     genuine not-found, not a slash-branch to re-anchor. Only a tag match
+//     (detached HEAD) can hide a longer intended ref.
+export const reanchorIfPathMissing = async (
+  repoUrl: string,
+  tempDir: string,
+  config: RefConfig,
+  recursive: boolean | undefined,
+  strategy: "shallow" | "full",
+): Promise<"shallow" | "full" | null> => {
+  if (strategy === "full") return null
+  if (!config.refSegments || config.refSegments.length <= 1) return null
+  if (fs.existsSync(path.join(tempDir, config.path))) return null
+  if (!(await isDetachedHead(tempDir))) return null
+
+  const resolved = await resolveRefFromRemote(repoUrl, config.refSegments)
+  if (!resolved || resolved.branch === config.branch) return null
+
+  config.branch = resolved.branch
+  config.path = resolved.path
+
+  await fs.promises.rm(tempDir, { recursive: true, force: true })
+  return cloneShallowOrFull(repoUrl, tempDir, config, recursive)
 }

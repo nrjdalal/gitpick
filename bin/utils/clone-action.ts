@@ -6,7 +6,7 @@ import spawn from "@/external/nano-spawn"
 import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
-import { reanchorIfPathMissing, resolveAndCheckout } from "@/utils/resolve-ref"
+import { cloneShallowOrFull, reanchorIfPathMissing } from "@/utils/resolve-ref"
 
 const activeTempDirs = new Set<string>()
 
@@ -82,32 +82,19 @@ export const cloneAction = async (
     )
   }
 
-  let cloneStrategy = "shallow"
   const networkStart = performance.now()
 
-  try {
-    await spawn("git", [
-      "clone",
-      repoUrl,
-      tempDir,
-      "--branch",
-      config.branch,
-      "--depth",
-      "1",
-      "--single-branch",
-      ...(options.recursive ? ["--recursive"] : []),
-    ])
-  } catch {
-    cloneStrategy = "full"
-    await spawn("git", ["clone", repoUrl, tempDir, ...(options.recursive ? ["--recursive"] : [])])
-    // The shallow `--branch` clone can fail because a slash branch was split
-    // into branch + path; re-anchor against the real refs before checkout.
-    await resolveAndCheckout(tempDir, config)
-  }
-
+  let cloneStrategy = await cloneShallowOrFull(repoUrl, tempDir, config, options.recursive)
   // A tag can shadow a longer branch on the successful path; re-anchor if the
   // optimistically-guessed sub-path is absent (no-op when it exists).
-  await reanchorIfPathMissing(repoUrl, tempDir, config, options.recursive)
+  const reStrategy = await reanchorIfPathMissing(
+    repoUrl,
+    tempDir,
+    config,
+    options.recursive,
+    cloneStrategy,
+  )
+  if (reStrategy) cloneStrategy = reStrategy
 
   const networkTime = Number(((performance.now() - networkStart) / 1000).toFixed(2))
 
