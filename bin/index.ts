@@ -453,6 +453,10 @@ const main = async () => {
     })
 
     if (config.type === "blob") {
+      // Splitting on "/" drops the leading empty segment of a POSIX-absolute
+      // path, so remember it and restore it below - otherwise "/abs/out.txt"
+      // would be rebuilt as the cwd-relative "abs/out.txt".
+      const absolute = config.target.startsWith("/")
       const parts = config.target.split(/[/\\]/).filter((part) => part !== "")
       let lastPart = parts[parts.length - 1]
       if (lastPart !== "." && lastPart !== ".." && lastPart.includes(".")) {
@@ -460,7 +464,7 @@ const main = async () => {
       } else {
         lastPart = config.path.split("/").pop() || lastPart
       }
-      config.target = [...parts, lastPart].join("/")
+      config.target = (absolute ? "/" : "") + [...parts, lastPart].join("/")
     }
 
     if (!silent) {

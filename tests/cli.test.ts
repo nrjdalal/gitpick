@@ -893,6 +893,17 @@ describe("target — gitpick <url> [target]", () => {
       ),
     30000,
   )
+
+  // A POSIX-absolute target for a blob must land at that absolute path, not at
+  // a cwd-relative copy of it (the leading "/" used to be dropped on rebuild).
+  it("blob → absolute target", async () => {
+    const abs = resolve(ARTIFACTS, "cli", "abs-blob.txt")
+    if (existsSync(abs)) rmSync(abs)
+    const { exitCode } = await run(["clone", "nrjdalal/picksuite/blob/main/file.txt", abs, "-o"])
+    expect(exitCode).toBe(0)
+    expect(existsSync(abs)).toBe(true)
+    expect(readFileSync(abs, "utf8").trim()).toBe("root file")
+  }, 30000)
 })
 
 describe("branch — gitpick <url> -b [branch/SHA]", () => {
