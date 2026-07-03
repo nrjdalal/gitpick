@@ -772,9 +772,20 @@ describe("transport — single-file fast path", () => {
   it("blob pick uses a raw GET", async () => {
     expect(await strategy(["nrjdalal/picksuite/blob/main/file.txt"])).toContain("raw (single GET)")
   }, 30000)
-  // A folder pick must not be routed through the raw path.
-  it("tree pick still uses a shallow clone", async () => {
-    expect(await strategy(["nrjdalal/picksuite/tree/main/folder"])).toContain("shallow (depth=1)")
+  // A folder pick goes through the tarball fast path (not raw, not a clone).
+  it("tree pick uses the tarball path", async () => {
+    expect(await strategy(["nrjdalal/picksuite/tree/main/folder"])).toContain("tarball (stream)")
+  }, 30000)
+  // A whole-repo pick fast-paths through the tarball too.
+  it("repository pick uses the tarball path", async () => {
+    expect(await strategy(["nrjdalal/picksuite"])).toContain("tarball (stream)")
+  }, 30000)
+  // --recursive must NOT use the tarball (archives carry no submodules); it
+  // falls back to a git clone.
+  it("recursive pick skips the tarball (uses a clone)", async () => {
+    const out = await strategy(["nrjdalal/picksuite", "-r"])
+    expect(out).not.toContain("tarball")
+    expect(out).toMatch(/shallow|full/)
   }, 30000)
 
   // Fast path returns byte-correct content, not merely a fast strategy label.
@@ -1565,7 +1576,7 @@ describe("--verbose output", () => {
     expect(exitCode).toBe(0)
     const stripped = stripAnsi(output)
     expect(stripped).toContain("clone:")
-    expect(stripped).toContain("shallow")
+    expect(stripped).toContain("tarball")
     expect(stripped).toContain("from:")
     expect(stripped).toContain("picksuite.git")
     expect(stripped).toContain("files:")
@@ -1575,7 +1586,9 @@ describe("--verbose output", () => {
     expect(stripped).toMatch(/\d+ B|\d+\.\d+ KB|\d+\.\d+ MB/)
   }, 30000)
 
-  it("reports full clone strategy for SHA", async () => {
+  // A commit SHA now fast-paths through the tarball too (codeload accepts a SHA
+  // ref), where it previously forced a full clone.
+  it("uses the tarball path for a SHA pick", async () => {
     const t = target()
     const { output, exitCode } = await run([
       "clone",
@@ -1587,7 +1600,7 @@ describe("--verbose output", () => {
     ])
     expect(exitCode).toBe(0)
     const stripped = stripAnsi(output)
-    expect(stripped).toContain("full (depth=full)")
+    expect(stripped).toContain("tarball (stream)")
   }, 30000)
 })
 
