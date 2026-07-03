@@ -1,5 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
+import { Readable } from "node:stream"
+import { pipeline } from "node:stream/promises"
 
 type BlobConfig = {
   host: string
@@ -62,20 +64,38 @@ export const fetchRawBlob = async (
   if (!url) return null
 
   const networkStart = performance.now()
-  let bytes: Buffer
+  let res: Response
   try {
-    const res = await fetch(url)
-    if (!res.ok) return null
-    bytes = Buffer.from(await res.arrayBuffer())
+    res = await fetch(url)
   } catch {
     return null
   }
+  // Fall back to the clone path on any non-2xx (see the invariant note above) or
+  // a bodyless response. `fetch` resolves once the headers arrive, so this times
+  // the connection/TTFB; the body transfer is measured below.
+  if (!res.ok || !res.body) return null
   const networkTime = Number(((performance.now() - networkStart) / 1000).toFixed(2))
 
+  // Stream the body to a sibling temp file and rename on success: the body is
+  // never fully buffered in memory, and a failed transfer never leaves a partial
+  // file at the target (preserving the "miss -> fall back" contract). The temp
+  // sits next to the target so the rename stays on one filesystem (atomic), and
+  // rename replaces an existing target, so an overwrite is atomic too.
   const copyStart = performance.now()
-  await fs.promises.mkdir(path.dirname(targetPath), { recursive: true })
-  await fs.promises.writeFile(targetPath, bytes)
+  const tmpPath = `${targetPath}.gitpick-${process.pid}.part`
+  try {
+    await fs.promises.mkdir(path.dirname(targetPath), { recursive: true })
+    await pipeline(
+      Readable.fromWeb(res.body as Parameters<typeof Readable.fromWeb>[0]),
+      fs.createWriteStream(tmpPath),
+    )
+    await fs.promises.rename(tmpPath, targetPath)
+  } catch {
+    await fs.promises.rm(tmpPath, { force: true })
+    return null
+  }
   const copyTime = Number(((performance.now() - copyStart) / 1000).toFixed(2))
 
-  return { size: bytes.length, networkTime, copyTime }
+  const { size } = await fs.promises.stat(targetPath)
+  return { size, networkTime, copyTime }
 }

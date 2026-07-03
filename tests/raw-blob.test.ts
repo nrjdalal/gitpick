@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, mock } from "bun:test"
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -202,6 +202,21 @@ describe("fetchRawBlob — fetch handling", () => {
     const res = await fetchRawBlob(cfg(), target)
     expect(res!.size).toBe(bytes.length)
     expect([...readFileSync(target)]).toEqual([...bytes])
+    rmSync(dir, { recursive: true, force: true })
+  })
+
+  // The point of the temp-file-then-rename write: when finalizing the write
+  // fails, the caller gets null (fall back to the clone path), the target is
+  // left untouched, and no .part temp leaks. Trigger it deterministically by
+  // pointing the target at an existing directory so the final rename fails.
+  it("cleans up the temp file and returns null when the write cannot be finalized", async () => {
+    globalThis.fetch = mock(async () => new Response("hello")) as unknown as typeof fetch
+    const dir = tmp()
+    const target = join(dir, "target-is-a-dir")
+    mkdirSync(target)
+    expect(await fetchRawBlob(cfg(), target)).toBeNull()
+    expect(existsSync(target)).toBe(true) // pre-existing target dir left untouched
+    expect(readdirSync(dir).filter((f) => f.includes(".part"))).toHaveLength(0)
     rmSync(dir, { recursive: true, force: true })
   })
 })
