@@ -40,6 +40,11 @@ export const archiveUrl = (config: TarballConfig): string | null => {
 // ref guess got wrong), or an entry the untar can't handle - so the caller falls
 // back to the clone path. v1 sends no auth, so private repos 404 here and fall
 // back, same seam as the raw fetch.
+//
+// Caveat: host archives honor .gitattributes `export-ignore` (omit paths) and
+// `export-subst` (keyword expansion), which a clone does not. For the rare repo
+// using those, a tarball pick reflects the archive - the same as degit/giget and
+// any archive-based tool - rather than a full checkout.
 export const fetchTarball = async (config: TarballConfig, destDir: string): Promise<boolean> => {
   const url = archiveUrl(config)
   if (!url) return false
