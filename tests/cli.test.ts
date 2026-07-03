@@ -1661,3 +1661,217 @@ describe("interactive mode", () => {
     expect(stripAnsi(output)).toContain("-i, --interactive")
   })
 })
+
+// ---------------------------------------------------------------------------
+// --init / --commit
+// ---------------------------------------------------------------------------
+describe("--init / --commit", () => {
+  async function gitLog(cwd: string) {
+    const proc = Bun.spawn(["git", "log", "--oneline"], { stdout: "pipe", cwd })
+    return new Response(proc.stdout).text()
+  }
+
+  it("--help lists --init and --commit", async () => {
+    const { output, exitCode } = await run(["--help"])
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output)).toContain("--init")
+    expect(stripAnsi(output)).toContain("--commit")
+  })
+
+  it("--init initializes a git repo for a directory clone", async () => {
+    const t = target()
+    const { exitCode } = await run(["clone", "nrjdalal/picksuite/tree/main/folder", t, "--init"])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+  }, 30000)
+
+  it("--init initializes in the parent dir for a blob clone", async () => {
+    const t = target()
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      join(t, "renamed.txt"),
+      "--init",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+  }, 30000)
+
+  it("--commit creates the initial commit for a directory clone", async () => {
+    const t = target()
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--commit",
+      "Initial commit",
+    ])
+    expect(exitCode).toBe(0)
+    expect(await gitLog(t)).toContain("Initial commit")
+  }, 30000)
+
+  it("--auto-commit implies --init and uses the default message", async () => {
+    const t = target()
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--auto-commit",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true)
+    expect(await gitLog(t)).toContain("chore: gitpick'ed")
+  }, 30000)
+
+  it("a blob --commit stages ONLY the cloned file, not unrelated dir contents", async () => {
+    const t = target()
+    mkdirSync(t, { recursive: true })
+    writeFileSync(join(t, "unrelated.txt"), "should never be committed")
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/blob/main/file.txt",
+      join(t, "file.txt"),
+      "--commit",
+      "add file",
+    ])
+    expect(exitCode).toBe(0)
+    const proc = Bun.spawn(["git", "ls-files"], { stdout: "pipe", cwd: t })
+    const tracked = await new Response(proc.stdout).text()
+    expect(tracked).toContain("file.txt")
+    expect(tracked).not.toContain("unrelated.txt")
+  }, 30000)
+
+  it("--init is idempotent when .git already exists", async () => {
+    const t = target()
+    mkdirSync(join(t, ".git"), { recursive: true })
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--init",
+      "-o",
+    ])
+    expect(exitCode).toBe(0)
+  }, 30000)
+
+  it("an empty pick never falls back to `git add .` (pre-existing files stay untracked)", async () => {
+    const t = target()
+    mkdirSync(t, { recursive: true })
+    writeFileSync(join(t, "secret.env"), "SECRET")
+    // the `ignore-all` branch carries `.gitpickignore` = `*`, so nothing is copied
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/ignore-all",
+      t,
+      "-o",
+      "--commit",
+      "scaffold",
+    ])
+    expect(exitCode).toBe(0)
+    expect(existsSync(join(t, ".git"))).toBe(true) // init still ran
+    expect(stripAnsi(output)).toContain("nothing was cloned") // explicit notice, not silent
+    const proc = Bun.spawn(["git", "ls-files"], { stdout: "pipe", cwd: t })
+    const tracked = (await new Response(proc.stdout).text()).trim()
+    expect(tracked).toBe("") // nothing staged/committed — secret.env not swept in
+  }, 30000)
+
+  it("--commit surfaces git's real error when the commit fails (missing identity)", async () => {
+    const t = target()
+    const proc = Bun.spawn(
+      [...CLI, "clone", "nrjdalal/picksuite/tree/main/folder", t, "--commit", "Init"],
+      {
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          GIT_AUTHOR_NAME: "",
+          GIT_AUTHOR_EMAIL: "",
+          GIT_COMMITTER_NAME: "",
+          GIT_COMMITTER_EMAIL: "",
+        },
+      },
+    )
+    const [stdout, stderr] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+    ])
+    await proc.exited
+    const out = stripAnsi(stdout + stderr)
+    expect(out).toContain("Skipping commit")
+    expect(out).toMatch(/ident/i) // git's own reason (e.g. "empty ident name"), not a hardcoded guess
+  }, 30000)
+
+  it("refuses to init the current working directory (directory clone into '.')", async () => {
+    const t = target()
+    mkdirSync(t, { recursive: true })
+    writeFileSync(join(t, "secret.env"), "SECRET")
+    // clone a folder into the cwd itself — must NOT init/commit the cwd
+    const { output, exitCode } = await run(
+      ["clone", "nrjdalal/picksuite/tree/main/folder", ".", "--commit", "x", "-o"],
+      t,
+    )
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output)).toContain("Skipping git init")
+    expect(existsSync(join(t, ".git"))).toBe(false)
+  }, 30000)
+
+  it("a directory --commit into a pre-existing dir does not stage unrelated files", async () => {
+    const t = target()
+    mkdirSync(t, { recursive: true })
+    writeFileSync(join(t, "secret.env"), "SECRET")
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "-o",
+      "--commit",
+      "scaffold",
+    ])
+    expect(exitCode).toBe(0)
+    const proc = Bun.spawn(["git", "ls-files"], { stdout: "pipe", cwd: t })
+    const tracked = await new Response(proc.stdout).text()
+    expect(tracked).toContain("nested.txt")
+    expect(tracked).not.toContain("secret.env")
+  }, 30000)
+
+  it("skip warnings are shown under --tree (only --quiet suppresses them)", async () => {
+    const t = target()
+    mkdirSync(t, { recursive: true })
+    // clone into the cwd itself → cwd refusal, whose notice must still show under --tree
+    const { output } = await run(
+      ["clone", "nrjdalal/picksuite/tree/main/folder", ".", "--init", "-o", "--tree"],
+      t,
+    )
+    expect(stripAnsi(output)).toContain("Skipping git init")
+  }, 30000)
+
+  it("commits cloned files even when a cloned .gitignore matches them", async () => {
+    const t = target()
+    // the `gitignored` branch ships `.gitignore` = *.log plus a tracked debug.log
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/gitignored",
+      t,
+      "--commit",
+      "add",
+    ])
+    expect(exitCode).toBe(0)
+    const proc = Bun.spawn(["git", "ls-files"], { stdout: "pipe", cwd: t })
+    const tracked = await new Response(proc.stdout).text()
+    expect(tracked).toContain("debug.log") // force-added, not aborted by .gitignore
+    expect(await gitLog(t)).toContain("add")
+  }, 30000)
+
+  it("--commit with an empty message falls back to the default", async () => {
+    const t = target()
+    const { exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite/tree/main/folder",
+      t,
+      "--commit",
+      "",
+    ])
+    expect(exitCode).toBe(0)
+    expect(await gitLog(t)).toContain("chore: gitpick'ed")
+  }, 30000)
+})

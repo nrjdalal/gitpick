@@ -9,9 +9,11 @@ import { spinner } from "@/external/yocto-spinner"
 import { bold, cyan, green, red, yellow } from "@/external/yoctocolors"
 import { cloneAction } from "@/utils/clone-action"
 import { copyDir, createCopyContext } from "@/utils/copy-dir"
+import { initGitRepo } from "@/utils/init-git-repo"
 import { type TreeEntry, interactivePicker } from "@/utils/interactive-picker"
 import { parseTimeString } from "@/utils/parse-time-string"
 import { cloneShallowOrFull, reanchorIfPathMissing } from "@/utils/resolve-ref"
+import { tempName } from "@/utils/temp-name"
 import { configFromUrl } from "@/utils/transform-url"
 import { notifyUpdate, scheduleUpdateCheck } from "@/utils/update-notifier"
 import { useConfig } from "@/utils/use-config"
@@ -34,18 +36,21 @@ ${bold("Arguments:")}
   ${green("target")}             Directory to clone into (optional)
 
 ${bold("Options:")}
-  ${cyan("-b, --branch ")}      Branch/SHA to clone
-  ${cyan("-i, --interactive")}  Browse and pick files/folders interactively
-  ${cyan("-n, --dry-run")}      Show what would be cloned without cloning
-  ${cyan("-o, --overwrite")}    Skip overwrite prompt
-  ${cyan("-r, --recursive")}    Clone submodules
-  ${cyan("-w, --watch [time]")} Watch the repository and sync every [time]
-                     (e.g. 1h, 30m, 15s)
-  ${cyan("    --tree")}         List copied files as a tree
-  ${cyan("-q, --quiet")}        Suppress all output except errors
-  ${cyan("    --verbose")}      Show detailed clone information
-  ${cyan("-h, --help")}         display help for command
-  ${cyan("-v, --version")}      display the version number
+  ${cyan("-i, --interactive")}   Browse and pick files/folders interactively
+  ${cyan("-b, --branch")}        Branch/SHA to clone
+  ${cyan("-o, --overwrite")}     Skip overwrite prompt
+  ${cyan("-r, --recursive")}     Clone submodules
+  ${cyan("-q, --quiet")}         Suppress all output except errors
+  ${cyan("-n, --dry-run")}       Show what would be cloned without cloning
+  ${cyan("-w, --watch [time]")}  Watch the repository and sync every [time]
+                      (e.g. 1h, 30m, 15s)
+  ${cyan("    --init")}          Initialize the cloned output as a new git repository
+  ${cyan("    --auto-commit")}   Create an initial commit with message "chore: gitpick'ed" (implies --init)
+  ${cyan("    --commit <msg>")}  Create an initial commit with <msg> (implies --init)
+  ${cyan("    --tree")}          List copied files as a tree
+  ${cyan("    --verbose")}       Show detailed clone information
+  ${cyan("-h, --help")}          display help for command
+  ${cyan("-v, --version")}       display the version number
 
 ${bold("Examples:")}
   $ gitpick <url>
@@ -109,6 +114,59 @@ const parse: typeof parseArgs = (config) => {
   }
 }
 
+// Copy each picked path from `srcRoot` into `destRoot`, honoring the ignore
+// matcher, and return the exact copied file paths (relative to destRoot) so a
+// subsequent commit stages only what was cloned — never a pre-existing target
+// directory's own files. `preserveSymlinks` keeps symlinks as-is (local picks);
+// otherwise they're followed (remote picks).
+const copySelected = async (
+  selected: string[],
+  srcRoot: string,
+  destRoot: string,
+  ignoreCtx: ReturnType<typeof createCopyContext>,
+  preserveSymlinks: boolean,
+): Promise<{ copiedFiles: number; copied: string[] }> => {
+  let copiedFiles = 0
+  const copied: string[] = []
+  for (const sel of selected) {
+    const src = path.join(srcRoot, sel)
+    const dest = path.join(destRoot, sel)
+    const st = await (preserveSymlinks ? fs.promises.lstat : fs.promises.stat)(src).catch(
+      () => null,
+    )
+    if (!st) continue
+
+    const rel = path.relative(ignoreCtx.srcRoot, src)
+    if (rel === ".gitpickignore") continue
+    if (ignoreCtx.matcher?.ignores(rel, st.isDirectory())) continue
+
+    await fs.promises.mkdir(path.dirname(dest), { recursive: true })
+    if (preserveSymlinks && st.isSymbolicLink()) {
+      const linkTarget = await fs.promises.readlink(src)
+      try {
+        await fs.promises.rm(dest, { force: true })
+        await fs.promises.symlink(linkTarget, dest)
+        copiedFiles++
+        copied.push(sel)
+      } catch (err: any) {
+        console.log(yellow(`  Warning: failed to copy symlink ${sel}: ${err.message}`))
+      }
+    } else if (st.isDirectory()) {
+      await fs.promises.mkdir(dest, { recursive: true })
+      const files = await copyDir(src, dest, undefined, ignoreCtx)
+      copiedFiles += files.length
+      // Stage the exact cloned files (not the dir), so pre-existing files
+      // already under this directory aren't swept into the commit.
+      for (const f of files) copied.push(path.join(sel, f))
+    } else {
+      await fs.promises.copyFile(src, dest)
+      copiedFiles++
+      copied.push(sel)
+    }
+  }
+  return { copiedFiles, copied }
+}
+
 const main = async () => {
   scheduleUpdateCheck()
 
@@ -117,9 +175,12 @@ const main = async () => {
       allowPositionals: true,
       options: {
         branch: { type: "string", short: "b" },
+        commit: { type: "string" },
+        "auto-commit": { type: "boolean" },
         "dry-run": { type: "boolean", short: "n" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
+        init: { type: "boolean" },
         interactive: { type: "boolean", short: "i" },
         quiet: { type: "boolean", short: "q" },
         tree: { type: "boolean" },
@@ -156,8 +217,11 @@ const main = async () => {
 
     const options = {
       branch: values.branch,
+      commit: values.commit,
+      autoCommit: values["auto-commit"],
       dryRun: values["dry-run"],
       force: values.force,
+      init: values.init,
       interactive: values.interactive,
       quiet: values.quiet,
       tree: values.tree,
@@ -353,42 +417,20 @@ const main = async () => {
       // Anchor `.gitpickignore` at the picked root so it applies uniformly to
       // every selection, matching the whole-tree copy path.
       const ignoreCtx = createCopyContext(resolvedSource)
-      let copiedFiles = 0
-      for (const sel of selected) {
-        const src = path.join(resolvedSource, sel)
-        const dest = path.join(targetDir, sel)
-        const lstat = await fs.promises.lstat(src).catch(() => null)
-        if (!lstat) continue
-
-        const rel = path.relative(ignoreCtx.srcRoot, src)
-        if (rel === ".gitpickignore") continue
-        if (ignoreCtx.matcher?.ignores(rel, lstat.isDirectory())) continue
-
-        await fs.promises.mkdir(path.dirname(dest), { recursive: true })
-        if (lstat.isSymbolicLink()) {
-          const linkTarget = await fs.promises.readlink(src)
-          try {
-            await fs.promises.rm(dest, { force: true })
-            await fs.promises.symlink(linkTarget, dest)
-            copiedFiles++
-          } catch (err: any) {
-            console.log(yellow(`  Warning: failed to copy symlink ${sel}: ${err.message}`))
-          }
-        } else if (lstat.isDirectory()) {
-          await fs.promises.mkdir(dest, { recursive: true })
-          const files = await copyDir(src, dest, undefined, ignoreCtx)
-          copiedFiles += files.length
-        } else {
-          await fs.promises.copyFile(src, dest)
-          copiedFiles++
-        }
-      }
+      const { copiedFiles, copied } = await copySelected(
+        selected,
+        resolvedSource,
+        targetDir,
+        ignoreCtx,
+        true,
+      )
 
       console.log(
         green(
           `✔ Copied ${copiedFiles} file${copiedFiles !== 1 ? "s" : ""} to ${displayPath(targetDir)}`,
         ),
       )
+      await initGitRepo(targetDir, options, copied)
       if (options.tree) {
         process.stdout.write(`\n${bold(cyan(displayPath(targetDir)))}\n`)
         await printTree(targetDir)
@@ -439,10 +481,7 @@ const main = async () => {
       }
 
       // Shallow clone to temp first
-      const tempDir = path.resolve(
-        os.tmpdir(),
-        `gitpick-interactive-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
-      )
+      const tempDir = path.resolve(os.tmpdir(), tempName("gitpick-interactive-"))
       const repoUrl = `https://${config.token ? config.token + "@" : ""}${config.host}/${config.owner}/${config.repository}.git`
 
       const s = spinner()
@@ -537,27 +576,13 @@ const main = async () => {
       // or `config.path` when set) so it applies uniformly to every selection,
       // matching the whole-tree copy path.
       const ignoreCtx = createCopyContext(walkRoot)
-      let copiedFiles = 0
-      for (const sel of selected) {
-        const src = path.join(walkRoot, sel)
-        const dest = path.join(targetPath, sel)
-        const stat = await fs.promises.stat(src).catch(() => null)
-        if (!stat) continue
-
-        const rel = path.relative(ignoreCtx.srcRoot, src)
-        if (rel === ".gitpickignore") continue
-        if (ignoreCtx.matcher?.ignores(rel, stat.isDirectory())) continue
-
-        if (stat.isDirectory()) {
-          await fs.promises.mkdir(dest, { recursive: true })
-          const files = await copyDir(src, dest, undefined, ignoreCtx)
-          copiedFiles += files.length
-        } else {
-          await fs.promises.mkdir(path.dirname(dest), { recursive: true })
-          await fs.promises.copyFile(src, dest)
-          copiedFiles++
-        }
-      }
+      const { copiedFiles, copied } = await copySelected(
+        selected,
+        walkRoot,
+        targetPath,
+        ignoreCtx,
+        false,
+      )
 
       await fs.promises.rm(tempDir, { recursive: true, force: true })
 
@@ -566,6 +591,7 @@ const main = async () => {
           `✔ Copied ${copiedFiles} file${copiedFiles !== 1 ? "s" : ""} to ${displayPath(targetPath)}`,
         ),
       )
+      await initGitRepo(targetPath, options, copied)
       if (options.tree) {
         process.stdout.write(`\n${bold(cyan(displayPath(targetPath)))}\n`)
         await printTree(targetPath)
@@ -588,10 +614,7 @@ const main = async () => {
 
     if (options.dryRun) {
       if (options.tree) {
-        const tempTarget = path.resolve(
-          os.tmpdir(),
-          `gitpick-dry-${Date.now()}${Math.random().toString(16).slice(2, 6)}`,
-        )
+        const tempTarget = path.resolve(os.tmpdir(), tempName("gitpick-dry-"))
         try {
           await cloneAction(config, options, tempTarget)
           await renderTree(tempTarget)
@@ -624,7 +647,9 @@ const main = async () => {
     if (options.watch) {
       if (!silent)
         console.log(`\n👀 Watching every ${parseTimeString(options.watch) / 1000 + "s"}\n`)
-      await cloneAction(config, options, targetPath)
+      const { files } = await cloneAction(config, options, targetPath)
+      // Initialize/commit once, on the first tick only — later ticks just resync.
+      await initGitRepo(targetPath, options, files)
       if (options.tree) await renderTree(targetPath)
       const watchInterval = parseTimeString(options.watch)
       setInterval(async () => {
@@ -632,7 +657,8 @@ const main = async () => {
         if (options.tree) await renderTree(targetPath)
       }, watchInterval)
     } else {
-      await cloneAction(config, options, targetPath)
+      const { files } = await cloneAction(config, options, targetPath)
+      await initGitRepo(targetPath, options, files)
       if (options.tree) await renderTree(targetPath)
       notifyUpdate(version, silent)
       process.exit(0)
