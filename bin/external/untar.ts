@@ -77,7 +77,6 @@ export const extractTarGz = async (
   let files = 0
   let symlinks = 0
   let pax: Record<string, string> = {}
-  let buffer = Buffer.alloc(0)
 
   const writeEntry = async (header: Header, data: Buffer) => {
     const name = pax.path ?? header.name
@@ -110,23 +109,56 @@ export const extractTarGz = async (
     }
   }
 
-  for await (const chunk of source.pipe(createGunzip())) {
-    buffer = buffer.length ? Buffer.concat([buffer, chunk as Buffer]) : (chunk as Buffer)
-    while (buffer.length >= BLOCK) {
-      const header = parseHeader(buffer.subarray(0, BLOCK))
-      if (!header) {
-        buffer = buffer.subarray(BLOCK) // end-of-archive zero block
-        continue
-      }
-      const padded = Math.ceil(header.size / BLOCK) * BLOCK
-      if (buffer.length < BLOCK + padded) break // wait for the full entry
-      const data = Buffer.from(buffer.subarray(BLOCK, BLOCK + header.size))
-      buffer = buffer.subarray(BLOCK + padded)
+  const consume = async (h: Header, data: Buffer) => {
+    if (h.type === "x" || h.type === "g") pax = { ...pax, ...parsePax(data) }
+    else await writeEntry(h, data)
+  }
 
-      if (header.type === "x" || header.type === "g") {
-        pax = { ...pax, ...parsePax(data) }
+  // Accumulate gunzip output as a list of chunks with a running length and copy
+  // out only the bytes we consume (a 512-byte header, then the entry's padded
+  // data). A single growing `Buffer.concat` per chunk would be O(n^2) on a repo
+  // with one large blob; this keeps each byte copied O(1) times.
+  const parts: Buffer[] = []
+  let pending = 0
+
+  // Remove and return the first `n` bytes from the accumulated chunks.
+  const take = (n: number): Buffer => {
+    const out = Buffer.allocUnsafe(n)
+    let filled = 0
+    while (filled < n) {
+      const c = parts[0]
+      const copy = Math.min(c.length, n - filled)
+      c.copy(out, filled, 0, copy)
+      filled += copy
+      if (copy === c.length) parts.shift()
+      else parts[0] = c.subarray(copy)
+    }
+    pending -= n
+    return out
+  }
+
+  let header: Header | null = null
+  let need = BLOCK // bytes required for the next step: a header, then its data
+
+  for await (const chunk of source.pipe(createGunzip())) {
+    parts.push(chunk as Buffer)
+    pending += (chunk as Buffer).length
+    while (pending >= need) {
+      if (header === null) {
+        const h = parseHeader(take(BLOCK))
+        if (!h) continue // end-of-archive zero block
+        const padded = Math.ceil(h.size / BLOCK) * BLOCK
+        if (padded === 0) {
+          await consume(h, Buffer.alloc(0)) // dir/symlink/empty file: no data section
+        } else {
+          header = h
+          need = padded // wait for the data
+        }
       } else {
-        await writeEntry(header, data)
+        const block = take(need)
+        await consume(header, block.subarray(0, header.size))
+        header = null
+        need = BLOCK
       }
     }
   }

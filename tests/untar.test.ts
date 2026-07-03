@@ -130,6 +130,26 @@ describe("extractTarGz", () => {
     rmSync(dir, { recursive: true, force: true })
   })
 
+  it("handles entries whose data spans multiple stream chunks", async () => {
+    const content = "x".repeat(5000) // larger than a 512 block, spans chunks
+    const tar = Buffer.concat([
+      entry("repo-main/", "", "5"),
+      entry("repo-main/big.txt", content),
+      entry("repo-main/after.txt", "tail"),
+      Buffer.alloc(1024),
+    ])
+    const gz = gzipSync(tar)
+    async function* pieces() {
+      for (let i = 0; i < gz.length; i += 64) yield gz.subarray(i, i + 64) // 64B at a time
+    }
+    const dir = mkdtempSync(join(tmpdir(), "untar-"))
+    const stats = await extractTarGz(Readable.from(pieces()), dir)
+    expect(readFileSync(join(dir, "big.txt"), "utf8")).toBe(content)
+    expect(readFileSync(join(dir, "after.txt"), "utf8")).toBe("tail")
+    expect(stats.files).toBe(2)
+    rmSync(dir, { recursive: true, force: true })
+  })
+
   // The Unix exec bit does not exist on Windows (writeFile's mode is a no-op
   // there), so this guarantee is POSIX-only.
   it.skipIf(process.platform === "win32")(
