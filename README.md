@@ -9,11 +9,11 @@
 [![downloads](https://img.shields.io/npm/dt/gitpick?color=red&logo=npm)](https://www.npmjs.com/package/gitpick)
 [![stars](https://img.shields.io/github/stars/nrjdalal/gitpick?color=blue)](https://github.com/nrjdalal/gitpick)
 
-📦 `Zero dependencies` / `Un/packed (~67/25kb)` / `Faster and more features` yet drop-in replacement for `degit`
+📦 `Zero dependencies` / `Un/packed (~72/26kb)` / `Faster and more features` yet drop-in replacement for `degit`
 
 > #### Just `copy-and-paste` any GitHub, GitLab, Bitbucket or Codeberg URL - no editing required (shorthands work too) - to clone individual files, folders, branches, commits, raw content or even entire repositories without the `.git` directory.
 
-Unlike other tools that force you to tweak URLs or follow strict formats to clone files, folders, branches or commits GitPick works seamlessly with any URL.
+Unlike other tools that force you to tweak URLs or follow strict formats to clone files, folders, branches or commits, GitPick works seamlessly with any URL.
 
 **You can also try [Interactive Mode](#-interactive-mode)**. Browse any repo right in your terminal. See every file, pick what you want, skip what you don't. Just `gitpick owner/repo -i` and you're in. No more guessing paths.
 
@@ -30,6 +30,7 @@ Unlike other tools that force you to tweak URLs or follow strict formats to clon
 - [Interactive Mode](#-interactive-mode)
 - [Private Repos](#-private-repos)
 - [Config File](#-config-file)
+- [.gitpickignore](#-gitpickignore)
 - [Install Globally](#-install-globally-optional)
 - [Used By](#-used-by)
 - [Related Projects](#-related-projects)
@@ -39,7 +40,7 @@ Unlike other tools that force you to tweak URLs or follow strict formats to clon
 
 ## 📖 Some Examples
 
-### See [Quick Usage](#-quick-usage) for to learn more.
+See [Quick Usage](#-quick-usage) to learn more.
 
 ```sh
 # interactive mode - browse and pick files/folders
@@ -174,7 +175,19 @@ npx gitpick https://codeberg.org/owner/repo -i
 
 <img width="900" alt="gitpick interactive mode: browse and pick files/folders" src="https://raw.githubusercontent.com/nrjdalal/demo-kit/main/gitpick/demo-interactive.gif" />
 
-Navigate with arrow keys, select with space, expand/collapse with enter, `.` to select all, `c` to confirm. Works with GitHub, GitLab, Bitbucket, Codeberg, public and private repos.
+Navigate with arrow keys, `space` to select, `enter` to expand a folder or preview a file, `.` to select all, `c` to confirm, `q` to quit. File previews come with syntax highlighting for 38 languages. Works with GitHub, GitLab, Bitbucket, Codeberg, public and private repos.
+
+### Pick from a local folder
+
+Interactive mode also works on any folder already on your machine, so you can use GitPick as a local file cherry-picker:
+
+```sh
+npx gitpick -i                 # browse the current directory
+npx gitpick -i my-app          # browse cwd, copy the selection into ./my-app
+npx gitpick ./src -i my-app    # browse ./src, copy the selection into ./my-app
+```
+
+Inside a git repo it respects your `.gitignore` (via `git ls-files`) and preserves symlinks when copying.
 
 ---
 
@@ -255,12 +268,44 @@ Each entry follows the same `<url> [target]` syntax as the CLI. All entries are 
 
 ---
 
+## 🚫 .gitpickignore
+
+Add a `.gitpickignore` file at the root of the path you are picking to keep matching files out of the copy. It uses gitignore-style patterns, so the syntax is already familiar:
+
+```gitignore
+# .gitpickignore lives at the root of the picked folder or repo
+
+# any .log file, at any depth
+*.log
+
+# a directory named node_modules, anywhere (trailing slash means directory only)
+node_modules/
+
+# only the dist at the picked root (a leading slash anchors the pattern)
+/dist
+
+# every png under docs, at any depth
+docs/**/*.png
+
+# re-include a file an earlier rule excluded (! negates, last match wins)
+!docs/logo.png
+```
+
+- The file must sit at the **root of what you pick** - the folder for a `tree` URL, or the repo root for a full clone.
+- `*` matches within a path segment, `**` spans directories, `?` matches a single character, and a trailing `/` limits a rule to directories.
+- A leading or embedded `/` anchors a pattern to the picked root; otherwise it matches by basename at any depth.
+- Full-line `#` comments and blank lines are ignored, and the `.gitpickignore` file itself is never copied.
+
+---
+
 ## 📦 Install Globally (Optional)
 
 ```sh
 npm install -g gitpick
 gitpick <url/shorthand> [target] [options]
 ```
+
+This installs two commands, `gitpick` and `degit`, so existing `degit owner/repo` workflows keep working unchanged.
 
 ---
 

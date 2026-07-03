@@ -1,5 +1,11 @@
 # Changelog
 
+## v6.0.2 (2026-07-03)
+
+- Add a dedicated `.gitpickignore` section to the README documenting the gitignore-style pattern syntax
+- Document local-folder interactive mode and file preview, and note the `degit` binary alias
+- Fix the bundle-size figure and tidy README grammar
+
 ## v6.0.1 (2026-07-03)
 
 - Docs/`--help` polish: reword the `--auto-commit`/`--commit` descriptions to "Commit with ...", reorder the README features by relevance, and use plain hyphens (no em-dashes)
