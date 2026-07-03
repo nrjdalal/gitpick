@@ -7,6 +7,7 @@ import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { activeTempPaths } from "@/utils/cleanup"
 import { copyDir } from "@/utils/copy-dir"
+import { elapsedSeconds } from "@/utils/elapsed"
 import { fetchRawBlob } from "@/utils/raw-blob"
 import { cloneShallowOrFull, reanchorIfPathMissing } from "@/utils/resolve-ref"
 import { tempName } from "@/utils/temp-name"
@@ -72,7 +73,7 @@ export const cloneAction = async (
     copyTime: number,
     cloneStrategy: string,
   ): CloneResult => {
-    const duration = Number(((performance.now() - start) / 1000).toFixed(2))
+    const duration = elapsedSeconds(start)
 
     if (!silent) {
       if (!options.watch) {
@@ -128,7 +129,7 @@ export const cloneAction = async (
   )
   if (reStrategy) cloneStrategy = reStrategy
 
-  const networkTime = Number(((performance.now() - networkStart) / 1000).toFixed(2))
+  const networkTime = elapsedSeconds(networkStart)
 
   const sourcePath = path.resolve(tempDir, config.path)
 
@@ -148,7 +149,7 @@ export const cloneAction = async (
     files = [path.basename(targetPath)]
   }
 
-  const copyTime = Number(((performance.now() - copyStart) / 1000).toFixed(2))
+  const copyTime = elapsedSeconds(copyStart)
 
   let totalSize = 0
   for (const file of files) {

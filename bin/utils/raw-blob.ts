@@ -4,6 +4,7 @@ import { Readable } from "node:stream"
 import { pipeline } from "node:stream/promises"
 
 import { activeTempPaths } from "@/utils/cleanup"
+import { elapsedSeconds } from "@/utils/elapsed"
 import { tempName } from "@/utils/temp-name"
 
 type BlobConfig = {
@@ -77,7 +78,7 @@ export const fetchRawBlob = async (
   // a bodyless response. `fetch` resolves once the headers arrive, so this times
   // the connection/TTFB; the body transfer is measured below.
   if (!res.ok || !res.body) return null
-  const networkTime = Number(((performance.now() - networkStart) / 1000).toFixed(2))
+  const networkTime = elapsedSeconds(networkStart)
 
   // Stream the body to a sibling temp file, then rename it onto the target: the
   // body is never fully buffered in memory, and a failed transfer never leaves a
@@ -102,7 +103,7 @@ export const fetchRawBlob = async (
   } finally {
     activeTempPaths.delete(tmpPath)
   }
-  const copyTime = Number(((performance.now() - copyStart) / 1000).toFixed(2))
+  const copyTime = elapsedSeconds(copyStart)
 
   const { size } = await fs.promises.stat(targetPath)
   return { size, networkTime, copyTime }
