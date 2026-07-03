@@ -6,6 +6,7 @@ import spawn from "@/external/nano-spawn"
 import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
+import { fetchRawBlob } from "@/utils/raw-blob"
 import { cloneShallowOrFull, reanchorIfPathMissing } from "@/utils/resolve-ref"
 import { tempName } from "@/utils/temp-name"
 
@@ -65,11 +66,7 @@ export const cloneAction = async (
     await spawn("git", ["config", "--global", "core.longpaths", "true"])
   }
 
-  const repoUrl = `https://${config.token ? config.token + "@" : config.token}${config.host}/${config.owner}/${config.repository}.git`
   const displayUrl = `https://${config.host}/${config.owner}/${config.repository}.git`
-  const tempDir = path.resolve(os.tmpdir(), tempName(`${config.repository}-`))
-
-  activeTempDirs.add(tempDir)
 
   const s = spinner()
   const start = performance.now()
@@ -79,6 +76,56 @@ export const cloneAction = async (
       `Picking ${config.type}${config.type === "repository" ? " without .git" : " from repository"}...`,
     )
   }
+
+  // Shared success reporting for both the fast (raw GET) and clone paths.
+  const report = (
+    files: string[],
+    totalSize: number,
+    networkTime: number,
+    copyTime: number,
+    cloneStrategy: string,
+  ): CloneResult => {
+    const duration = Number(((performance.now() - start) / 1000).toFixed(2))
+
+    if (!silent) {
+      if (!options.watch) {
+        s.success(
+          `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${duration} seconds.`,
+        )
+      } else console.log("- Synced at " + new Date().toLocaleTimeString())
+    }
+
+    if (verbose) {
+      console.log(
+        dim(
+          `  clone:    ${cloneStrategy}${cloneStrategy === "raw" ? " (single GET)" : ` (depth=${cloneStrategy === "shallow" ? "1" : "full"})`}`,
+        ),
+      )
+      console.log(dim(`  from:     ${displayUrl} @ ${cyan(config.branch)}`))
+      console.log(dim(`  to:       ${targetPath}`))
+      console.log(dim(`  files:    ${files.length} (${formatSize(totalSize)})`))
+      console.log(dim(`  network:  ${networkTime}s`))
+      console.log(dim(`  copy:     ${copyTime}s`))
+      console.log(dim(`  total:    ${duration}s`))
+    }
+
+    return { files, duration, networkTime, copyTime, totalSize, cloneStrategy }
+  }
+
+  // Fast path: a single-file (blob/raw) pick needs one raw-endpoint GET, not a
+  // whole-tree shallow clone. Any miss (unsupported host, a private repo the raw
+  // host won't serve, a slash-branch the optimistic ref guessed wrong, a 4xx/5xx)
+  // returns null and falls through to the clone path, so correctness is unchanged.
+  if (config.type === "blob" || config.type === "raw") {
+    const raw = await fetchRawBlob(config, targetPath)
+    if (raw) {
+      return report([path.basename(targetPath)], raw.size, raw.networkTime, raw.copyTime, "raw")
+    }
+  }
+
+  const repoUrl = `https://${config.token ? config.token + "@" : config.token}${config.host}/${config.owner}/${config.repository}.git`
+  const tempDir = path.resolve(os.tmpdir(), tempName(`${config.repository}-`))
+  activeTempDirs.add(tempDir)
 
   const networkStart = performance.now()
 
@@ -115,7 +162,6 @@ export const cloneAction = async (
   }
 
   const copyTime = Number(((performance.now() - copyStart) / 1000).toFixed(2))
-  const duration = Number(((performance.now() - start) / 1000).toFixed(2))
 
   let totalSize = 0
   for (const file of files) {
@@ -123,35 +169,15 @@ export const cloneAction = async (
       const stat = await fs.promises.stat(path.join(targetPath, file))
       totalSize += stat.size
     } catch {
-      // single file (blob) — targetPath is the file itself
+      // single file (blob): targetPath is the file itself
       const stat = await fs.promises.stat(targetPath)
       totalSize += stat.size
       break
     }
   }
 
-  if (!silent) {
-    if (!options.watch) {
-      s.success(
-        `Picked ${config.type}${config.type === "repository" ? " without .git" : " from repository"} in ${duration} seconds.`,
-      )
-    } else console.log("- Synced at " + new Date().toLocaleTimeString())
-  }
-
-  if (verbose) {
-    console.log(
-      dim(`  clone:    ${cloneStrategy} (depth=${cloneStrategy === "shallow" ? "1" : "full"})`),
-    )
-    console.log(dim(`  from:     ${displayUrl} @ ${cyan(config.branch)}`))
-    console.log(dim(`  to:       ${targetPath}`))
-    console.log(dim(`  files:    ${files.length} (${formatSize(totalSize)})`))
-    console.log(dim(`  network:  ${networkTime}s`))
-    console.log(dim(`  copy:     ${copyTime}s`))
-    console.log(dim(`  total:    ${duration}s`))
-  }
-
   await fs.promises.rm(tempDir, { recursive: true, force: true })
   activeTempDirs.delete(tempDir)
 
-  return { files, duration, networkTime, copyTime, totalSize, cloneStrategy }
+  return report(files, totalSize, networkTime, copyTime, cloneStrategy)
 }

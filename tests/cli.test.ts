@@ -735,6 +735,27 @@ describe("default — gitpick <url/shorthand>", () => {
   )
 })
 
+describe("transport — single-file fast path", () => {
+  async function strategy(args: string[]) {
+    const t = target()
+    if (existsSync(t)) rmSync(t, { recursive: true, force: true })
+    const { output, exitCode } = await run(["clone", ...args, t, "--verbose", "-o"])
+    expect(exitCode).toBe(0)
+    return stripAnsi(output)
+  }
+
+  // A blob pick should be one raw-endpoint GET, not a whole-tree clone. If the
+  // fast path silently broke, blobs would still work via the clone fallback and
+  // the correctness tests above would stay green - this pins the fast path.
+  it("blob pick uses a raw GET", async () => {
+    expect(await strategy(["nrjdalal/picksuite/blob/main/file.txt"])).toContain("raw (single GET)")
+  }, 30000)
+  // A folder pick must not be routed through the raw path.
+  it("tree pick still uses a shallow clone", async () => {
+    expect(await strategy(["nrjdalal/picksuite/tree/main/folder"])).toContain("shallow (depth=1)")
+  }, 30000)
+})
+
 describe("no prefix — gitpick <url> (without clone keyword)", () => {
   async function noPrefixClone(args: string[], expectedOutput: string, expectedTree: string) {
     const t = target()
