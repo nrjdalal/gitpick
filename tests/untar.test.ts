@@ -205,4 +205,31 @@ describe("extractTarGz", () => {
       extract(entry("repo-main/", "", "5"), entry("repo-main/hard", "", "1", "file.txt")),
     ).rejects.toThrow(/unsupported entry type/)
   })
+
+  it("throws on a truncated archive (incomplete final entry)", async () => {
+    // a valid gzip wrapping a tar whose final header claims 100 bytes but only
+    // 10 follow (no end-of-archive blocks) - gunzip ends clean, but the entry is
+    // incomplete, so the caller must fall back rather than report a partial pick.
+    const gz = gzipSync(
+      Buffer.concat([
+        entry("repo-main/", "", "5"),
+        header("repo-main/cut.txt", 100, "0"),
+        Buffer.alloc(10),
+      ]),
+    )
+    const dir = mkdtempSync(join(tmpdir(), "untar-"))
+    await expect(extractTarGz(Readable.from(gz), dir)).rejects.toThrow(/truncated/)
+    rmSync(dir, { recursive: true, force: true })
+  })
+
+  it("rejects (does not hang) when the source stream errors mid-download", async () => {
+    // `.pipe()` won't forward a source error to gunzip; without the explicit
+    // forward this would hang the async iterator instead of rejecting. The 5s
+    // timeout turns a regression (hang) into a fast failure.
+    const dir = mkdtempSync(join(tmpdir(), "untar-"))
+    const src = new Readable({ read() {} })
+    queueMicrotask(() => src.destroy(new Error("connection reset")))
+    await expect(extractTarGz(src, dir)).rejects.toThrow()
+    rmSync(dir, { recursive: true, force: true })
+  }, 5000)
 })

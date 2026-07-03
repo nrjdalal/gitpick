@@ -143,7 +143,14 @@ export const extractTarGz = async (
   let header: Header | null = null
   let need = BLOCK // bytes required for the next step: a header, then its data
 
-  for await (const chunk of source.pipe(createGunzip())) {
+  // `.pipe()` does not forward a source 'error' to its destination, so a
+  // mid-download HTTP-body failure would leave the `for await` hanging (gunzip
+  // never ends or errors) instead of rejecting. Forward it so fetchTarball's
+  // try/catch can fall back to the clone path.
+  const gunzip = createGunzip()
+  source.on("error", (err) => gunzip.destroy(err))
+
+  for await (const chunk of source.pipe(gunzip)) {
     parts.push(chunk as Buffer)
     pending += (chunk as Buffer).length
     while (pending >= need) {
@@ -164,6 +171,15 @@ export const extractTarGz = async (
         need = BLOCK
       }
     }
+  }
+
+  // A valid gzip can still wrap a truncated tar (a final header whose declared
+  // data never fully arrived). Ending mid-entry means the last file is missing -
+  // throw so the caller falls back to a clone instead of reporting a partial
+  // success. (A clean archive ends on a header/zero-block boundary, so `header`
+  // is null here.)
+  if (header !== null) {
+    throw new Error("untar: truncated archive (incomplete final entry)")
   }
 
   return { files, symlinks }
