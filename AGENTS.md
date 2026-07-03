@@ -43,6 +43,7 @@ Keep the common single-segment pick **network-free**. Guess optimistically (firs
 
 - Formatting: `oxfmt` (`bun run format` / `format:check`). Linting: `oxlint`.
 - Commits: **Conventional Commits** (enforced by commitlint). `lefthook` runs oxfmt + oxlint on staged files and commitlint on the message at commit time.
+- **Never co-author commits** - no `Co-Authored-By` trailers and no "Generated with" lines in commit messages or PR bodies.
 - Order imports alphabetically by path.
 
 ## Layout
