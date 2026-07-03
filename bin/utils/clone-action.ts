@@ -6,6 +6,7 @@ import spawn from "@/external/nano-spawn"
 import { spinner } from "@/external/yocto-spinner"
 import { cyan, dim } from "@/external/yoctocolors"
 import { copyDir } from "@/utils/copy-dir"
+import { resolveAndCheckout } from "@/utils/resolve-ref"
 
 const activeTempDirs = new Set<string>()
 
@@ -45,6 +46,7 @@ export const cloneAction = async (
     branch: string
     type: string
     path: string
+    refSegments?: string[]
   },
   options: {
     recursive?: boolean
@@ -98,7 +100,9 @@ export const cloneAction = async (
   } catch {
     cloneStrategy = "full"
     await spawn("git", ["clone", repoUrl, tempDir, ...(options.recursive ? ["--recursive"] : [])])
-    await spawn("git", ["checkout", config.branch], { cwd: tempDir })
+    // The shallow `--branch` clone can fail because a slash branch was split
+    // into branch + path; re-anchor against the real refs before checkout.
+    await resolveAndCheckout(tempDir, config)
   }
 
   const networkTime = Number(((performance.now() - networkStart) / 1000).toFixed(2))

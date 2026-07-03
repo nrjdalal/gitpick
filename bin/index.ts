@@ -11,6 +11,7 @@ import { cloneAction } from "@/utils/clone-action"
 import { copyDir, createCopyContext } from "@/utils/copy-dir"
 import { type TreeEntry, interactivePicker } from "@/utils/interactive-picker"
 import { parseTimeString } from "@/utils/parse-time-string"
+import { resolveAndCheckout } from "@/utils/resolve-ref"
 import { configFromUrl } from "@/utils/transform-url"
 import { notifyUpdate, scheduleUpdateCheck } from "@/utils/update-notifier"
 import { useConfig } from "@/utils/use-config"
@@ -466,7 +467,9 @@ const main = async () => {
           tempDir,
           ...(options.recursive ? ["--recursive"] : []),
         ])
-        await spawn("git", ["checkout", config.branch], { cwd: tempDir })
+        // The shallow `--branch` clone can fail because a slash branch was split
+        // into branch + path; re-anchor against the real refs before checkout.
+        await resolveAndCheckout(tempDir, config)
       }
 
       // Walk local tree to build entries (scoped to config.path if set)
