@@ -21,7 +21,7 @@ Run the whole suite (build + tests):
 bun run test
 ```
 
-**Filesystem note (WSL/Windows):** picksuite's `main` carries two symlinks (`symlink.txt`, `symdir`) that back the whole-repo tree snapshots. The suite writes its artifacts under `os.tmpdir()` (`/tmp`, ext4 on WSL) rather than the checkout directory, so symlinks work and the tests pass even when the repo is cloned on a `/mnt/*` Windows-drive mount (DrvFs). No special setup needed - run `bun run test` from anywhere.
+**Filesystem note (WSL/Windows):** picksuite's `main` carries two symlinks (`symlink.txt`, `symdir`) that back the whole-repo tree snapshots. The suite writes its artifacts under `os.tmpdir()` (`/tmp`, ext4 on WSL) rather than the checkout directory, so symlinks work and the tests pass even when the repo is cloned on a `/mnt/*` Windows-drive mount (DrvFs). On WSL, macOS, and Linux that needs no setup - run `bun run test` from anywhere. Native Windows needs symlink creation enabled (Developer Mode) - the same requirement `git` has for checking out a symlink-containing repo; GitHub's Windows CI has it on.
 
 ## Performance — always benchmark with hyperfine
 
