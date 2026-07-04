@@ -823,6 +823,27 @@ describe("transport fast path (opt-in via --fast)", () => {
     expect(out).toMatch(/shallow|full/)
   }, 30000)
 
+  // A SHA can't be shallow-cloned, so the default (no --fast) path full-clones it.
+  // Preserves the pre-#69 "reports full clone strategy for SHA" assertion, which
+  // was repurposed to cover the --fast tarball case.
+  it("SHA pick defaults to a full clone without --fast", async () => {
+    const t = target()
+    if (existsSync(t)) rmSync(t, { recursive: true, force: true })
+    const { output, exitCode } = await run([
+      "clone",
+      "nrjdalal/picksuite",
+      "-b",
+      "8af536b",
+      t,
+      "--verbose",
+      "-o",
+    ])
+    expect(exitCode).toBe(0)
+    const stripped = stripAnsi(output)
+    expect(stripped).toContain("full (depth=full)")
+    expect(stripped).not.toContain("tarball")
+  }, 30000)
+
   it("GITPICK_FAST=1 opts into the fast path without the flag", async () => {
     const t = target()
     if (existsSync(t)) rmSync(t, { recursive: true, force: true })
