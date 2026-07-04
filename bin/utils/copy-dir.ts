@@ -46,16 +46,8 @@ export const copyDir = async (
       const link = await fs.promises.readlink(srcPath)
       // remove any existing entry first so symlinks overwrite like copyFile does; symlink() throws EEXIST otherwise
       await fs.promises.rm(destPath, { force: true, recursive: true })
-      try {
-        await fs.promises.symlink(link, destPath)
-        files.push(path.relative(base, destPath))
-      } catch {
-        // A symlink-hostile filesystem (e.g. a WSL /mnt DrvFs mount) can reject
-        // symlink(); warn and skip rather than aborting the whole pick.
-        console.warn(
-          `Warning: could not create symlink ${path.relative(base, destPath)} -> ${link}`,
-        )
-      }
+      await fs.promises.symlink(link, destPath)
+      files.push(path.relative(base, destPath))
     } else {
       await fs.promises.copyFile(srcPath, destPath)
       files.push(path.relative(base, destPath))
