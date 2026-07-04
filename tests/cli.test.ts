@@ -10,7 +10,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs"
-import { tmpdir } from "node:os"
+import { homedir, tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 const CLI = ["node", resolve("dist/index.mjs")]
@@ -1515,7 +1515,11 @@ describe("--tree output", () => {
   function parseTreeOutput(output: string) {
     const stripped = stripAnsi(output).trim()
     const lines = stripped.split("\n")
-    return { header: lines[0], tree: lines.slice(1).join("\n") }
+    // The header abbreviates a home-dir target as `~/...`. On Windows
+    // os.tmpdir() — where ARTIFACTS lives — sits under the home dir, so expand
+    // the `~` back to keep the absolute-path assertions platform-independent.
+    const header = lines[0].replace(/^~(?=\/)/, homedir())
+    return { header, tree: lines.slice(1).join("\n") }
   }
 
   const fwd = (s: string) => s.replaceAll("\\", "/")
