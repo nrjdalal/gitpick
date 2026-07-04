@@ -1530,7 +1530,7 @@ describe("--tree output", () => {
     ])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(t))
+    expect(fwd(header)).toContain(fwd(t))
     expect(tree).toBe(TREE_FOLDER)
   }, 30000)
 
@@ -1539,7 +1539,7 @@ describe("--tree output", () => {
     const { output, exitCode } = await run(["clone", "nrjdalal/picksuite", t, "--tree"])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(t))
+    expect(fwd(header)).toContain(fwd(t))
     expect(tree).toBe(TREE_REPO_MAIN)
   }, 30000)
 
@@ -1561,7 +1561,7 @@ describe("--tree output", () => {
     ])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(t))
+    expect(fwd(header)).toContain(fwd(t))
     expect(tree).toBe(TREE_FOLDER)
     expect(existsSync(resolve(t))).toBe(false)
   }, 30000)
@@ -1571,7 +1571,7 @@ describe("--tree output", () => {
     const { output, exitCode } = await run(["nrjdalal/picksuite", t, "--dry-run", "--tree"])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(t))
+    expect(fwd(header)).toContain(fwd(t))
     expect(tree).toBe(TREE_REPO_MAIN)
   }, 30000)
 
@@ -1606,7 +1606,7 @@ describe("--tree output", () => {
     ])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(join(ARTIFACTS, "cli")))
+    expect(fwd(header)).toContain(fwd(join(ARTIFACTS, "cli")))
     expect(tree).toBe("└── file.txt")
   }, 30000)
 
@@ -1620,7 +1620,7 @@ describe("--tree output", () => {
     ])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(join(ARTIFACTS, "cli")))
+    expect(fwd(header)).toContain(fwd(join(ARTIFACTS, "cli")))
     expect(tree).toBe("└── file.txt")
   }, 30000)
 })
