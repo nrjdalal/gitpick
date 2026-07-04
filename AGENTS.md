@@ -21,6 +21,8 @@ Run the whole suite (build + tests):
 bun run test
 ```
 
+**Filesystem note (WSL/Windows):** picksuite's `main` carries two symlinks (`symlink.txt`, `symdir`) that back the whole-repo tree snapshots, so the suite must run on a symlink-capable filesystem. On WSL, clone into your Linux home (`~`, ext4), not a `/mnt/*` Windows-drive mount - DrvFs can't create symlinks, so dozens of snapshot and symlink-integrity tests fail there through no fault of the CLI.
+
 ## Performance — always benchmark with hyperfine
 
 Any change touching a hot or clone-path code path must be benchmarked with **`hyperfine`** before finalizing. Reasoning about the overhead is not enough — measure it.
