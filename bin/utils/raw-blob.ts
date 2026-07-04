@@ -51,6 +51,28 @@ export const rawBlobUrl = (config: BlobConfig): string | null => {
   }
 }
 
+// Windows' rename-replace (MoveFileEx) briefly locks the destination while a
+// concurrent replace lands (or a scanner inspects the fresh file), so a losing
+// rename surfaces a transient EPERM/EACCES/EBUSY even though the target is
+// healthy — e.g. two overlapping --watch ticks picking the same file. Retry the
+// still-atomic rename over that window instead of treating it as a miss. A
+// destination that is a directory rethrows immediately: that's a genuine
+// cannot-finalize, not a lock. POSIX renames keep single-shot semantics.
+const transientRenameCodes = new Set(["EPERM", "EACCES", "EBUSY"])
+const renameReplacing = async (from: string, to: string): Promise<void> => {
+  if (process.platform !== "win32") return fs.promises.rename(from, to)
+  for (let attempt = 0, delay = 1; ; attempt++, delay = Math.min(delay * 2, 50)) {
+    try {
+      return await fs.promises.rename(from, to)
+    } catch (err: any) {
+      if (attempt >= 9 || !transientRenameCodes.has(err.code)) throw err
+      const existing = await fs.promises.lstat(to).catch(() => null)
+      if (existing?.isDirectory()) throw err
+      await new Promise((r) => setTimeout(r, delay))
+    }
+  }
+}
+
 // Try to satisfy a single-file (blob/raw) pick with one raw-endpoint GET instead
 // of cloning the whole tree. Returns the written size and timings on success, or
 // null on any miss so the caller falls back to the clone path.
@@ -99,7 +121,7 @@ export const fetchRawBlob = async (
       Readable.fromWeb(res.body as Parameters<typeof Readable.fromWeb>[0]),
       fs.createWriteStream(tmpPath),
     )
-    await fs.promises.rename(tmpPath, targetPath)
+    await renameReplacing(tmpPath, targetPath)
   } catch {
     await fs.promises.rm(tmpPath, { force: true })
     return null
