@@ -91,10 +91,7 @@ function supportsSymlinks(): boolean {
     mkdirSync(ARTIFACTS, { recursive: true })
     rmSync(probe, { force: true })
     symlinkSync("target", probe)
-    // Must be a real symlink AND read back the exact target: on WSL DrvFs a
-    // symlink can "succeed" with isSymbolicLink() true but a mangled readlink, so
-    // checking only isSymbolicLink() wrongly reports support.
-    const ok = lstatSync(probe).isSymbolicLink() && readlinkSync(probe) === "target"
+    const ok = lstatSync(probe).isSymbolicLink()
     rmSync(probe, { force: true })
     return ok
   } catch {
@@ -116,15 +113,7 @@ if (!SYMLINKS) {
 // two picksuite symlinks can't reproduce, so only the non-symlink lines (the real
 // files/folders) are checked. Everywhere else the match is exact.
 function expectTree(actual: string, expected: string) {
-  // Exact where the trees already agree, or where no symlinks are involved (so a
-  // real diff still surfaces). Otherwise the expected tree contains symlinks and
-  // the actual differs - filesystems vary wildly in how they materialize a
-  // symlink (real link, stub file, a different readlink target, or skipped
-  // entirely), so verify the non-symlink structure here and leave symlink
-  // correctness to the integrity tests, which run only where symlinks work. This
-  // is deliberately independent of the SYMLINKS probe so the tree tests can't
-  // fail on any filesystem quirk.
-  if (actual === expected || !expected.includes(" -> ")) {
+  if (SYMLINKS || !expected.includes(" -> ")) {
     expect(actual).toBe(expected)
     return
   }
