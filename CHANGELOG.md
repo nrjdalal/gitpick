@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.1.0 (2026-07-04)
+
+- **Opt-in `--fast` transport** - fetch folder/repo picks by streaming the host archive (`.tar.gz`) and blob picks via a raw HTTP GET, instead of `git clone`. Typically 2-4x faster; enable per-pick with `--fast` or fleet-wide with `GITPICK_FAST=1`.
+  - Default behavior is unchanged (`git clone`), so existing picks are byte-for-byte identical - the fast paths only run when opted in.
+  - Zero-dependency streaming untar handles files, directories, symlinks, the executable bit, and pax long names; any miss (unknown host, non-2xx, unsupported entry, missing sub-path, mid-stream error, truncated archive, unsafe path) falls back to a clone.
+  - Verified byte-identical to a clone across a 100-repo differential test; the only differences are archive semantics `git clone` does not apply (`.gitattributes` `export-ignore`/`export-subst`, Windows `core.autocrlf`, symlink-hostile Windows), all documented under "Fast Mode" in the README.
+
 ## v6.0.2 (2026-07-03)
 
 - Add a dedicated `.gitpickignore` section to the README documenting the gitignore-style pattern syntax
