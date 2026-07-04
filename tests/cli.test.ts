@@ -8,6 +8,7 @@ import {
   readlinkSync,
   readdirSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs"
 import { join, resolve } from "node:path"
@@ -77,6 +78,48 @@ function getTree(dir: string) {
   if (!existsSync(dir)) return ""
   if (!lstatSync(dir).isDirectory()) return "(file)"
   return tree(dir).trimEnd()
+}
+
+// Some filesystems can't create symlinks - notably a WSL `/mnt/*` DrvFs mount of
+// a Windows drive. picksuite carries two symlinks that back the whole-repo
+// snapshots, so probe support once: where symlinks work we assert the exact tree
+// (full coverage); where they don't we verify the non-symlink structure and skip
+// the symlink-specific assertions, so the suite passes on any filesystem.
+function supportsSymlinks(): boolean {
+  const probe = join(ARTIFACTS, `.symlink-probe-${process.pid}`)
+  try {
+    mkdirSync(ARTIFACTS, { recursive: true })
+    rmSync(probe, { force: true })
+    symlinkSync("target", probe)
+    const ok = lstatSync(probe).isSymbolicLink()
+    rmSync(probe, { force: true })
+    return ok
+  } catch {
+    return false
+  }
+}
+
+// GITPICK_TEST_NO_SYMLINKS forces the symlink-incapable path, so it can be
+// exercised on a filesystem that does support symlinks (CI, local check).
+const SYMLINKS = !process.env.GITPICK_TEST_NO_SYMLINKS && supportsSymlinks()
+if (!SYMLINKS) {
+  console.warn(
+    "\n⚠ This filesystem can't create symlinks (e.g. a WSL /mnt DrvFs mount); " +
+      "symlink-specific assertions are skipped. Run on ext4/APFS - on WSL, clone into ~ - for full coverage.\n",
+  )
+}
+
+// Compare a rendered tree, tolerant of a symlink-incapable filesystem: there the
+// two picksuite symlinks can't reproduce, so only the non-symlink lines (the real
+// files/folders) are checked. Everywhere else the match is exact.
+function expectTree(actual: string, expected: string) {
+  if (SYMLINKS || !expected.includes(" -> ")) {
+    expect(actual).toBe(expected)
+    return
+  }
+  for (const line of expected.split("\n")) {
+    if (!line.includes(" -> ")) expect(actual).toContain(line)
+  }
 }
 
 // --- tree snapshots (sorted case-insensitive for bun's readdirSync) ---
@@ -167,7 +210,7 @@ async function cloneAndExpect(
   if (expectedTree === "(file)") {
     expect(lstatSync(t).isFile()).toBe(true)
   } else if (expectedTree) {
-    expect(getTree(t)).toBe(expectedTree)
+    expectTree(getTree(t), expectedTree)
   } else {
     expect(existsSync(t)).toBe(true)
   }
@@ -926,7 +969,7 @@ describe("no prefix — gitpick <url> (without clone keyword)", () => {
     if (expectedTree === "(file)") {
       expect(lstatSync(t).isFile()).toBe(true)
     } else if (expectedTree) {
-      expect(getTree(t)).toBe(expectedTree)
+      expectTree(getTree(t), expectedTree)
     } else {
       expect(existsSync(t)).toBe(true)
     }
@@ -1422,19 +1465,19 @@ describe("integrity — .git exclusion, symlinks, content", () => {
     expect(existsSync(join(repoDir, ".git"))).toBe(false)
   })
 
-  it("symlink.txt is a symlink", () => {
+  it.skipIf(!SYMLINKS)("symlink.txt is a symlink", () => {
     expect(lstatSync(join(repoDir, "symlink.txt")).isSymbolicLink()).toBe(true)
   })
 
-  it("symdir is a symlink", () => {
+  it.skipIf(!SYMLINKS)("symdir is a symlink", () => {
     expect(lstatSync(join(repoDir, "symdir")).isSymbolicLink()).toBe(true)
   })
 
-  it("symlink.txt → file.txt", () => {
+  it.skipIf(!SYMLINKS)("symlink.txt → file.txt", () => {
     expect(readlinkSync(join(repoDir, "symlink.txt"))).toBe("file.txt")
   })
 
-  it("symdir → folder", () => {
+  it.skipIf(!SYMLINKS)("symdir → folder", () => {
     expect(readlinkSync(join(repoDir, "symdir"))).toBe("folder")
   })
 
@@ -1495,7 +1538,7 @@ describe("config — .gitpick.jsonc", () => {
 
       const expected = CONFIG_TREES[i]
       if (expected) {
-        expect(getTree(dir)).toBe(expected)
+        expectTree(getTree(dir), expected)
       }
     })
   }
@@ -1534,7 +1577,7 @@ describe("--tree output", () => {
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
     expect(header).toContain(fwd(t))
-    expect(tree).toBe(TREE_REPO_MAIN)
+    expectTree(tree, TREE_REPO_MAIN)
   }, 30000)
 
   it("no human-readable output with --tree", async () => {
@@ -1566,7 +1609,7 @@ describe("--tree output", () => {
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
     expect(header).toContain(fwd(t))
-    expect(tree).toBe(TREE_REPO_MAIN)
+    expectTree(tree, TREE_REPO_MAIN)
   }, 30000)
 
   it("header uses ./ for relative paths", async () => {
