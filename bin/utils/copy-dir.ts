@@ -46,8 +46,18 @@ export const copyDir = async (
       const link = await fs.promises.readlink(srcPath)
       // remove any existing entry first so symlinks overwrite like copyFile does; symlink() throws EEXIST otherwise
       await fs.promises.rm(destPath, { force: true, recursive: true })
-      await fs.promises.symlink(link, destPath)
-      files.push(path.relative(base, destPath))
+      try {
+        await fs.promises.symlink(link, destPath)
+        files.push(path.relative(base, destPath))
+      } catch {
+        // Symlinks work on WSL's native fs (where gitpick's temp dir and most
+        // targets live), but a target on a symlink-hostile mount (a /mnt DrvFs
+        // path) can still reject symlink(). Warn and skip rather than aborting
+        // the whole pick, matching the archive/untar path.
+        console.warn(
+          `Warning: could not create symlink ${path.relative(base, destPath)} -> ${link}`,
+        )
+      }
     } else {
       await fs.promises.copyFile(srcPath, destPath)
       files.push(path.relative(base, destPath))
