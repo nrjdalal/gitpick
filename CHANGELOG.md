@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.1.1 (2026-07-04)
+
+- Fix `bun install` failing with "fatal: not a git repository" when there's no `.git` (a zip download or a git-dependency install): the `prepare` hook now skips lefthook cleanly (`|| exit 0`) instead of failing the whole install.
+- Make the CLI test suite pass on filesystems that can't create symlinks (e.g. a WSL `/mnt` DrvFs mount): it probes symlink support and skips only the symlink-specific assertions there, keeping full coverage everywhere else. (#70)
+
 ## v6.1.0 (2026-07-04)
 
 - **Opt-in `--fast` transport** - fetch folder/repo picks by streaming the host archive (`.tar.gz`) and blob picks via a raw HTTP GET, instead of `git clone`. Typically 2-4x faster; enable per-pick with `--fast` or fleet-wide with `GITPICK_FAST=1`.
