@@ -8,13 +8,18 @@ import {
   readlinkSync,
   readdirSync,
   rmSync,
-  symlinkSync,
   writeFileSync,
 } from "node:fs"
+import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 const CLI = ["node", resolve("dist/index.mjs")]
-const ARTIFACTS = ".test-artifacts"
+// Write artifacts under the OS temp dir (a native filesystem), not the repo/cwd.
+// On WSL that keeps them on the ext4 root (/tmp), where symlinks work, even when
+// gitpick is checked out on a /mnt Windows-drive mount. Symlinks then behave
+// normally on every platform - no probing, no conditional skips.
+const ARTIFACTS = join(tmpdir(), "gitpick-cli-tests")
+rmSync(ARTIFACTS, { recursive: true, force: true })
 
 // --- helpers ---
 
@@ -78,48 +83,6 @@ function getTree(dir: string) {
   if (!existsSync(dir)) return ""
   if (!lstatSync(dir).isDirectory()) return "(file)"
   return tree(dir).trimEnd()
-}
-
-// Some filesystems can't create symlinks - notably a WSL `/mnt/*` DrvFs mount of
-// a Windows drive. picksuite carries two symlinks that back the whole-repo
-// snapshots, so probe support once: where symlinks work we assert the exact tree
-// (full coverage); where they don't we verify the non-symlink structure and skip
-// the symlink-specific assertions, so the suite passes on any filesystem.
-function supportsSymlinks(): boolean {
-  const probe = join(ARTIFACTS, `.symlink-probe-${process.pid}`)
-  try {
-    mkdirSync(ARTIFACTS, { recursive: true })
-    rmSync(probe, { force: true })
-    symlinkSync("target", probe)
-    const ok = lstatSync(probe).isSymbolicLink()
-    rmSync(probe, { force: true })
-    return ok
-  } catch {
-    return false
-  }
-}
-
-// GITPICK_TEST_NO_SYMLINKS forces the symlink-incapable path, so it can be
-// exercised on a filesystem that does support symlinks (CI, local check).
-const SYMLINKS = !process.env.GITPICK_TEST_NO_SYMLINKS && supportsSymlinks()
-if (!SYMLINKS) {
-  console.warn(
-    "\n⚠ This filesystem can't create symlinks (e.g. a WSL /mnt DrvFs mount); " +
-      "symlink-specific assertions are skipped. Run on ext4/APFS - on WSL, clone into ~ - for full coverage.\n",
-  )
-}
-
-// Compare a rendered tree, tolerant of a symlink-incapable filesystem: there the
-// two picksuite symlinks can't reproduce, so only the non-symlink lines (the real
-// files/folders) are checked. Everywhere else the match is exact.
-function expectTree(actual: string, expected: string) {
-  if (SYMLINKS || !expected.includes(" -> ")) {
-    expect(actual).toBe(expected)
-    return
-  }
-  for (const line of expected.split("\n")) {
-    if (!line.includes(" -> ")) expect(actual).toContain(line)
-  }
 }
 
 // --- tree snapshots (sorted case-insensitive for bun's readdirSync) ---
@@ -210,7 +173,7 @@ async function cloneAndExpect(
   if (expectedTree === "(file)") {
     expect(lstatSync(t).isFile()).toBe(true)
   } else if (expectedTree) {
-    expectTree(getTree(t), expectedTree)
+    expect(getTree(t)).toBe(expectedTree)
   } else {
     expect(existsSync(t)).toBe(true)
   }
@@ -969,7 +932,7 @@ describe("no prefix — gitpick <url> (without clone keyword)", () => {
     if (expectedTree === "(file)") {
       expect(lstatSync(t).isFile()).toBe(true)
     } else if (expectedTree) {
-      expectTree(getTree(t), expectedTree)
+      expect(getTree(t)).toBe(expectedTree)
     } else {
       expect(existsSync(t)).toBe(true)
     }
@@ -1465,19 +1428,19 @@ describe("integrity — .git exclusion, symlinks, content", () => {
     expect(existsSync(join(repoDir, ".git"))).toBe(false)
   })
 
-  it.skipIf(!SYMLINKS)("symlink.txt is a symlink", () => {
+  it("symlink.txt is a symlink", () => {
     expect(lstatSync(join(repoDir, "symlink.txt")).isSymbolicLink()).toBe(true)
   })
 
-  it.skipIf(!SYMLINKS)("symdir is a symlink", () => {
+  it("symdir is a symlink", () => {
     expect(lstatSync(join(repoDir, "symdir")).isSymbolicLink()).toBe(true)
   })
 
-  it.skipIf(!SYMLINKS)("symlink.txt → file.txt", () => {
+  it("symlink.txt → file.txt", () => {
     expect(readlinkSync(join(repoDir, "symlink.txt"))).toBe("file.txt")
   })
 
-  it.skipIf(!SYMLINKS)("symdir → folder", () => {
+  it("symdir → folder", () => {
     expect(readlinkSync(join(repoDir, "symdir"))).toBe("folder")
   })
 
@@ -1538,7 +1501,7 @@ describe("config — .gitpick.jsonc", () => {
 
       const expected = CONFIG_TREES[i]
       if (expected) {
-        expectTree(getTree(dir), expected)
+        expect(getTree(dir)).toBe(expected)
       }
     })
   }
@@ -1567,7 +1530,7 @@ describe("--tree output", () => {
     ])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(t))
+    expect(fwd(header)).toContain(fwd(t))
     expect(tree).toBe(TREE_FOLDER)
   }, 30000)
 
@@ -1576,8 +1539,8 @@ describe("--tree output", () => {
     const { output, exitCode } = await run(["clone", "nrjdalal/picksuite", t, "--tree"])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(t))
-    expectTree(tree, TREE_REPO_MAIN)
+    expect(fwd(header)).toContain(fwd(t))
+    expect(tree).toBe(TREE_REPO_MAIN)
   }, 30000)
 
   it("no human-readable output with --tree", async () => {
@@ -1598,7 +1561,7 @@ describe("--tree output", () => {
     ])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(t))
+    expect(fwd(header)).toContain(fwd(t))
     expect(tree).toBe(TREE_FOLDER)
     expect(existsSync(resolve(t))).toBe(false)
   }, 30000)
@@ -1608,21 +1571,29 @@ describe("--tree output", () => {
     const { output, exitCode } = await run(["nrjdalal/picksuite", t, "--dry-run", "--tree"])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(t))
-    expectTree(tree, TREE_REPO_MAIN)
+    expect(fwd(header)).toContain(fwd(t))
+    expect(tree).toBe(TREE_REPO_MAIN)
   }, 30000)
 
   it("header uses ./ for relative paths", async () => {
-    const t = target()
-    const { output, exitCode } = await run([
-      "clone",
-      "nrjdalal/picksuite/tree/main/folder",
-      t,
-      "--tree",
-    ])
-    expect(exitCode).toBe(0)
-    const { header } = parseTreeOutput(output)
-    expect(header.startsWith("./")).toBe(true)
+    // A deliberately cwd-relative target (not the absolute os.tmpdir ARTIFACTS)
+    // to exercise the ./ display. A folder pick, so no symlinks are involved, and
+    // `.test-artifacts` is gitignored so it never dirties the checkout.
+    const rel = join(".test-artifacts", "rel-header")
+    rmSync(rel, { recursive: true, force: true })
+    try {
+      const { output, exitCode } = await run([
+        "clone",
+        "nrjdalal/picksuite/tree/main/folder",
+        rel,
+        "--tree",
+      ])
+      expect(exitCode).toBe(0)
+      const { header } = parseTreeOutput(output)
+      expect(header.startsWith("./")).toBe(true)
+    } finally {
+      rmSync(rel, { recursive: true, force: true })
+    }
   }, 30000)
 
   it("blob shows parent dir header and file node", async () => {
@@ -1635,7 +1606,7 @@ describe("--tree output", () => {
     ])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(join(ARTIFACTS, "cli")))
+    expect(fwd(header)).toContain(fwd(join(ARTIFACTS, "cli")))
     expect(tree).toBe("└── file.txt")
   }, 30000)
 
@@ -1649,7 +1620,7 @@ describe("--tree output", () => {
     ])
     expect(exitCode).toBe(0)
     const { header, tree } = parseTreeOutput(output)
-    expect(header).toContain(fwd(join(ARTIFACTS, "cli")))
+    expect(fwd(header)).toContain(fwd(join(ARTIFACTS, "cli")))
     expect(tree).toBe("└── file.txt")
   }, 30000)
 })
