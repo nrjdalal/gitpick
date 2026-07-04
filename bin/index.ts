@@ -40,6 +40,8 @@ ${bold("Options:")}
   ${cyan("-b, --branch")}        Branch/SHA to clone
   ${cyan("-o, --overwrite")}     Skip overwrite prompt
   ${cyan("-r, --recursive")}     Clone submodules
+  ${cyan("    --fast")}          Fetch via archive/raw HTTP instead of git clone
+                      (faster; or set GITPICK_FAST=1)
   ${cyan("-q, --quiet")}         Suppress all output except errors
   ${cyan("-n, --dry-run")}       Show what would be cloned without cloning
   ${cyan("-w, --watch [time]")}  Watch the repository and sync every [time]
@@ -178,6 +180,7 @@ const main = async () => {
         commit: { type: "string" },
         "auto-commit": { type: "boolean" },
         "dry-run": { type: "boolean", short: "n" },
+        fast: { type: "boolean" },
         force: { type: "boolean", short: "f" },
         help: { type: "boolean", short: "h" },
         init: { type: "boolean" },
@@ -215,11 +218,18 @@ const main = async () => {
 
     let [url, target] = positionals
 
+    // The archive/raw fast paths are opt-in: default behavior is a git clone,
+    // so existing/enterprise picks are byte-for-byte unchanged. `--fast` (or
+    // GITPICK_FAST=1 for fleet-wide opt-in) trades a git checkout's semantics
+    // (.gitattributes export-ignore, core.autocrlf) for the archive/raw speed.
+    const envFast = ["1", "true", "yes"].includes((process.env.GITPICK_FAST ?? "").toLowerCase())
+
     const options = {
       branch: values.branch,
       commit: values.commit,
       autoCommit: values["auto-commit"],
       dryRun: values["dry-run"],
+      fast: Boolean(values.fast) || envFast,
       force: values.force,
       init: values.init,
       interactive: values.interactive,

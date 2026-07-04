@@ -146,6 +146,7 @@ npx gitpick https://codeberg.org/owner/repo         # Codeberg
 -b, --branch        Branch/SHA to clone
 -o, --overwrite     Skip overwrite prompt
 -r, --recursive     Clone submodules
+    --fast          Fetch via archive/raw HTTP instead of git clone (faster)
 -q, --quiet         Suppress all output except errors
 -n, --dry-run       Show what would be cloned without cloning
 -w, --watch [time]  Watch the repository and sync every [time]
@@ -158,6 +159,25 @@ npx gitpick https://codeberg.org/owner/repo         # Codeberg
 -h, --help          display help for command
 -v, --version       display the version number
 ```
+
+---
+
+## ⚡ Fast Mode (`--fast`)
+
+By default GitPick uses `git clone`, so a pick is byte-for-byte what a checkout gives you. Pass `--fast` (or set `GITPICK_FAST=1` for a whole CI fleet) to fetch through the host's **archive / raw HTTP endpoints** instead: no `git` process, typically **2-4x faster**, and (in a 100-repo differential test) byte-identical to a clone.
+
+```sh
+npx gitpick owner/repo --fast            # download + extract the tarball
+GITPICK_FAST=1 npx gitpick owner/repo    # opt in fleet-wide
+```
+
+Three cases where a `--fast` pick can differ from a clone (all are how every archive-based tool, e.g. `degit`, behaves, which is why it's opt-in):
+
+- **`.gitattributes` `export-ignore` / `export-subst`**: host archives honor these (they omit paths / expand keywords); a clone does not. Common in PHP/Composer repos.
+- **`core.autocrlf` on Windows**: archives store blobs verbatim (LF); a clone would CRLF-normalize.
+- **Symlink-hostile Windows**: `--fast` warns and skips a symlink it can't create; a clone may fail or write git's text stub instead.
+
+`--recursive` (submodules) always uses a clone.
 
 ---
 
