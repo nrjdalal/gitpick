@@ -1,4 +1,5 @@
 import fs from "node:fs"
+import os from "node:os"
 import path from "node:path"
 
 import spawn from "@/external/nano-spawn"
@@ -113,6 +114,26 @@ export const resolveAndCheckout = async (repoDir: string, config: RefConfig): Pr
   await spawn("git", ["checkout", config.branch], { cwd: repoDir })
 }
 
+// Git for Windows defaults core.symlinks=false, so its clones stub symlinks even
+// where the OS can make real ones; probe os.tmpdir once and force them on there.
+const probeForceSymlinkArgs = (): string[] => {
+  if (process.platform !== "win32") return [] // git auto-detects symlink support
+  const probe = path.join(os.tmpdir(), `gitpick-symlink-probe-${process.pid}`)
+  try {
+    fs.rmSync(probe, { force: true })
+    fs.symlinkSync("gitpick-symlink-probe-target", probe)
+    fs.rmSync(probe, { force: true })
+    // --config persists into the clone config, so the full-clone fallback honors it
+    return ["--config", "core.symlinks=true"]
+  } catch {
+    return [] // symlink-hostile host: keep git's stub default
+  }
+}
+
+// Memoized: the probe runs once per process, on the clone path only.
+let cachedForceSymlinkArgs: string[] | undefined
+const forceSymlinkCloneArgs = (): string[] => (cachedForceSymlinkArgs ??= probeForceSymlinkArgs())
+
 // Clone `config.branch` cheaply (shallow, single-branch). If that fails — the
 // usual cause is a slash branch that got split into branch + path, so the guess
 // isn't a real ref — fall back to a full clone and re-anchor against the real
@@ -124,6 +145,7 @@ export const cloneShallowOrFull = async (
   recursive?: boolean,
 ): Promise<"shallow" | "full"> => {
   const recurse = recursive ? ["--recursive"] : []
+  const forceSymlinkArgs = forceSymlinkCloneArgs()
   try {
     await spawn("git", [
       "clone",
@@ -135,10 +157,11 @@ export const cloneShallowOrFull = async (
       "1",
       "--single-branch",
       ...recurse,
+      ...forceSymlinkArgs,
     ])
     return "shallow"
   } catch {
-    await spawn("git", ["clone", repoUrl, tempDir, ...recurse])
+    await spawn("git", ["clone", repoUrl, tempDir, ...recurse, ...forceSymlinkArgs])
     await resolveAndCheckout(tempDir, config)
     return "full"
   }
