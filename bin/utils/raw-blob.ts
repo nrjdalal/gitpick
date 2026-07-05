@@ -51,24 +51,25 @@ export const rawBlobUrl = (config: BlobConfig): string | null => {
   }
 }
 
-// Windows' rename-replace (MoveFileEx) briefly locks the destination while a
-// concurrent replace lands (or a scanner inspects the fresh file), so a losing
-// rename surfaces a transient EPERM/EACCES/EBUSY even though the target is
-// healthy — e.g. two overlapping --watch ticks picking the same file. Retry the
-// still-atomic rename over that window instead of treating it as a miss. A
-// destination that is a directory rethrows immediately: that's a genuine
-// cannot-finalize, not a lock. POSIX renames keep single-shot semantics.
+// On Windows, rename-replace (MoveFileEx) briefly locks the destination when a
+// concurrent replace lands or a scanner touches the fresh file, so a losing
+// rename hits a transient EPERM/EACCES/EBUSY (e.g. overlapping --watch ticks).
+// Retry it over that window; POSIX keeps single-shot rename semantics.
 const transientRenameCodes = new Set(["EPERM", "EACCES", "EBUSY"])
+const RENAME_ATTEMPTS = 10 // over ~0.2s, then let the caller fall back to a clone
+const RENAME_BACKOFF_CAP_MS = 50
 const renameReplacing = async (from: string, to: string): Promise<void> => {
   if (process.platform !== "win32") return fs.promises.rename(from, to)
-  for (let attempt = 0, delay = 1; ; attempt++, delay = Math.min(delay * 2, 50)) {
+  let delay = 1
+  for (let attempt = 1; ; attempt++) {
     try {
       return await fs.promises.rename(from, to)
     } catch (err: any) {
-      if (attempt >= 9 || !transientRenameCodes.has(err.code)) throw err
-      const existing = await fs.promises.lstat(to).catch(() => null)
-      if (existing?.isDirectory()) throw err
+      if (!transientRenameCodes.has(err.code) || attempt >= RENAME_ATTEMPTS) throw err
+      // A directory dest is a real failure, not a lock - check once, on first fail.
+      if (attempt === 1 && (await fs.promises.lstat(to).catch(() => null))?.isDirectory()) throw err
       await new Promise((r) => setTimeout(r, delay))
+      delay = Math.min(delay * 2, RENAME_BACKOFF_CAP_MS)
     }
   }
 }
