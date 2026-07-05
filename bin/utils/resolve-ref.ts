@@ -114,31 +114,25 @@ export const resolveAndCheckout = async (repoDir: string, config: RefConfig): Pr
   await spawn("git", ["checkout", config.branch], { cwd: repoDir })
 }
 
-// Git for Windows ships `core.symlinks=false` in its installer config, so a
-// clone materializes a repo's symlinks as plain-text stubs even on machines
-// that can create real ones (Developer Mode / elevated). Our temp clones
-// always live on os.tmpdir(): probe once whether symlinks work there and, when
-// they do, force them on for gitpick's own clones. `git clone --config`
-// persists the setting into the clone's config, so the full-clone fallback's
-// later `git checkout` honors it too. Non-Windows keeps git's auto-detection.
-let symlinkCloneArgs: string[] | undefined
-const cloneSymlinkConfig = (): string[] => {
-  if (symlinkCloneArgs === undefined) {
-    symlinkCloneArgs = []
-    if (process.platform === "win32") {
-      const probe = path.join(os.tmpdir(), `gitpick-symlink-probe-${process.pid}`)
-      try {
-        fs.rmSync(probe, { force: true })
-        fs.symlinkSync("gitpick-symlink-probe-target", probe)
-        fs.rmSync(probe, { force: true })
-        symlinkCloneArgs = ["--config", "core.symlinks=true"]
-      } catch {
-        // symlink-hostile host: keep git's default stub behavior
-      }
-    }
+// Git for Windows defaults core.symlinks=false, so its clones stub symlinks even
+// where the OS can make real ones; probe os.tmpdir once and force them on there.
+const probeForceSymlinkArgs = (): string[] => {
+  if (process.platform !== "win32") return [] // git auto-detects symlink support
+  const probe = path.join(os.tmpdir(), `gitpick-symlink-probe-${process.pid}`)
+  try {
+    fs.rmSync(probe, { force: true })
+    fs.symlinkSync("gitpick-symlink-probe-target", probe)
+    fs.rmSync(probe, { force: true })
+    // --config persists into the clone config, so the full-clone fallback honors it
+    return ["--config", "core.symlinks=true"]
+  } catch {
+    return [] // symlink-hostile host: keep git's stub default
   }
-  return symlinkCloneArgs
 }
+
+// Memoized: the probe runs once per process, on the clone path only.
+let cachedForceSymlinkArgs: string[] | undefined
+const forceSymlinkCloneArgs = (): string[] => (cachedForceSymlinkArgs ??= probeForceSymlinkArgs())
 
 // Clone `config.branch` cheaply (shallow, single-branch). If that fails — the
 // usual cause is a slash branch that got split into branch + path, so the guess
@@ -151,7 +145,7 @@ export const cloneShallowOrFull = async (
   recursive?: boolean,
 ): Promise<"shallow" | "full"> => {
   const recurse = recursive ? ["--recursive"] : []
-  const symlinks = cloneSymlinkConfig()
+  const forceSymlinkArgs = forceSymlinkCloneArgs()
   try {
     await spawn("git", [
       "clone",
@@ -163,11 +157,11 @@ export const cloneShallowOrFull = async (
       "1",
       "--single-branch",
       ...recurse,
-      ...symlinks,
+      ...forceSymlinkArgs,
     ])
     return "shallow"
   } catch {
-    await spawn("git", ["clone", repoUrl, tempDir, ...recurse, ...symlinks])
+    await spawn("git", ["clone", repoUrl, tempDir, ...recurse, ...forceSymlinkArgs])
     await resolveAndCheckout(tempDir, config)
     return "full"
   }
