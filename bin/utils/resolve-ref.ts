@@ -155,7 +155,6 @@ export const cloneShallowOrFull = async (
   try {
     await spawn("git", [
       "clone",
-      ...symlinks,
       repoUrl,
       tempDir,
       "--branch",
@@ -164,10 +163,11 @@ export const cloneShallowOrFull = async (
       "1",
       "--single-branch",
       ...recurse,
+      ...symlinks,
     ])
     return "shallow"
   } catch {
-    await spawn("git", ["clone", ...symlinks, repoUrl, tempDir, ...recurse])
+    await spawn("git", ["clone", repoUrl, tempDir, ...recurse, ...symlinks])
     await resolveAndCheckout(tempDir, config)
     return "full"
   }
