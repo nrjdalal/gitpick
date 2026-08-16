@@ -197,6 +197,8 @@ npx gitpick https://codeberg.org/owner/repo -i
 
 Navigate with arrow keys, `space` to select, `enter` to expand a folder or preview a file, `.` to select all, `c` to confirm, `q` to quit. File previews come with syntax highlighting for 38 languages. Works with GitHub, GitLab, Bitbucket, Codeberg, public and private repos.
 
+Point `-i` at a single file (`owner/repo/blob/main/path/to/file`) and there is nothing to browse - GitPick says so and picks that file directly.
+
 ### Pick from a local folder
 
 Interactive mode also works on any folder already on your machine, so you can use GitPick as a local file cherry-picker:
