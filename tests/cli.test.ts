@@ -23,8 +23,8 @@ function stripAnsi(s: string) {
   return s.replace(/\x1b\[[0-9;]*m/g, "").replace(/\x1b\]8;;[^\x07]*\x07/g, "")
 }
 
-async function run(args: string[], cwd?: string) {
-  const proc = Bun.spawn([...CLI, ...args], {
+async function run(args: string[], cwd?: string, cli: string[] = CLI) {
+  const proc = Bun.spawn([...cli, ...args], {
     stdout: "pipe",
     stderr: "pipe",
     cwd,
@@ -1914,6 +1914,114 @@ describe("interactive mode", () => {
     const { output } = await run(["--help"])
     expect(stripAnsi(output)).toContain("-i, --interactive")
   })
+
+  // A single-file pick never opens the picker (nothing reads keys), so it can
+  // run without a terminal - except `-i` refuses to start outside a TTY. This
+  // shim marks stdout as a TTY and hands over to the built CLI, which keeps the
+  // cases below portable to every OS the suite runs on, unlike a real pty.
+  const shim = join(ARTIFACTS, "tty-shim.mjs")
+  const runTTY = (args: string[]) => run(args, undefined, ["node", shim])
+
+  beforeAll(() => {
+    writeFileSync(
+      shim,
+      [
+        `import { pathToFileURL } from "node:url"`,
+        `process.stdout.isTTY = true`,
+        `await import(pathToFileURL(${JSON.stringify(resolve("dist/index.mjs"))}).href)`,
+      ].join("\n"),
+    )
+  })
+
+  // https://github.com/nrjdalal/gitpick/issues/75 - `-i` used to scandir the
+  // picked file itself and die with ENOTDIR before anything was copied.
+  it("picks a blob URL as a file instead of scanning it", async () => {
+    const t = target()
+    const { output, exitCode } = await runTTY([
+      "nrjdalal/picksuite/blob/main/folder/nested.txt",
+      t,
+      "-i",
+    ])
+    const out = stripAnsi(output)
+    expect(exitCode).toBe(0)
+    expect(out).not.toContain("ENOTDIR")
+    expect(out).toContain("folder/nested.txt is a single file")
+    expect(out).toContain("Copied 1 file")
+    expect(readFileSync(join(t, "nested.txt"), "utf8").trim()).toBe("nested file")
+  }, 30000)
+
+  // Bitbucket/Codeberg `src/...` URLs (and a hand-written `tree/...` one) name a
+  // file with the same URL shape as a folder, so the file is only discovered on
+  // the checkout - the crash was identical there.
+  it("picks a tree URL that resolves to a file", async () => {
+    const t = join(target(), "file.txt")
+    const { output, exitCode } = await runTTY(["nrjdalal/picksuite/tree/main/file.txt", t, "-i"])
+    const out = stripAnsi(output)
+    expect(exitCode).toBe(0)
+    expect(out).not.toContain("ENOTDIR")
+    expect(out).toContain("file.txt is a single file")
+    expect(readFileSync(t, "utf8").trim()).toBe("root file")
+  }, 30000)
+
+  it("--dry-run on a single file copies nothing", async () => {
+    const t = target()
+    const { output, exitCode } = await runTTY([
+      "nrjdalal/picksuite/blob/main/file.txt",
+      t,
+      "-i",
+      "--dry-run",
+    ])
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output)).toContain("file.txt is a single file")
+    expect(existsSync(t)).toBe(false)
+  }, 30000)
+
+  it("refuses to overwrite an existing file, then overwrites with -o", async () => {
+    const t = target()
+    mkdirSync(t, { recursive: true })
+    writeFileSync(join(t, "file.txt"), "keep me")
+
+    const first = await runTTY(["nrjdalal/picksuite/blob/main/file.txt", t, "-i"])
+    expect(first.exitCode).toBe(1)
+    expect(stripAnsi(first.output)).toContain("The target file exists")
+    expect(readFileSync(join(t, "file.txt"), "utf8")).toBe("keep me")
+
+    const second = await runTTY(["nrjdalal/picksuite/blob/main/file.txt", t, "-i", "-o"])
+    expect(second.exitCode).toBe(0)
+    expect(readFileSync(join(t, "file.txt"), "utf8").trim()).toBe("root file")
+
+    writeFileSync(join(t, "file.txt"), "keep me")
+    const third = await runTTY(["nrjdalal/picksuite/blob/main/file.txt", t, "-i", "-f"])
+    expect(third.exitCode).toBe(0)
+    expect(readFileSync(join(t, "file.txt"), "utf8").trim()).toBe("root file")
+  }, 90000)
+
+  it("--tree on a single file prints just the file", async () => {
+    const t = target()
+    const { output, exitCode } = await runTTY([
+      "nrjdalal/picksuite/blob/main/file.txt",
+      t,
+      "-i",
+      "--tree",
+    ])
+    const out = stripAnsi(output)
+    expect(exitCode).toBe(0)
+    expect(out).toContain(TREE_BLOB_FILE)
+    expect(out).not.toContain("is a single file")
+  }, 30000)
+
+  it("-q on a single file prints nothing", async () => {
+    const t = target()
+    const { output, exitCode } = await runTTY([
+      "nrjdalal/picksuite/blob/main/file.txt",
+      t,
+      "-i",
+      "-q",
+    ])
+    expect(exitCode).toBe(0)
+    expect(stripAnsi(output).trim()).toBe("")
+    expect(readFileSync(join(t, "file.txt"), "utf8").trim()).toBe("root file")
+  }, 30000)
 })
 
 // ---------------------------------------------------------------------------

@@ -449,7 +449,7 @@ const main = async () => {
       process.exit(0)
     }
 
-    const silent = options.tree || options.quiet
+    const silent = Boolean(options.tree || options.quiet)
 
     if (!silent) {
       console.log(
@@ -492,17 +492,32 @@ const main = async () => {
 
     const targetPath = path.resolve(config.target)
 
+    const renderTree = async (clonedPath: string) => {
+      if (fs.statSync(clonedPath).isDirectory()) {
+        process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
+        await printTree(clonedPath)
+      } else {
+        process.stdout.write(`${bold(cyan(displayPath(path.dirname(targetPath))))}\n`)
+        process.stdout.write(`└── ${path.basename(targetPath)}\n`)
+      }
+      process.stdout.write("\n")
+    }
+
     if (options.interactive) {
       if (!process.stdout.isTTY) {
         throw new Error("Interactive mode requires a TTY")
       }
+
+      options.overwrite = options.overwrite || options.force
 
       // Shallow clone to temp first
       const tempDir = path.resolve(os.tmpdir(), tempName("gitpick-interactive-"))
       const repoUrl = `https://${config.token ? config.token + "@" : ""}${config.host}/${config.owner}/${config.repository}.git`
 
       const s = spinner()
-      s.start(`Fetching ${config.owner}/${config.repository}...`)
+      // `success()` no-ops when the spinner never started, so gating the start
+      // alone keeps -q/--tree silent.
+      if (!silent) s.start(`Fetching ${config.owner}/${config.repository}...`)
 
       const strategy = await cloneShallowOrFull(repoUrl, tempDir, config, options.recursive)
       // A tag can shadow a longer branch on the successful path; re-anchor if the
@@ -511,6 +526,47 @@ const main = async () => {
 
       // Walk local tree to build entries (scoped to config.path if set)
       const walkRoot = config.path ? path.join(tempDir, config.path) : tempDir
+
+      // A single-file pick has nothing to browse, and reading it as a directory
+      // is what threw ENOTDIR. Only the checkout can tell: bitbucket/codeberg
+      // `src/` URLs name files and folders alike, so `tree:` is no proof either.
+      if (!(await fs.promises.stat(walkRoot)).isDirectory()) {
+        s.success(`Fetched ${config.owner}/${config.repository} (1 entry)`)
+        if (!silent) {
+          console.log(
+            yellow(
+              `\nNote: ${config.path} is a single file - ${cyan("-i")} has nothing to browse.`,
+            ),
+          )
+        }
+
+        if (options.dryRun) {
+          if (options.tree) await renderTree(walkRoot)
+          await fs.promises.rm(tempDir, { recursive: true, force: true })
+          if (!silent) console.log()
+          notifyUpdate(version, silent)
+          process.exit(0)
+        }
+
+        if (fs.existsSync(targetPath) && !options.overwrite) {
+          await fs.promises.rm(tempDir, { recursive: true, force: true })
+          console.log(
+            `${yellow(`\nWarning: The target file exists at ${green(config.target)}. Use ${cyan("-f")} or ${cyan("-o")} to overwrite.`)}`,
+          )
+          process.exit(1)
+        }
+
+        await fs.promises.mkdir(path.dirname(targetPath), { recursive: true })
+        await fs.promises.copyFile(walkRoot, targetPath)
+        await fs.promises.rm(tempDir, { recursive: true, force: true })
+
+        if (!silent) console.log(green(`✔ Copied 1 file to ${displayPath(targetPath)}`))
+        await initGitRepo(targetPath, options, [path.basename(targetPath)])
+        if (options.tree) await renderTree(targetPath)
+        notifyUpdate(version, silent)
+        process.exit(0)
+      }
+
       const entries: TreeEntry[] = []
       async function walkDir(dir: string, rel: string) {
         const items = await fs.promises.readdir(dir, { withFileTypes: true })
@@ -616,17 +672,6 @@ const main = async () => {
       }
       notifyUpdate(version, false)
       process.exit(0)
-    }
-
-    const renderTree = async (clonedPath: string) => {
-      if (fs.statSync(clonedPath).isDirectory()) {
-        process.stdout.write(`${bold(cyan(displayPath(targetPath)))}\n`)
-        await printTree(clonedPath)
-      } else {
-        process.stdout.write(`${bold(cyan(displayPath(path.dirname(targetPath))))}\n`)
-        process.stdout.write(`└── ${path.basename(targetPath)}\n`)
-      }
-      process.stdout.write("\n")
     }
 
     if (options.dryRun) {
