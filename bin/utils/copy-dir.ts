@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
+import { yellow } from "@/external/yoctocolors"
 import { type IgnoreMatcher, loadIgnore } from "@/utils/gitpick-ignore"
 
 export type CopyContext = {
@@ -46,8 +47,19 @@ export const copyDir = async (
       const link = await fs.promises.readlink(srcPath)
       // remove any existing entry first so symlinks overwrite like copyFile does; symlink() throws EEXIST otherwise
       await fs.promises.rm(destPath, { force: true, recursive: true })
-      await fs.promises.symlink(link, destPath)
-      files.push(path.relative(base, destPath))
+      try {
+        await fs.promises.symlink(link, destPath)
+        files.push(path.relative(base, destPath))
+      } catch (err: any) {
+        // A target on a symlink-hostile mount (e.g. a /mnt DrvFs path) can reject
+        // symlink(); warn and skip rather than aborting the whole pick. Same shape
+        // as the interactive copy path's handler in bin/index.ts.
+        console.log(
+          yellow(
+            `  Warning: failed to copy symlink ${path.relative(base, destPath)}: ${err.message}`,
+          ),
+        )
+      }
     } else {
       await fs.promises.copyFile(srcPath, destPath)
       files.push(path.relative(base, destPath))
