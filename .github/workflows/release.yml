@@ -54,8 +54,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: lts/*
+          # 24 bundles npm >= 11.5.1, the floor for npm Trusted Publishing
+          node-version: 24
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -92,7 +94,10 @@ jobs:
           bunx json -I -f package.json -e 'delete this.scripts'
           bunx json -I -f package.json -e 'delete this.commitlint'
           bunx json -I -f package.json -e 'delete this.devDependencies'
-          npm publish --provenance --access public --no-git-checks --tag $TAG
+          # Auth is npm Trusted Publishing (OIDC): the registry trusts this
+          # repo+workflow via the id-token permission; no NPM_TOKEN secret, and
+          # provenance is generated natively (no --provenance flag needed).
+          npm publish --access public --no-git-checks --tag $TAG
 
           PACKAGE_URL="https://www.npmjs.com/package/$PACKAGE_NAME/v/$RELEASE_VERSION"
           if [[ $GITHUB_EVENT_NAME == 'issue_comment' ]]; then
@@ -109,5 +114,3 @@ jobs:
               -d "{\"state\": \"success\", \"context\": \"Package released\", \"description\": \"$PACKAGE_NAME@$RELEASE_VERSION\", \"target_url\": \"$PACKAGE_URL\"}" >/dev/null \
               && echo "🟢 Release status updated!" || echo "🔴 Failed to update release status."
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
